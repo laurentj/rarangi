@@ -14,11 +14,13 @@
 class jDocConfig {
     /**
      * list of file which won't be parsed
+     * @var array
      */
     protected $excludedFiles = array();
 
     /**
      * list of regular expression to test name of files which won't be parsed
+     * @var array
      */
     protected $excludedFilesReg = array();
 

@@ -8,13 +8,26 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
+/**
+ * main class : it launches the parsing of files
+ */
 class jDoc {
 
-    public $config;
-    protected $currentFile;
-    protected $currentLine;
+    public $config = null;
+    public $originalSourcePath;
+
+
+    protected $currentFile = '';
+    protected $currentLine = 0;
+    protected $fileList=array();
+    protected $classList=array();
+    protected $functionList=array();
+    protected $globalVarList=array();
 
     protected function __construct(){ }
+
+
+// static methods
 
     static public function getInstance(){
         static $doc=null;
@@ -30,14 +43,16 @@ class jDoc {
     static public function incLineS($str) { $d = self::getInstance(); $d->currentLine+= substr_count($str, "\n"); }
 
 
+// non static methods
 
     public function setConfig($conf){
         $this->config = $conf;
     }
 
-
-    public $originalSourcePath;
-
+    /**
+     * main method. launches the parsing
+     * @param string $sourcepath  the path of the main directory which contains sources
+     */
     public function run($sourcepath){
         
         $sourcepath = realpath($sourcepath);
@@ -45,9 +60,13 @@ class jDoc {
         if($sourcepath !='')
             $this->readFiles(new RecursiveDirectoryIterator($sourcepath));
         else
-            die ("unknow path\n");
+            throw new Exception("unknow path");
     }
 
+    /**
+     * read all files in a directory
+     * @param RecursiveDirectoryIterator $rdi  an iterator on a directory content
+     */
     protected function readFiles($rdi) {
         if (!is_object($rdi))
             return;
@@ -73,26 +92,27 @@ class jDoc {
         }
     }
 
-
+    /**
+     * parse a php file
+     * @param string $filepath  the path of the file
+     * @param string $filename  the file name
+     */
     protected function addPhpFile($filepath, $filename){
         $content = file_get_contents($filepath);
-    
+
         $tokens = new ArrayObject(token_get_all($content));
         $tokiter = $tokens->getIterator();
-    
+
         $filepath=substr($filepath, strlen($this->fullSourcePath)+1);
 
         $this->fileList[$filepath] = new jFileInfo($filepath, $filename);
-    
+
         $fileparser = new jFileParser( $tokiter, $this->fileList[$filepath]);
-    
+
         $fileparser->parse();
     }
 
-    protected $fileList=array();
-    protected $classList=array();
-    protected $functionList=array();
-    protected $globalVarList=array();
+
 
     public function getClassInfo($classname){
 

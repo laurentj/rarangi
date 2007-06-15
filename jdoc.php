@@ -18,7 +18,7 @@ require_once($dirnamefile.'jDoc.class.php');
 require_once($dirnamefile.'jLogger.class.php');
 
 
-
+//------ read all options in the command line
 $sws = array('-v'=>false, '-x'=>1);
 $params = array('sourcepath'=>true);
 
@@ -28,7 +28,7 @@ try{
     die($e->getMessage());
 }
 
-
+//------- setup the configuration
 $gConfig = new jDocConfig();
 if(isset($switches['-x'])){
     $gConfig->setExcludedFiles(explode(',',$switches['-x']));
@@ -36,25 +36,27 @@ if(isset($switches['-x'])){
     $gConfig->setExcludedFiles(array('.svn','CVS'));
 }
 
-
 jLogger::addLogger(new jInMemoryLogger());
 if(isset($switches['-v'])){
     jLogger::addLogger(new jConsoleLogger());
 }
 
+
+//------- prepare and launch the parsing
+
 $docparser = jDoc::getInstance();
 $docparser->setConfig($gConfig);
-$docparser->run($parameters['sourcepath']);
 
-
-
-/**
- *
- */
-class jClassDiagram {
-
-
+try {
+    $docparser->run($parameters['sourcepath']);
+}catch(Exception $e){
+    echo "\n ERROR !!!!\n-->", $e->getMessage();
 }
+
+
+//------- process results
+
+// @todo
 
 
 

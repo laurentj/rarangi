@@ -13,7 +13,7 @@
 support des mots clés
 
 
-communs (utilisable dans toutes les sections, et si present pour fichier, sont hérités dans les def du fichiers
+communs (utilisable dans toutes les sections, et si present pour fichier, sont hérités dans les def du fichiers)
     author       name <email>
     contributor  name <email>
     copyright   info
@@ -68,7 +68,7 @@ variable globale
 /**
  * 
  */
-abstract class jBaseInfo {
+abstract class jBaseDescriptor {
     /**
      *
      * @var string
@@ -107,7 +107,7 @@ abstract class jBaseInfo {
      *
      * @var 
      */
-    public $example;    //     filename (inclus exemple indiqu� dans le fichier)
+    public $example;    //     filename (inclus exemple indiqué dans le fichier)
     /**
      *
      * @var 
@@ -155,8 +155,35 @@ abstract class jBaseInfo {
     public $todo;    //description
 
 
+    /**
+     * the object is initialize with all informations of an other 
+     * @param jBaseDescriptor $desc a descriptor
+     */
+    public function inheritFrom($desc){
+        $this->shortDescription = $desc->shortDescription ;
+        $this->description = $desc->description ;
+        $this->author = $desc->author ;
+        $this->contributor = $desc->contributor ;
+        $this->copyright = $desc->copyright ;
+        $this->deprecated = $desc->deprecated ;
+        $this->example = $desc->example ;
+        $this->ignore = $desc->ignore ;
+        $this->internal = $desc->internal ;
+        $this->internaluse = $desc->internaluse ;
+        $this->link = $desc->link ;
+        $this->see = $desc->see ;
+        $this->uses = $desc->uses ;
+        $this->since = $desc->since ;
+        $this->changelog = $desc->changelog ;
+        $this->todo = $desc->todo ;
+    }
+
+    /**
+     * read informations from a phpdoc tag and save them
+     * @param string $docComment  the phpdoc comment
+     */
     public function initFromPhpDoc($docComment){
-        $docComment = substr($docComment , 2, -1); // on enl�ve les /* du debut et / de la fin
+        $docComment = substr($docComment , 2, -1); // on enlève les /* du debut et / de la fin
         $lignes=preg_split("/\015\012|\015|\012/",$docComment);
         $currentTag='shortDescription';
         foreach($lignes as $ligne){
@@ -181,7 +208,7 @@ abstract class jBaseInfo {
 /**
  *
  */
-class jClassInfo extends jBaseInfo {
+class jClassDescriptor extends jBaseDescriptor {
 
 
 }
@@ -189,7 +216,7 @@ class jClassInfo extends jBaseInfo {
 /**
  *
  */
-class jFileInfo extends jBaseInfo  {
+class jFileDescriptor extends jBaseDescriptor  {
     public $filepath;
     public $filename;
     function __construct($fp, $fn){
@@ -201,7 +228,7 @@ class jFileInfo extends jBaseInfo  {
 /**
  *
  */
-class jFunctionInfo  extends jBaseInfo {
+class jFunctionDescriptor  extends jBaseDescriptor {
 
 
 }
