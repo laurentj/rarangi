@@ -1,24 +1,24 @@
 <?php
 /**
 * @package     jDoc
-* @author      Jouanneau Laurent
+* @author      Laurent Jouanneau
 * @contributor
-* @copyright   2006 Jouanneau laurent
+* @copyright   2006-2007 Laurent Jouanneau
 * @link        http://www.jelix.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 /*
 
 
-support des mots clés
+support des mots clÃ©s
 
 
-communs (utilisable dans toutes les sections, et si present pour fichier, sont hérités dans les def du fichiers
+communs (utilisable dans toutes les sections, et si present pour fichier, sont hÃ©ritÃ©s dans les def du fichiers
     author       name <email>
     contributor  name <email>
     copyright   info
     deprecated  sinceversion  info
-    example     filename (inclus exemple indiqué dans le fichier)
+    example     filename (inclus exemple indiquÃ© dans le fichier)
     ignore      (ne documente pas le truc)
     internal    documentation interne
     internaluse ne documenter que dans la doc dev
@@ -33,8 +33,8 @@ communs (utilisable dans toutes les sections, et si present pour fichier, sont h
 
 fichier
     licence  lien libelle
-    package       (classes, fonctions, variables en herite si non present à leur niveau)
-    subpackage    (classes, fonctions, variables en herite si non present à leur niveau)
+    package       (classes, fonctions, variables en herite si non present Ã  leur niveau)
+    subpackage    (classes, fonctions, variables en herite si non present Ã  leur niveau)
 
 classes
     package
@@ -46,13 +46,13 @@ fonctions
     subpackage
     param  datatype $param description
     return datatype description
-    staticvar   datatype $name variable statique utilisée à l'interieur de la fonction
+    staticvar   datatype $name variable statique utilisÃ©e Ã  l'interieur de la fonction
 
 methodes
     global  datatype $varname
     param  datatype $param description
     return datatype description
-    staticvar   datatype $name variable statique utilisée à l'interieur de la fonction
+    staticvar   datatype $name variable statique utilisÃ©e Ã  l'interieur de la fonction
 
 propriete
     var  datatype description
@@ -107,7 +107,7 @@ abstract class jBaseInfo {
      *
      * @var 
      */
-    public $example;    //     filename (inclus exemple indiqué dans le fichier)
+    public $example;    //     filename (inclus exemple indiquï¿½ dans le fichier)
     /**
      *
      * @var 
@@ -156,7 +156,7 @@ abstract class jBaseInfo {
 
 
     public function initFromPhpDoc($docComment){
-        $docComment = substr($docComment , 2, -1); // on enlève les /* du debut et / de la fin
+        $docComment = substr($docComment , 2, -1); // on enlï¿½ve les /* du debut et / de la fin
         $lignes=preg_split("/\015\012|\015|\012/",$docComment);
         $currentTag='shortDescription';
         foreach($lignes as $ligne){

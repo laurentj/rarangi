@@ -1,9 +1,9 @@
 <?php
 /**
 * @package     jDoc
-* @author      Jouanneau Laurent
+* @author      Laurent Jouanneau
 * @contributor
-* @copyright   2006 Jouanneau laurent
+* @copyright   2006-2007 Laurent Jouanneau
 * @link        http://www.jelix.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
@@ -21,7 +21,7 @@ abstract class jBaseParser {
     abstract public function parse();
 
     /**
-     * place le curseur aprés le prochain token '<?php'
+     * set the cursor after the next "<?php" token
      */
     protected function toNextPhp(){
         while($this->iterator->valid()) {
@@ -45,7 +45,7 @@ jLogger::dumpTok($tok);
     }
 
     /**
-     * place le curseur jusqu'au prochain token non whitespace
+     * set the cursor on the next non whitespace token
      */
     protected function skipBlank(){
         while($this->iterator->valid()) {
