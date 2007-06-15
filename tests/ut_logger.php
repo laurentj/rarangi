@@ -11,7 +11,7 @@
 
 class ut_logger extends UnitTestCase {
     
-    function testCreatingNewFile() {
+    function testFirst() {
         $this->pass('ok');
     }
 }

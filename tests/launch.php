@@ -12,7 +12,7 @@ require_once('simpletest/unit_tester.php');
 require_once('simpletest/reporter.php');
 
 $test = &new GroupTest('All tests');
-$test->addTestFile('ut_logger.php');
+$test->addTestFile('ut_config.php');
 
 $test->run(new TextReporter());
 ?>
