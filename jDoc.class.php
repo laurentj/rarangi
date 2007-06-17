@@ -125,13 +125,12 @@ class jDoc {
         $content = file_get_contents($filepath);
 
         $tokens = new ArrayObject(token_get_all($content));
-        $tokiter = $tokens->getIterator();
 
         $filepath=substr($filepath, strlen($this->fullSourcePath)+1);
 
         $this->fileList[$filepath] = new jFileDescriptor($filepath, $filename);
 
-        $fileparser = new jFileParser( $tokiter, $this->fileList[$filepath]);
+        $fileparser = new jFileParser( $tokens->getIterator(), $this->fileList[$filepath]);
 
         $fileparser->parse();
     }

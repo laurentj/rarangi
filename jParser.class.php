@@ -74,6 +74,19 @@ abstract class jBaseParser {
         }
     }
 
+    /**
+     * skip a PHP bloc
+     */
+    protected function skipPhpBlock(){
+        if(!$this->iterator->valid())
+            return;
+        $this->iterator->next();
+        if(!$this->iterator->valid())
+            return;
+        
+
+    }
+
 }
 
 

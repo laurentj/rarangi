@@ -68,7 +68,7 @@ variable globale
 /**
  * 
  */
-abstract class jBaseDescriptor {
+class jBaseDescriptor {
     /**
      *
      * @var string
@@ -156,7 +156,7 @@ abstract class jBaseDescriptor {
 
 
     /**
-     * the object is initialize with all informations of an other 
+     * the object is initialized with all informations of an other 
      * @param jBaseDescriptor $desc a descriptor
      */
     public function inheritFrom($desc){
@@ -203,34 +203,95 @@ abstract class jBaseDescriptor {
 
 
 
-
-
-/**
- *
- */
-class jClassDescriptor extends jBaseDescriptor {
-
-
-}
-
 /**
  *
  */
 class jFileDescriptor extends jBaseDescriptor  {
     public $filepath;
     public $filename;
+    public $licence; // libelle, lien
+    public $package;
+    public $subpackage;
+    
     function __construct($fp, $fn){
         $this->filepath = $fp;
         $this->filename = $fn;
     }
 }
 
+
+/**
+ *
+ */
+class jClassDescriptor extends jBaseDescriptor {
+    public $package;
+    public $subpackage;
+    public $name;
+    public $inheritsFrom;
+    public $interfaces;
+
+}
+
+/**
+ *
+ */
+class jInterfaceDescriptor extends jBaseDescriptor {
+    public $package;
+    public $subpackage;
+    public $name;
+    public $inheritsFrom;
+}
+
+
+
+/**
+ *
+ */
+class jPropertyDescriptor extends jBaseDescriptor {
+    public $datatype;
+
+}
+
+/**
+ *
+ */
+class jMethodDescriptor  extends jBaseDescriptor {
+    public $usedGlobalsVars;
+    public $parameters;
+    public $return;
+    public $staticVars;
+}
+
+
 /**
  *
  */
 class jFunctionDescriptor  extends jBaseDescriptor {
+    public $package;
+    public $subpackage;
+    public $usedGlobalsVars;
+    public $parameters;
+    public $return;
+    public $staticVars;
+}
 
 
+/**
+ *
+ */
+class jGlobalVariableDescriptor  extends jBaseDescriptor {
+    public $package;
+    public $subpackage;
+    public $datatype;
+}
+
+/**
+ *
+ */
+class jConstantDescriptor  extends jBaseDescriptor {
+    public $package;
+    public $subpackage;
+    public $value;
 }
 
 
