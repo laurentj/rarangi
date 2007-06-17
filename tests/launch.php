@@ -12,9 +12,19 @@ require_once('simpletest/unit_tester.php');
 require_once('simpletest/reporter.php');
 require_once('simpletest_addons/junittestcase.class.php');
 
+
+class myTextReporter extends TextReporter {
+
+   function paintMessage($message) {
+        echo $message,"\n";
+   }
+}
+
+
+
 $test = &new GroupTest('All tests');
 $test->addTestFile('ut_config.php');
 $test->addTestFile('ut_parser.php');
 
-$test->run(new TextReporter());
+$test->run(new myTextReporter());
 ?>

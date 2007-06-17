@@ -129,7 +129,7 @@ class jDoc {
 
         $filepath=substr($filepath, strlen($this->fullSourcePath)+1);
 
-        $this->fileList[$filepath] = new jFileInfo($filepath, $filename);
+        $this->fileList[$filepath] = new jFileDescriptor($filepath, $filename);
 
         $fileparser = new jFileParser( $tokiter, $this->fileList[$filepath]);
 

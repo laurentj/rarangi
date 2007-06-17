@@ -9,17 +9,20 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
+include( '../jDoc.class.php');
 include( '../jParser.class.php');
 
 
 class dummyParser extends jBaseParser {
 
-    public  function toNextPhp2(){
-       return $this->toNextPhp();
+    public function parse(){}
+
+    public  function toNextPhpSection2(){
+       return $this->toNextPhpSection();
     }
     
-    public function skipBlank2(){
-        return $this->skipBlank();
+    public function toNextPhpToken2(){
+        return $this->toNextPhpToken();
     }
     
     public function getIterator(){
@@ -29,25 +32,78 @@ class dummyParser extends jBaseParser {
 }
 
 
-class ut_parser extends UnitTestCase {
+class ut_parser extends jUnitTestCase {
     
-    function testSimpleNextPhp() {
+    function testNextPhpSimple() {
         $content = ' <?php $a=     2; ?>';
         $tokens = new ArrayObject(token_get_all($content));
-        $tokiter = $tokens->getIterator();
-        
+        $tokeniter = $tokens->getIterator();
+
+        //$this->sendMessage("tok=". token_name(305));
         $parser = new dummyParser($tokeniter);
         
-        $parser->toNextPhp();
-        $this->assertIdentical($this->iterator->current() , array(T_VARIABLE, '$a'));
+        $parser->toNextPhpSection2();
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() , array(T_VARIABLE, '$a'));
         
-        $parser->skipBlank();
-        $this->assertIdentical($this->iterator->current() , '=');
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() , '=');
         
-        $parser->skipBlank();
-        $this->assertIdentical($this->iterator->current() , '2');
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() , array(T_LNUMBER, '2'));
+
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() , ';');
         
-        $this->pass('ok');
+        $parser->toNextPhpToken2();
+        $this->assertFalse($tokeniter->valid());
+        
+
     }
+
+    function testNextPhp2() {
+        $content = ' foo bar <?php $a=     2; ?> <a href=""> </a> <?php public function aaa() ?> oooo ';
+        $tokens = new ArrayObject(token_get_all($content));
+        $tokeniter = $tokens->getIterator();
+
+        //$this->sendMessage("tok=". token_name(305));
+        $parser = new dummyParser($tokeniter);
+        
+        $parser->toNextPhpSection2();
+        $this->assertIdentical($tokeniter->current() , array(T_OPEN_TAG, '<?php '));
+
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() , array(T_VARIABLE, '$a'));
+        
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() , '=');
+        
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() , array(T_LNUMBER, '2'));
+
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() , ';');
+        
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() ,  array(T_PUBLIC, 'public'));
+
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() ,  array(T_FUNCTION, 'function'));
+
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() ,  array(T_STRING, 'aaa'));
+
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() ,  '(');
+
+        $parser->toNextPhpToken2();
+        $this->assertIdentical($tokeniter->current() ,  ')');
+
+        $parser->toNextPhpToken2();
+        $this->assertFalse($tokeniter->valid());
+    }
+
+
+
 }
 ?>
