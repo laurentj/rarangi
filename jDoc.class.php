@@ -28,7 +28,9 @@ class jDoc {
 
 
 // static methods
-
+    /**
+     * only one instance of jDoc is allowed; this method returns the instance
+     */
     static public function getInstance(){
         static $doc=null;
         if($doc === null){
@@ -37,10 +39,32 @@ class jDoc {
         return $doc;
     }
 
+    /**
+     * @return string the current filename
+     */
     static public function currentFile() { $d = self::getInstance(); return $d->currentFile; }
+    
+    /**
+     * @return integer the current line which is parsed
+     */
     static public function currentLine() { $d = self::getInstance(); return $d->currentLine; }
-    static public function incLine($nb) { $d = self::getInstance(); $d->currentLine+= $nb; }
-    static public function incLineS($str) { $d = self::getInstance(); $d->currentLine+= substr_count($str, "\n"); }
+    
+    /**
+     * increment the line counter by the given number
+     */
+    static public function incLine($nb) { 
+        $d = self::getInstance(); 
+        $d->currentLine+= $nb;
+    }
+    
+    /**
+     * increment the line counter by counting the number
+     * of break line which are in the given string
+     */
+    static public function incLineS($str) { 
+        $d = self::getInstance(); 
+        $d->currentLine+= substr_count($str, "\n"); 
+    }
 
 
 // non static methods

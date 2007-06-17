@@ -10,9 +10,11 @@
 */
 require_once('simpletest/unit_tester.php');
 require_once('simpletest/reporter.php');
+require_once('simpletest_addons/junittestcase.class.php');
 
 $test = &new GroupTest('All tests');
 $test->addTestFile('ut_config.php');
+$test->addTestFile('ut_parser.php');
 
 $test->run(new TextReporter());
 ?>

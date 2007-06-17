@@ -8,7 +8,7 @@
 * @link        http://www.jelix.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
-include('simpletest_addons/junittestcase.class.php');
+
 include( '../jDocConfig.class.php');
 
 class docConfigTest extends jDocConfig {
