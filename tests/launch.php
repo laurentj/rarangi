@@ -24,7 +24,7 @@ class myTextReporter extends TextReporter {
 
 $test = &new GroupTest('All tests');
 $test->addTestFile('ut_config.php');
-$test->addTestFile('ut_parser.php');
+$test->addTestFile('ut_parser_base.php');
 
 $test->run(new myTextReporter());
 ?>

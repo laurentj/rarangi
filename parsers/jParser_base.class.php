@@ -9,7 +9,7 @@
 */
 
 
-abstract class jBaseParser {
+abstract class jParser_base {
     protected $iterator;
     protected $manager;
 
@@ -28,7 +28,6 @@ abstract class jBaseParser {
             $tok = $this->iterator->current();
 
             if(is_array($tok)){
-                
                 if($tok[0] == T_OPEN_TAG){
                     jDoc::incLineS($tok[1]); //the token include next \n some time
                     return;
@@ -45,10 +44,11 @@ abstract class jBaseParser {
 
     /**
      * set the cursor on the next non whitespace token
+     * @return boolean|array|string  return the next token found, or false if there isn't anymore token
      */
     protected function toNextPhpToken(){
         if(!$this->iterator->valid())
-            return;
+            return false;
         $this->iterator->next();
 
         while($this->iterator->valid()) {
@@ -61,17 +61,18 @@ abstract class jBaseParser {
                     $this->iterator->next();
                     $this->toNextPhpSection();
                     if(!$this->iterator->valid())
-                        return;
+                        return false;
                 }else
-                    return;
+                    return $tok;
             }elseif(!preg_match('/^\s*$/',$tok)){
                 jDoc::incLineS($tok);
-                return;
+                return $tok;
             }else{
                 jDoc::incLineS($tok);
             }
             $this->iterator->next();
         }
+        return false;
     }
 
     /**
@@ -83,41 +84,8 @@ abstract class jBaseParser {
         $this->iterator->next();
         if(!$this->iterator->valid())
             return;
-        
-
     }
 
 }
-
-
-class jFileParser extends jBaseParser {
-    protected $fileinfo;
-
-    function __construct( $it, $fileinfo){
-        $this->fileinfo = $fileinfo;
-        parent::__construct( $it);
-    }
-
-    public function parse(){
-        $this->toNextPhpSection();
-        $this->toNextPhpToken();
-        if(!$this->iterator->valid()){
-            jLogger::notice(" file is empty");
-            return;
-        }
-
-        $tok = $this->iterator->current();
-        if(!is_array($tok)){
-            jLogger::warning("The file is not beginning by a doc comment !");
-        }elseif($tok[0] != T_DOC_COMMENT){
-            jLogger::warning("The file is not beginning by a doc comment (2) !");
-        }else{
-            $this->fileinfo->initFromPhpDoc($tok[0]);
-        }
-        jLogger::message($this->fileinfo->filepath. " is ok \n");
-    }
-
-}
-
 
 ?>

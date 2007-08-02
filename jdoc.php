@@ -9,13 +9,13 @@
 */
 
 $dirnamefile = dirname(__FILE__).'/';
-require_once($dirnamefile.'lib/jCmdUtils.class.php');
-require_once($dirnamefile.'lib/jBuildUtils.lib.php');
-require_once($dirnamefile.'jDocConfig.class.php');
-require_once($dirnamefile.'jParser.class.php');
-require_once($dirnamefile.'jInfos.class.php');
-require_once($dirnamefile.'jDoc.class.php');
-require_once($dirnamefile.'jLogger.class.php');
+require($dirnamefile.'lib/jCmdUtils.class.php');
+require($dirnamefile.'lib/jBuildUtils.lib.php');
+require($dirnamefile.'jDocConfig.class.php');
+require($dirnamefile.'parsers/jFileParser.class.php');
+require($dirnamefile.'jInfos.class.php');
+require($dirnamefile.'jDoc.class.php');
+require($dirnamefile.'jLogger.class.php');
 
 
 //------ read all options in the command line
