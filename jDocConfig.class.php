@@ -24,6 +24,23 @@ class jDocConfig {
      */
     protected $excludedFilesReg = array();
 
+    protected $storage;
+
+    function __construct($configfile='') {
+        if ($configfile != '') {
+            $config = parse_ini_file($configfile,true);
+            if(isset($config['excluded_files']))
+                $this->setExcludedFiles(explode(',',$config['excluded_files']));
+            if(isset($config['storage']))
+                $this->storage = $config['storage'];
+        }
+    }
+
+    function getDbConfig() {
+        return $this->storage;
+    }
+
+
     /**
      * add list of file names which won't be parsed
      *

@@ -19,8 +19,8 @@ require($dirnamefile.'jLogger.class.php');
 
 
 //------ read all options in the command line
-$sws = array('-v'=>false, '-x'=>1);
-$params = array('sourcepath'=>true);
+$sws = array('-v'=>false, '-x'=>1, '-c'=>1);
+$params = array('projectid'=>true,'sourcepath'=>true);
 
 try{
     list($switches, $parameters) = jCmdUtils::getOptionsAndParams($_SERVER['argv'], $sws, $params);
@@ -29,11 +29,15 @@ try{
 }
 
 //------- setup the configuration
-$gConfig = new jDocConfig();
-if(isset($switches['-x'])){
+if(isset($switches['-c']))
+    $gConfig = new jDocConfig($switches['-c']);
+else
+    $gConfig = new jDocConfig();
+    
+if(isset($switches['-x'])) {
     $gConfig->setExcludedFiles(explode(',',$switches['-x']));
 }else{
-    $gConfig->setExcludedFiles(array('.svn','CVS'));
+    $gConfig->setExcludedFiles(array('.svn','CVS', '.hg'));
 }
 
 jLogger::addLogger(new jInMemoryLogger());
