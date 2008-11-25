@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dao xmlns="http://jelix.org/ns/dao/1.0">
+    <datasources>
+        <primarytable name="projects" realname="projects" primarykey="id" />
+    </datasources>
+    <record>
+        <property name="id" fieldname="id" datatype="autoincrement"/>
+        <property name="name" fieldname="name" datatype="string" required="true" maxlength="50"/>
+    </record>
+    <factory>
+        <method name="getByName" type="selectfirst">
+            <parameter name="name" />
+            <conditions>
+                <eq property="name" expr="$name" />
+            </conditions>
+        </method>
+    </factory>
+</dao>

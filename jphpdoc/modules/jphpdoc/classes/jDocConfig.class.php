@@ -33,14 +33,27 @@ class jDocConfig {
         $config = parse_ini_file($configfile,true);
         if(isset($config['excluded_files']))
             $this->setExcludedFiles(explode(',',$config['excluded_files']));
-        if(isset($config['source_directories']))
-            $this->sourceDirectories = $config['source_directories'];
+        if(isset($config['source_directories']['path']))
+            $this->sourceDirectories = $config['source_directories']['path'];
+        else
+            throw new Exception ("no source directory defined in the config");
+        if(isset($config['project_name']))
+            $this->projectName = $config['project_name'];
+        else
+            throw new Exception ("no project defined in the config");
+    
     }
 
     protected $sourceDirectories;
     function getSourceDirectories() {
         return $this->sourceDirectories;
     }
+
+    protected $projectName;
+    function getProjectName() {
+        return $this->projectName;
+    }
+
 
     /**
      * add list of file names which won't be parsed
@@ -81,5 +94,3 @@ class jDocConfig {
 
 }
 
-
-?>

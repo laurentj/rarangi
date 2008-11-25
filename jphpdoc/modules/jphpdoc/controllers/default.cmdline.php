@@ -44,7 +44,7 @@ class defaultCtrl extends jControllerCmdLine {
         $config->readConfig($this->param('config'));
 
         $docparser = jDoc::getInstance();
-        $docparser->setConfig($gConfig);
+        $docparser->setConfig($config);
 
         $docparser->run();
 

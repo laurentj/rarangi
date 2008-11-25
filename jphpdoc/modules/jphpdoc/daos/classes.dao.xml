@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dao xmlns="http://jelix.org/ns/dao/1.0">
+    <datasources>
+        <primarytable name="classes" realname="classes" primarykey="name,project_id" />
+    </datasources>
+    <record>
+
+
+        
+    <property name="name" fieldname="name" datatype="string" required="true" maxlength="100"/>
+    <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
+    <property name="file_id" fieldname="file_id" datatype="int" required="true"/>
+    <property name="linenumber" fieldname="linenumber" datatype="int" required="true"/>
+    <property name="mother_class" fieldname="mother_class" datatype="string" default="" maxlength="100"/>
+
+
+    <!--<property name="" fieldname="" datatype="string/int/float/autoincrement/date"
+        required="yes"
+        maxlength="" minlength="" regexp=""
+        sequence=""
+        updatepattern="" insertpattern="" selectpattern=""
+    />-->
+    </record>
+    <!--<factory>
+        <method name="findByStage" type="select/selectfirst/delete/update/php">
+            <parameter name="" />
+            <values>
+                <value property="" value="" />
+            </values>
+            <conditions logic="and/or">
+                <eq property="" value="" />
+            </conditions>
+            <order>
+                <orderitem property="" way="asc/desc" />
+            </order>
+            <limit offset="" count=""/>
+            <body><![CDATA[
+            ]]></body>
+        </method>
+    </factory>-->
+</dao>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dao xmlns="http://jelix.org/ns/dao/1.0">
+    <datasources>
+        <primarytable name="files" realname="files" primarykey="id" />
+    </datasources>
+    <record>
+        <property name="id" fieldname="id" datatype="autoincrement"/>
+        <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
+        <property name="path" fieldname="path" datatype="string" required="true" maxlength="255"/>
+    </record>
+    <factory>
+        <method name="getByPath" type="selectfirst">
+            <parameter name="path" />
+            <parameter name="project" />
+            <conditions>
+                <eq property="path" expr="$path" />
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+    </factory>
+</dao>

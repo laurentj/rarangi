@@ -5,7 +5,7 @@ default = app
 
 [app]
 driver="mysql"
-database="jelix"
+database="jphpdoc"
 host= "localhost"
 user= "root"
 password=

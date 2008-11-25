@@ -13,6 +13,9 @@
  */
 class jDoc {
 
+    /**
+     * @var jDocConfig
+     */
     public $config = null;
     public $originalSourcePath;
 
@@ -69,14 +72,34 @@ class jDoc {
 
 // non static methods
 
+    /**
+     * @var jDaoRecord
+     */
+    protected $projectRec;
+
+    /**
+     * @param jDocConfig $conf
+     */
     public function setConfig($conf){
         $this->config = $conf;
+        $projectdao = jDao::get('jphpdoc~projects');
+        if(! $this->projectRec = $projectdao->getByName($this->config->getProjectName())) {
+            $this->projectRec = jDao::createRecord('jphpdoc~projects');
+            $this->projectRec->name = $this->config->getProjectName();
+            $projectdao->insert($this->projectRec);
+        }
     }
 
+    /**
+     * @var jDaoRecord
+     */
+    protected $filesDao;
+    
     /**
      * main method. launches the parsing
      */
     public function run(){
+        $this->filesDao = jDao::create('jphpdoc~files');
         foreach($this->config->getSourceDirectories() as $sourcepath) {
             $sourcepath = realpath($sourcepath);
             $this->fullSourcePath = $sourcepath;
@@ -122,8 +145,18 @@ class jDoc {
      * @param string $filename  the file name
      */
     protected function addPhpFile($filepath, $filename){
+        
+        $relativeFilePath = substr($filepath, strlen($this->fullSourcePath)+1);
+        if(!$this->filesDao->getByPath($relativeFilePath,$this->projectRec->id )) {
+            $fileRec = jDao::createRecord('jphpdoc~files');
+            $fileRec->project_id = $this->projectRec->id;
+            $fileRec->path = $relativeFilePath;
+            $this->filesDao->insert($fileRec);
+        }
+
         $content = file_get_contents($filepath);
 
+/*
         $tokens = new ArrayObject(token_get_all($content));
 
         $filepath=substr($filepath, strlen($this->fullSourcePath)+1);
@@ -133,6 +166,7 @@ class jDoc {
         $fileparser = new jFileParser( $tokens->getIterator(), $this->fileList[$filepath]);
 
         $fileparser->parse();
+*/
     }
 
 
