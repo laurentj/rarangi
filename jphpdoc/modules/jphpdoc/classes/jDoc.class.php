@@ -75,16 +75,16 @@ class jDoc {
 
     /**
      * main method. launches the parsing
-     * @param string $sourcepath  the path of the main directory which contains sources
      */
-    public function run($sourcepath){
-        
-        $sourcepath = realpath($sourcepath);
-        $this->fullSourcePath = $sourcepath;
-        if($sourcepath !='')
-            $this->readFiles(new RecursiveDirectoryIterator($sourcepath));
-        else
-            throw new Exception("unknow path");
+    public function run(){
+        foreach($this->config->getSourceDirectories() as $sourcepath) {
+            $sourcepath = realpath($sourcepath);
+            $this->fullSourcePath = $sourcepath;
+            if($sourcepath !='')
+                $this->readFiles(new RecursiveDirectoryIterator($sourcepath));
+            else
+                throw new Exception("unknow path: $sourcepath");            
+        }
     }
 
     /**

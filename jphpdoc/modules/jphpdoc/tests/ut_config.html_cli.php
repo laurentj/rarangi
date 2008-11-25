@@ -4,12 +4,12 @@
 * @subpackage  tests
 * @author      Laurent Jouanneau
 * @contributor
-* @copyright   2007 Laurent Jouanneau
+* @copyright   2007-2008 Laurent Jouanneau
 * @link        http://www.jelix.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
-include( '../jDocConfig.class.php');
+require_once( dirname(__FILE__).'/../classes/jDocConfig.class.php');
 
 class docConfigTest extends jDocConfig {
 
@@ -23,6 +23,7 @@ class ut_config extends jUnitTestCase {
 
     function testEmptyConfig() {
         $doc = new docConfigTest();
+        $doc->setExcludedFiles(array());
         $this->assertIdentical($doc->getExcludedFiles (), array());
         $this->assertIdentical($doc->getExcludedFilesReg (), array());
     }

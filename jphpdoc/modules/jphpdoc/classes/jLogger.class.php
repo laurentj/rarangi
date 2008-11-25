@@ -144,10 +144,19 @@ interface jILoggerDriver {
  */
 class jConsoleLogger implements jILoggerDriver {
 
-    public function message($str, $f, $l){ echo $str,"\n";}
-    public function notice($str, $f, $l){ echo 'Notice: ',$str,"\n\t($f line $l)\n";}
-    public function warning($str, $f, $l){ echo 'Warning: ',$str,"\n\t($f line $l)\n";}
-    public function error($str, $f, $l){ echo 'Error: ',$str,"\n\t($f line $l)\n";}
+    protected $resp;
+    
+    /**
+     * @param jResponseCmdline $resp
+     */
+    function __construct($resp) {
+        $this->resp = $resp;
+    }
+
+    public function message($str, $f, $l){ $this->resp->addContent($str."\n");}
+    public function notice($str, $f, $l){ $this->resp->addContent( 'Notice: '.$str."\n\t($f line $l)\n");}
+    public function warning($str, $f, $l){ $this->resp->addContent( 'Warning: '.$str."\n\t($f line $l)\n");}
+    public function error($str, $f, $l){ $this->resp->addContent( 'Error: '.$str."\n\t($f line $l)\n");}
     public function clear(){ }
 
 }
@@ -171,5 +180,3 @@ class jInMemoryLogger implements jILoggerDriver {
     public function getLog(){ return $this->log; }
 }
 
-
-?>

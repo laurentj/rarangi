@@ -26,7 +26,8 @@ class jDescriptorTagBase {
 
     
 
-    public function parseValue();
+    public function parseValue() {
+    }
 
     
 
@@ -35,5 +36,3 @@ class jDescriptorTagBase {
 
 }
 
-
-?>

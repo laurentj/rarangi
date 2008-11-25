@@ -23,23 +23,24 @@ class jDocConfig {
      * @var array
      */
     protected $excludedFilesReg = array();
-
-    protected $storage;
-
-    function __construct($configfile='') {
-        if ($configfile != '') {
-            $config = parse_ini_file($configfile,true);
-            if(isset($config['excluded_files']))
-                $this->setExcludedFiles(explode(',',$config['excluded_files']));
-            if(isset($config['storage']))
-                $this->storage = $config['storage'];
-        }
+    
+    
+    function __construct() {
+        $this->setExcludedFiles(array('.svn','CVS', '.hg'));
     }
 
-    function getDbConfig() {
-        return $this->storage;
+    function readConfig($configfile) {
+        $config = parse_ini_file($configfile,true);
+        if(isset($config['excluded_files']))
+            $this->setExcludedFiles(explode(',',$config['excluded_files']));
+        if(isset($config['source_directories']))
+            $this->sourceDirectories = $config['source_directories'];
     }
 
+    protected $sourceDirectories;
+    function getSourceDirectories() {
+        return $this->sourceDirectories;
+    }
 
     /**
      * add list of file names which won't be parsed
@@ -49,6 +50,8 @@ class jDocConfig {
      * @param array $files 
      */
     public function setExcludedFiles($files){
+        $this->excludedFilesReg = array();
+        $this->excludedFiles = array();
         foreach($files as $f){
             if($f{0} == '*'){
                 $s = preg_quote(substr($f,1),'/');

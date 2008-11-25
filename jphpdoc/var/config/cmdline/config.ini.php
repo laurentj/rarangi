@@ -3,3 +3,8 @@
 
 startModule = "jphpdoc"
 startAction = "default:index"
+
+
+
+; for junittests module
+enableTests = on

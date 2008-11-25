@@ -18,11 +18,6 @@ modulesPath = lib:jelix-modules/,app:modules/
 
 theme = default
 
-[jphpdoc]
-exclude_files = ".svn,CVS,.hg"
-
-
-
 [coordplugins]
 ;nom = nom_fichier_ini
 
