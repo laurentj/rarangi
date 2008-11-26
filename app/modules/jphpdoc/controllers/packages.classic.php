@@ -7,7 +7,8 @@
 * @link      http://forge.jelix.org/projects/jphpdoc/
 * @licence   GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
-class defaultCtrl extends jController {
+
+class packagesCtrl extends jController {
     /**
     * display the list of projects
     */

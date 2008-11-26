@@ -1,11 +1,11 @@
 <?php
 /**
 * @package   jphpdoc
-* @subpackage jphpdoc
-* @author    yourname
-* @copyright 2008 yourname
-* @link      http://www.yourwebsite.undefined
-* @licence    All right reserved
+* @subpackage 
+* @author    Laurent Jouanneau
+* @copyright 2008 Laurent Jouanneau
+* @link      http://forge.jelix.org/projects/jphpdoc/
+* @licence   GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
 class defaultCtrl extends jControllerCmdLine {

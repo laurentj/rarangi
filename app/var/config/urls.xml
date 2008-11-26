@@ -4,27 +4,9 @@
 
         <url pathinfo="/" module="jphpdoc" action="default:index">
         </url>
-        <url pathinfo="/:project/" module="jphpdoc" action="default:project">
-        </url>
-<!--        <url pathinfo="/:project/sources/" module="jphpdoc" action="sources:index">
-        </url>
-        <url handler="sources" module="jphpdoc" action="sources:show" actionoverride="" />
-
-        <url pathinfo="/:project/packages/" module="jphpdoc" action="browser:index">
-        </url>
-        <url pathinfo="/:project/packages/:package/" module="jphpdoc" action="browser:index">
-        </url>
-        <url pathinfo="/:project/packages/:package/:subpackage" module="jphpdoc" action="browser:index">
-        </url>
-        <url pathinfo="/:project/packages/:package/:subpackage/classes/" module="jphpdoc" action="browser:index">
-        </url>
-        <url pathinfo="/:project/packages/:package/:subpackage/classes/:class" module="jphpdoc" action="browser:index">
-        </url>
-        <url pathinfo="/:project/packages/:package/:subpackage/functions/:function" module="jphpdoc" action="browser:index">
-        </url>
--->
-
-
+        
+        <url handler="project" module="jphpdoc" action="default:project"
+             actionoverride="sources:index,packages:index,packages:details,packages:subpackdetails,packages:classeslist,packages:functionslist"/>
     </classicentrypoint>
 
 </urls>

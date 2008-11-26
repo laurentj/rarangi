@@ -11,6 +11,7 @@
 			<ul>
 				<li>statistics on source codes</li>
 				<li>links to static files (VERSION, LICENCE, &co)</li>
+				<li>links to archives to download</li>
 			</ul>
         </div>
 		{else}

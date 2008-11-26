@@ -37,8 +37,8 @@ define ('JELIXS_INIT_PATH'          , '/usr/local/lib/jelix/init.php');
 // informations which will stored into generated files
 define('JELIXS_INFO_DEFAULT_IDSUFFIX','@forge.jelix.org');
 define('JELIXS_INFO_DEFAULT_WEBSITE','http://forge.jelix.org/projects/jphpdoc');
-define('JELIXS_INFO_DEFAULT_LICENCE','GPL');
-define('JELIXS_INFO_DEFAULT_LICENCE_URL','');
+define('JELIXS_INFO_DEFAULT_LICENCE','GNU General Public Licence');
+define('JELIXS_INFO_DEFAULT_LICENCE_URL','http://www.gnu.org/licenses/gpl.html');
 define('JELIXS_INFO_DEFAULT_CREATOR_NAME','Laurent Jouanneau');
 define('JELIXS_INFO_DEFAULT_CREATOR_EMAIL','laurent@jelix.org');
 define('JELIXS_INFO_DEFAULT_COPYRIGHT','2008 Laurent Jouanneau');
