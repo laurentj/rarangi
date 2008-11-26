@@ -10,15 +10,43 @@
 
 class defaultCtrl extends jController {
     /**
-    *
+    * display the list of projects
     */
     function index() {
         $rep = $this->getResponse('html');
+        $tpl = new jTpl();
+        $tpl->assign('projectslist', jDao::get('projects')->findAll());
+        $rep->body->assign('MAIN', $tpl->fetch('projects_list'));
+        return $rep;
+    }
 
-        // this is a call for the 'welcome' zone after creating a new application
-        // remove this line !
-        $rep->body->assignZone('MAIN', 'jelix~check_install');
+    /**
+    * display the main page of a project
+    */
+    function project() {
+        $rep = $this->getResponse('html');
+
+        $tpl = new jTpl();
+        
+        $projectname = $this->param('project');
+        $dao = jDao::get('projects');
+        $project = $dao->getByName($projectname);
+        
+        $tpl->assign('project',$project);
+        $tpl->assign('projectname',$projectname);
+        
+        if(!$project){
+            $rep->setHttpStatus('404','Not found');
+            
+        }
+        else {
+            
+        }
+
+        $rep->body->assign('MAIN', $tpl->fetch('projects_details'));
 
         return $rep;
     }
+
+
 }

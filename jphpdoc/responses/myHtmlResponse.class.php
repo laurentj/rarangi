@@ -17,8 +17,8 @@ class myHtmlResponse extends jResponseHtml {
 
     function __construct() {
         parent::__construct();
+        $this->addCSSLink($GLOBALS['gJConfig']->urlengine['jelixWWWPath']."design/jelix.css");
 
-        // Include your common CSS and JS files here
     }
 
     protected function doAfterActions() {
