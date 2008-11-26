@@ -4,7 +4,7 @@
         <div class="blockcontent">
 			<ul>
 				<li><a href="#">packages</a></li>
-				<li><a href="#">Browse source</a></li>
+				<li><a href="{jurl 'jphpdoc~sources:index', array('project'=>$project->name)}">Browse source</a></li>
 			</ul>
 		
 			<p>TODO : here displays</p>
