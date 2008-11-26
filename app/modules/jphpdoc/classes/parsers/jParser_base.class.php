@@ -74,6 +74,23 @@ abstract class jParser_base {
         }
         return false;
     }
+    
+    protected function toNextSpecificPhpToken($tokentype) {
+        $tok = $this->toNextPhpToken();
+        if(is_string($tokentype)) {
+            if(is_string($tok))
+                return $tok;
+            else
+                throw new Exception ("invalid syntax");
+        }
+        else {
+            if(!is_array($tok))
+                throw new Exception ("invalid syntax");
+            if($tok[0] != $tokentype)
+                throw new Exception ("invalid syntax");
+            return $tok[1];
+        }
+    }
 
     /**
      * skip a PHP bloc

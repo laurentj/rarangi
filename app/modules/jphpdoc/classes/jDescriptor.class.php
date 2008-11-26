@@ -183,19 +183,37 @@ class jBaseDescriptor {
      * @param string $docComment  the phpdoc comment
      */
     public function initFromPhpDoc($docComment){
-        $docComment = substr($docComment , 2, -1); // on enlève les /* du debut et / de la fin
-        $lignes=preg_split("/\015\012|\015|\012/",$docComment);
-        $currentTag='shortDescription';
+        $docComment = substr($docComment , 2, -2); // we remove  /* at the begining and */ at the end
+        $lignes = preg_split("/\015\012|\015|\012/",$docComment);
+        $currentTag = 'shortDescription';
         foreach($lignes as $ligne){
-            if(preg_match('/^\\s*\\*\\s+(:@(\w+))?(.*)$/',$ligne,$m)){
-                if($m[1] != ''){
-
-
-                }else{
+            if(preg_match('/^\s*\*\s*(?:@(\w+))?(.*)$/',$ligne,$m)){
+                list(,$tag, $content) = $m;
+                if($tag != ''){
 
                 }
+                else {
+                    if($currentTag == 'shortDescription') {
+                        if(trim($content) == '' && $this->shortDescription != '') {
+                            $currentTag = 'description';
+                        } else if($this->shortDescription != ''){
+                            $this->shortDescription .= "\n".$content;
+                        } else {
+                            $this->shortDescription = $content;
+                        }
+                        
+                    }
+                    else if($currentTag == 'description') {
+                        if($this->description != ''){
+                            $this->description .= "\n".$content;
+                        } else {
+                            $this->description = $content;
+                        }
+                    }
+                }
             }else{
-               //jLogger::warning('a line in a doc comment doesn\'t begin with a *');
+                //throw new Exception("bad syntax in a doc comment");
+               //jLogger::warning('bad syntax in a doc comment');
             }
         }
     }
@@ -228,7 +246,7 @@ class jClassDescriptor extends jBaseDescriptor {
     public $subpackage;
     public $name;
     public $inheritsFrom;
-    public $interfaces;
+    public $interfaces = array();
 
 }
 

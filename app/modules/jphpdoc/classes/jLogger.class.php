@@ -3,7 +3,7 @@
 * @package     jDoc
 * @author      Laurent Jouanneau
 * @contributor
-* @copyright   2006-2007 Laurent Jouanneau
+* @copyright   2006-2008 Laurent Jouanneau
 * @link        http://www.jelix.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
@@ -41,6 +41,15 @@ class jLogger {
      */
     static public function removeLoggers(){
         self::$loggers = array();
+    }
+
+    /**
+     * get a logger driver
+     * @param int $number
+     * @return jILoggerDriver $logger
+     */
+    static public function getLogger($key){
+        return self::$loggers[$key];
     }
 
     /**

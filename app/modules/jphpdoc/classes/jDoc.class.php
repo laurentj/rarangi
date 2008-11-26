@@ -8,6 +8,10 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
+$dirnamefile = dirname(__FILE__).'/';
+require($dirnamefile.'jDescriptor.class.php');
+require($dirnamefile.'parsers/jFileParser.class.php');
+
 /**
  * main class : it launches the parsing of files
  */
@@ -191,17 +195,17 @@ class jDoc {
             $filecontentdao->insert($line);   
         }
 
-/*
+
         $tokens = new ArrayObject(token_get_all($content));
 
-        $filepath=substr($filepath, strlen($this->fullSourcePath)+1);
+        $filepath = substr($filepath, strlen($this->fullSourcePath)+1);
 
         $this->fileList[$filepath] = new jFileDescriptor($filepath, $filename);
 
         $fileparser = new jFileParser( $tokens->getIterator(), $this->fileList[$filepath]);
 
         $fileparser->parse();
-*/
+
     }
 
 

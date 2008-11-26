@@ -56,15 +56,15 @@ class jFileParser extends jParser_base {
         while( ($tok = $this->toNextPhpToken()) !== false) {
             if (is_array($tok)) {
                 switch($tok[0]){
-                /*case T_CLASS:
+                case T_CLASS:
                     $subparser = new jClassParser($this->iterator, $previousDocComment);
                     $subparser->parse();
-                    break;*/
-                case T_INTERFACE:
+                    break;
+                /*case T_INTERFACE:
                     $subparser = new jInterfaceParser($this->iterator, $previousDocComment);
                     $subparser->parse();
                     break;
-                /*case T_FUNCTION:
+                case T_FUNCTION:
                     $subparser = new jFunctionParser($this->iterator, $previousDocComment);
                     $subparser->parse();
                     break;

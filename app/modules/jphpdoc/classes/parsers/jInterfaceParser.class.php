@@ -23,8 +23,8 @@ class jInterfaceParser extends jParser_base {
      * @param string $doccomment the documented comment associated to the interface
      */
     function __construct( $it, $doccomment){
-        //$this->info = new jInterfaceDescriptor();
-        //$this->info->initFromPhpDoc($doccomment);
+        $this->info = new jInterfaceDescriptor();
+        $this->info->initFromPhpDoc($doccomment);
         parent::__construct( $it);
     }
 

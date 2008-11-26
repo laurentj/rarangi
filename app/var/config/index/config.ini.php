@@ -4,6 +4,9 @@
 startModule=jphpdoc
 startAction=default:index
 
+; for junittests module
+enableTests = on
+
 [coordplugins]
 ;nom = file_ini_name or 1
 
