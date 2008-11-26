@@ -60,7 +60,7 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
     }
  
     function create($urlact, $url){
-        $action = $url->getParam('action');
+        $action = $urlact->getParam('action');
         $project = $url->getParam('project');
         $url->pathInfo = "/$project/";
 

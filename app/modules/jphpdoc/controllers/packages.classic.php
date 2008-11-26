@@ -9,6 +9,13 @@
 */
 
 class packagesCtrl extends jController {
+    
+    protected function _prepareResp() {
+        $rep => $this->getResponse('html');
+        
+        
+    }
+    
     /**
     * display the list of projects
     */

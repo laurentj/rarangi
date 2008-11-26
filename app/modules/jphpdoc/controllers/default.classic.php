@@ -16,6 +16,7 @@ class defaultCtrl extends jController {
         $tpl = new jTpl();
         $tpl->assign('projectslist', jDao::get('projects')->findAll());
         $rep->body->assign('MAIN', $tpl->fetch('projects_list'));
+        $rep->title = 'Project list';
         return $rep;
     }
 
@@ -28,6 +29,8 @@ class defaultCtrl extends jController {
         $tpl = new jTpl();
         
         $projectname = $this->param('project');
+        $rep->title = 'Project '.$projectname;
+
         $dao = jDao::get('projects');
         $project = $dao->getByName($projectname);
         
@@ -38,7 +41,7 @@ class defaultCtrl extends jController {
             $rep->setHttpStatus('404','Not found');
         }
         else {
-            
+            $rep->body->assignZone('SUBMENUBAR', 'project_menubar', array('project'=>$project));
         }
 
         $rep->body->assign('MAIN', $tpl->fetch('projects_details'));

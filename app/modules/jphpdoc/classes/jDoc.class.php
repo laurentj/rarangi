@@ -88,6 +88,11 @@ class jDoc {
             $this->projectRec->name = $this->config->getProjectName();
             $projectdao->insert($this->projectRec);
         }
+        else {
+            jDao::get('files_content')->deleteByProject($this->projectRec->id);
+            jDao::get('files')->deleteByProject($this->projectRec->id);
+            jDao::get('classes')->deleteByProject($this->projectRec->id);
+        }
     }
 
     /**
@@ -100,6 +105,15 @@ class jDoc {
      */
     public function run(){
         $this->filesDao = jDao::create('jphpdoc~files');
+
+        $fileRec = jDao::createRecord('jphpdoc~files');
+        $fileRec->project_id = $this->projectRec->id;
+        $fileRec->isdir = 1;
+        $fileRec->fullpath = "";
+        $fileRec->filename = "";
+        $fileRec->dirname = "";
+        $this->filesDao->insert($fileRec);
+
         foreach($this->config->getSourceDirectories() as $sourcepath) {
             $sourcepath = realpath($sourcepath);
             $this->fullSourcePath = $sourcepath;
@@ -127,6 +141,13 @@ class jDoc {
             if ($rdi->isDir() || $rdi->isFile()) {
                 if($this->config->isExcludedFile($rdi->getFilename())) continue;
                 if ($rdi->hasChildren()){
+                    $fileRec = jDao::createRecord('jphpdoc~files');
+                    $fileRec->project_id = $this->projectRec->id;
+                    $fileRec->isdir = 1;
+                    $fileRec->fullpath = substr($rdi->current(), strlen($this->fullSourcePath)+1);
+                    $fileRec->filename = $rdi->getFilename();
+                    $fileRec->dirname = substr(dirname($rdi->current()), strlen($this->fullSourcePath)+1);
+                    $this->filesDao->insert($fileRec);
                     $this->readFiles($rdi->getChildren());
                 }else{
                     $this->currentFile = $rdi->current();
@@ -146,15 +167,29 @@ class jDoc {
      */
     protected function addPhpFile($filepath, $filename){
         
-        $relativeFilePath = substr($filepath, strlen($this->fullSourcePath)+1);
-        if(!$this->filesDao->getByPath($relativeFilePath,$this->projectRec->id )) {
-            $fileRec = jDao::createRecord('jphpdoc~files');
-            $fileRec->project_id = $this->projectRec->id;
-            $fileRec->path = $relativeFilePath;
-            $this->filesDao->insert($fileRec);
-        }
+        $relativeFullPath = substr($filepath, strlen($this->fullSourcePath)+1);
+        $relativePath = substr(dirname($filepath), strlen($this->fullSourcePath)+1);
+        
+        $fileRec = jDao::createRecord('jphpdoc~files');
+        $fileRec->project_id = $this->projectRec->id;
+        $fileRec->isdir = 0;
+        $fileRec->fullpath = $relativeFullPath;
+        $fileRec->filename = $filename;
+        $fileRec->dirname = $relativePath;
+        $this->filesDao->insert($fileRec);
 
         $content = file_get_contents($filepath);
+
+        $lines = explode("\n", $content);
+        $filecontentdao = jDao::get("jphpdoc~files_content");
+        $line = jDao::createRecord("jphpdoc~files_content");
+        foreach ($lines as $n=>$l) {
+            $line->file_id = $fileRec->id;
+            $line->project_id = $this->projectRec->id;
+            $line->linenumber = $n;
+            $line->content = $l;
+            $filecontentdao->insert($line);   
+        }
 
 /*
         $tokens = new ArrayObject(token_get_all($content));

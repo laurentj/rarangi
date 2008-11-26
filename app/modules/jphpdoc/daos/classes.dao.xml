@@ -4,38 +4,18 @@
         <primarytable name="classes" realname="classes" primarykey="name,project_id" />
     </datasources>
     <record>
-
-
-        
-    <property name="name" fieldname="name" datatype="string" required="true" maxlength="100"/>
-    <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
-    <property name="file_id" fieldname="file_id" datatype="int" required="true"/>
-    <property name="linenumber" fieldname="linenumber" datatype="int" required="true"/>
-    <property name="mother_class" fieldname="mother_class" datatype="string" default="" maxlength="100"/>
-
-
-    <!--<property name="" fieldname="" datatype="string/int/float/autoincrement/date"
-        required="yes"
-        maxlength="" minlength="" regexp=""
-        sequence=""
-        updatepattern="" insertpattern="" selectpattern=""
-    />-->
+        <property name="name" fieldname="name" datatype="string" required="true" maxlength="100"/>
+        <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
+        <property name="file_id" fieldname="file_id" datatype="int" required="true"/>
+        <property name="linenumber" fieldname="linenumber" datatype="int" required="true"/>
+        <property name="mother_class" fieldname="mother_class" datatype="string" default="" maxlength="100"/>
     </record>
-    <!--<factory>
-        <method name="findByStage" type="select/selectfirst/delete/update/php">
-            <parameter name="" />
-            <values>
-                <value property="" value="" />
-            </values>
-            <conditions logic="and/or">
-                <eq property="" value="" />
+    <factory>
+        <method name="deleteByProject" type="delete">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
             </conditions>
-            <order>
-                <orderitem property="" way="asc/desc" />
-            </order>
-            <limit offset="" count=""/>
-            <body><![CDATA[
-            ]]></body>
         </method>
-    </factory>-->
+    </factory>
 </dao>

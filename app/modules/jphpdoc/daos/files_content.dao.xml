@@ -4,36 +4,26 @@
         <primarytable name="files_content" realname="files_content" primarykey="file_id,linenumber" />
     </datasources>
     <record>
-
-
-        
-    <property name="file_id" fieldname="file_id" datatype="int" required="true"/>
-    <property name="linenumber" fieldname="linenumber" datatype="int" required="true"/>
-    <property name="content" fieldname="content" datatype="text" required="true"/>
-
-
-    <!--<property name="" fieldname="" datatype="string/int/float/autoincrement/date"
-        required="yes"
-        maxlength="" minlength="" regexp=""
-        sequence=""
-        updatepattern="" insertpattern="" selectpattern=""
-    />-->
+        <property name="file_id" fieldname="file_id" datatype="int" required="true"/>
+        <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
+        <property name="linenumber" fieldname="linenumber" datatype="int" required="true"/>
+        <property name="content" fieldname="content" datatype="text" required="true"/>
     </record>
-    <!--<factory>
-        <method name="findByStage" type="select/selectfirst/delete/update/php">
-            <parameter name="" />
-            <values>
-                <value property="" value="" />
-            </values>
-            <conditions logic="and/or">
-                <eq property="" value="" />
+    <factory>
+        <method name="deleteByProject" type="delete">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+        <method name="findByFile" type="select">
+            <parameter name="file" />
+            <conditions>
+                <eq property="file_id" expr="$file" />
             </conditions>
             <order>
-                <orderitem property="" way="asc/desc" />
+                <orderitem property="linenumber" way="asc" />
             </order>
-            <limit offset="" count=""/>
-            <body><![CDATA[
-            ]]></body>
         </method>
-    </factory>-->
+    </factory>
 </dao>

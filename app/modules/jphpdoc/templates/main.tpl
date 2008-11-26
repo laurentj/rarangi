@@ -1,13 +1,25 @@
-<h1 class="apptitle">jphpdoc<br/><span class="welcome">A powerfull PHP documentation browser</span></h1>
+
+<div id="page">
+<h1>Source code documentation</h1>
 
 <div id="menubar">
 <ul>
 	<li><a href="{jurl 'jphpdoc~default:index'}">List of projects</a></li>
 </ul>
+{$SUBMENUBAR}
 </div>
-
-<div id="page">
+<div id="sidebar">
+	{$SIDEBAR}
+</div>
+<div id="content">
 
 {$MAIN}
 
 </div>
+
+<div id="footer">
+  Powered by jPhpDoc and Jelix.
+</div>
+
+</div>
+

@@ -6,16 +6,42 @@
     <record>
         <property name="id" fieldname="id" datatype="autoincrement"/>
         <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
-        <property name="path" fieldname="path" datatype="string" required="true" maxlength="255"/>
+        <property name="fullpath" fieldname="fullpath" datatype="string" required="true" maxlength="255"/>
+        <property name="isdir" fieldname="isdir" datatype="boolean" required="true"/>
+        <property name="dirname" fieldname="dirname" datatype="string" required="true" maxlength="255"/>
+        <property name="filename" fieldname="filename" datatype="string" required="true" maxlength="255"/>
     </record>
     <factory>
-        <method name="getByPath" type="selectfirst">
+        <method name="getByFullPath" type="selectfirst">
             <parameter name="path" />
             <parameter name="project" />
             <conditions>
-                <eq property="path" expr="$path" />
+                <eq property="fullpath" expr="$path" />
                 <eq property="project_id" expr="$project" />
             </conditions>
         </method>
+
+        <method name="deleteByProject" type="delete">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+
+        <method name="getDirectoryContent" type="select">
+            <parameter name="path" />
+            <parameter name="project" />
+            <conditions>
+                <eq property="dirname" expr="$path" />
+                <eq property="project_id" expr="$project" />
+                <neq property="fullpath" value="" />
+            </conditions>
+            <order>
+                <orderitem property="isdir" way="desc" />
+                <orderitem property="filename" way="asc" />
+            </order>
+        </method>
+        
+        
     </factory>
 </dao>
