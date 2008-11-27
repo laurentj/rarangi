@@ -23,24 +23,38 @@ require($dirnamefile.'jDefineParser.class.php');
 class jFileParser extends jParser_base {
 
     /**
-     * @var jFileDescriptor
-     */
-    protected $fileinfo;
-
-    /**
      * @param Iterator $it  the iterator on tokens
-     * @param jFileDescriptor $fileinfo 
      */
-    function __construct( $it, $fileinfo){
-        $this->fileinfo = $fileinfo;
-        parent::__construct( $it);
+    function __construct($parserInfo){
+        
+        $this->info = new jFileDescriptor($parserInfo->getProjectId(),
+                                          $parserInfo->getFullSourcePath(),
+                                          $parserInfo->currentFile(),
+                                          $parserInfo->currentFileName());
+
+        $content = file_get_contents($this->info->fullpath);
+
+        $lines = explode("\n", $content);
+        $filecontentdao = jDao::get("jphpdoc~files_content");
+        $line = jDao::createRecord("jphpdoc~files_content");
+        foreach ($lines as $n=>$l) {
+            $line->file_id = $this->info->id;
+            $line->project_id = $parserInfo->getProjectId();
+            $line->linenumber = $n;
+            $line->content = $l;
+            $filecontentdao->insert($line);   
+        }
+        
+        $tokens = new ArrayObject(token_get_all($content));
+        $this->iterator = $tokens->getIterator();
+        $this->parserInfo = $parserInfo;
     }
 
     public function parse(){
         $this->toNextPhpSection();
         $tok = $this->toNextPhpToken();
         if($tok === false){
-            jLogger::notice(" file is empty");
+            jLogger::notice("file is empty");
             return;
         }
 
@@ -49,34 +63,38 @@ class jFileParser extends jParser_base {
         }elseif($tok[0] != T_DOC_COMMENT){
             jLogger::warning("The file is not beginning by a doc comment (2) !");
         }else{
-            $this->fileinfo->initFromPhpDoc($tok[1]);
+            $this->info->initFromPhpDoc($tok[1]);
         }
 
+        try {
+            
+
         $previousDocComment = '';
+        $isAbstract = '';
         while( ($tok = $this->toNextPhpToken()) !== false) {
             if (is_array($tok)) {
                 switch($tok[0]){
                 case T_CLASS:
-                    $subparser = new jClassParser($this->iterator, $previousDocComment);
+                    $subparser = new jClassParser($this, $previousDocComment);
                     $subparser->parse();
                     break;
                 /*case T_INTERFACE:
-                    $subparser = new jInterfaceParser($this->iterator, $previousDocComment);
+                    $subparser = new jInterfaceParser($this, $previousDocComment);
                     $subparser->parse();
                     break;
                 case T_FUNCTION:
-                    $subparser = new jFunctionParser($this->iterator, $previousDocComment);
+                    $subparser = new jFunctionParser($this, $previousDocComment);
                     $subparser->parse();
                     break;
                 case T_INCLUDE:
                 case T_INCLUDE_ONCE:
                 case T_REQUIRE:
                 case T_REQUIRE_ONCE:
-                    $subparser = new jIncludeParser($this->iterator, $previousDocComment);
+                    $subparser = new jIncludeParser($this, $previousDocComment);
                     $subparser->parse();
                     break;
                 case T_VARIABLE:
-                    $subparser = new jGlobalVariableParser($this->iterator, $previousDocComment);
+                    $subparser = new jGlobalVariableParser($this, $previousDocComment);
                     $subparser->parse();
                     break;*/
                 case T_DOC_COMMENT:
@@ -86,7 +104,7 @@ class jFileParser extends jParser_base {
             } else {
                 switch($tok){
                 /*case 'define':
-                    $subparser = new jDefineParser($this->iterator, $previousDocComment);
+                    $subparser = new jDefineParser($this, $previousDocComment);
                     $subparser->parse();
                     break;*/
                 default:
@@ -94,7 +112,13 @@ class jFileParser extends jParser_base {
                 }
             }
         }
-        jLogger::message($this->fileinfo->filepath. " is ok \n");
+        
+        } catch(Exception $e) {
+            jLogger::error($e->getMessage());
+            return;
+        }
+        $this->info->save();
+        jLogger::message($this->info->filepath. " is ok \n");
     }
 }
 

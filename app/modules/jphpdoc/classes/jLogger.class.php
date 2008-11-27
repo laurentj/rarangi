@@ -83,8 +83,8 @@ class jLogger {
      *                     of jILoggerDriver interface
      */
     protected static function call($str, $meth){
-        $f = jDoc::currentFile();
-        $l = jDoc::currentLine();
+        $f = jDoc::getInstance()->getParserInfo()->currentFile();
+        $l = jDoc::getInstance()->getParserInfo()->currentLine();
         foreach(self::$loggers as $log){
             $log->$meth($str, $f, $l);
         }
@@ -154,16 +154,18 @@ interface jILoggerDriver {
 class jConsoleLogger implements jILoggerDriver {
 
     protected $resp;
+    protected $verbose;
     
     /**
      * @param jResponseCmdline $resp
      */
-    function __construct($resp) {
+    function __construct($resp, $verbose = true) {
         $this->resp = $resp;
+        $this->verbose = $verbose;
     }
 
-    public function message($str, $f, $l){ $this->resp->addContent($str."\n");}
-    public function notice($str, $f, $l){ $this->resp->addContent( 'Notice: '.$str."\n\t($f line $l)\n");}
+    public function message($str, $f, $l){ if($this->verbose) $this->resp->addContent($str."\n");}
+    public function notice($str, $f, $l){ if($this->verbose) $this->resp->addContent( 'Notice: '.$str."\n\t($f line $l)\n");}
     public function warning($str, $f, $l){ $this->resp->addContent( 'Warning: '.$str."\n\t($f line $l)\n");}
     public function error($str, $f, $l){ $this->resp->addContent( 'Error: '.$str."\n\t($f line $l)\n");}
     public function clear(){ }

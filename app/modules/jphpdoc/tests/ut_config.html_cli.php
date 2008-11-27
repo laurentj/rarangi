@@ -9,43 +9,65 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
-require_once( dirname(__FILE__).'/../classes/jDocConfig.class.php');
+require_once( dirname(__FILE__).'/../classes/jDoc.class.php');
 
-class docConfigTest extends jDocConfig {
+class docConfigTest extends jDoc {
 
-    function getExcludedFiles () { return $this->excludedFiles; }
-    function getExcludedFilesReg () { return $this->excludedFilesReg; }
+    static public function getInstance(){
+        static $doc=null;
+        if($doc === null){
+            $doc = new docConfigTest();
+        }
+        return $doc;
+    }
 
+    function resetConfig() {
+        $this->config = array(
+        'excludedFiles' => array(),
+        'excludedFilesReg' => array()
+        );
+    }
+
+    function getExcludedFiles () { return $this->config['excludedFiles']; }
+    function getExcludedFilesReg () { return $this->config['excludedFilesReg']; }
+
+    function convertConfig() {
+        $this->config = (object) $this->config;
+    }
 }
 
 
 class ut_config extends jUnitTestCase {
 
     function testEmptyConfig() {
-        $doc = new docConfigTest();
+        $doc = docConfigTest::getInstance();
+        $doc->resetConfig();
         $doc->setExcludedFiles(array());
         $this->assertIdentical($doc->getExcludedFiles (), array());
         $this->assertIdentical($doc->getExcludedFilesReg (), array());
     }
 
     function testExcludedSimpleFile() {
-        $doc = new docConfigTest();
+        $doc = docConfigTest::getInstance();
+        $doc->resetConfig();
         $doc->setExcludedFiles(array('CVS','.svn'));
         $this->assertIdentical($doc->getExcludedFiles (), array('CVS','.svn'));
         $this->assertIdentical($doc->getExcludedFilesReg (), array());
     }
 
     function testExcludedRegFile() {
-        $doc = new docConfigTest();
+        $doc = docConfigTest::getInstance();
+        $doc->resetConfig();
         $doc->setExcludedFiles(array('*foo', '*.foo','bar.*', 'CVS', 'sv*n'));
         $this->assertIdentical($doc->getExcludedFiles (), array('CVS','sv*n'));
         $this->assertIdentical($doc->getExcludedFilesReg (), array('/.*foo$/', '/.*\.foo$/','/^bar\..*/'));
     }
 
     function testRightExcludedFile(){
-        $doc = new docConfigTest();
+        $doc = docConfigTest::getInstance();
+        $doc->resetConfig();
         $doc->setExcludedFiles(array('*foo', '*.foo','bar.*', 'CVS', 'sv*n'));
-
+        $doc->convertConfig();
         $this->assertTrue($doc->isExcludedFile('CVS'));
         $this->assertTrue($doc->isExcludedFile('foo'));
         $this->assertTrue($doc->isExcludedFile('truc.foo'));
@@ -56,9 +78,10 @@ class ut_config extends jUnitTestCase {
     }
 
     function testWrongExcludedFile(){
-        $doc = new docConfigTest();
+        $doc = docConfigTest::getInstance();
+        $doc->resetConfig();
         $doc->setExcludedFiles(array('*foo', '*.foo','bar.*', 'CVS', 'sv*n'));
-
+        $doc->convertConfig();
         $this->assertFalse($doc->isExcludedFile('truc.txt'));
         $this->assertFalse($doc->isExcludedFile('foomachin'));
         $this->assertFalse($doc->isExcludedFile('CVS2'));

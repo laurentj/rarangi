@@ -36,17 +36,14 @@ class defaultCtrl extends jControllerCmdLine {
         jClasses::inc("jLogger");
 
         jLogger::addLogger(new jInMemoryLogger());
-        if(isset($switches['-v'])){
-            jLogger::addLogger(new jConsoleLogger($rep));
-        }
-
-        $config = jClasses::create("jDocConfig");
-        $config->readConfig($this->param('config'));
+        jLogger::addLogger(new jConsoleLogger($rep, isset($switches['-v'])));
 
         $docparser = jDoc::getInstance();
-        $docparser->setConfig($config);
+        $docparser->setConfig($this->param('config'));
 
         $docparser->run();
+
+        
 
         return $rep;
     }

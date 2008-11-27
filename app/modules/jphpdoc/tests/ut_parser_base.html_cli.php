@@ -9,12 +9,17 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
-require_once( dirname(__FILE__).'/../classes/jDocConfig.class.php');
 require_once( dirname(__FILE__).'/../classes/jDoc.class.php');
+require_once( dirname(__FILE__).'/../classes/parsers/jParserInfo.class.php');
 require_once( dirname(__FILE__).'/../classes/parsers/jParser_base.class.php');
 
 
 class dummyParser extends jParser_base {
+
+    function __construct( $iterator){
+        $this->iterator = $iterator;
+        $this->parserInfo = new jParserInfo(1,'','','');
+    }
 
     public function parse(){}
 

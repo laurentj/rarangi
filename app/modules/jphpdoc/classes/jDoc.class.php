@@ -10,6 +10,7 @@
 
 $dirnamefile = dirname(__FILE__).'/';
 require($dirnamefile.'jDescriptor.class.php');
+require($dirnamefile.'parsers/jParserInfo.class.php');
 require($dirnamefile.'parsers/jFileParser.class.php');
 
 /**
@@ -17,24 +18,8 @@ require($dirnamefile.'parsers/jFileParser.class.php');
  */
 class jDoc {
 
-    /**
-     * @var jDocConfig
-     */
-    public $config = null;
-    public $originalSourcePath;
-
-
-    protected $currentFile = '';
-    protected $currentLine = 0;
-    protected $fileList=array();
-    protected $classList=array();
-    protected $functionList=array();
-    protected $globalVarList=array();
-
     protected function __construct(){ }
 
-
-// static methods
     /**
      * only one instance of jDoc is allowed; this method returns the instance
      */
@@ -47,49 +32,45 @@ class jDoc {
     }
 
     /**
-     * @return string the current filename
+     * @var jParserInfo
      */
-    static public function currentFile() { $d = self::getInstance(); return $d->currentFile; }
-    
-    /**
-     * @return integer the current line which is parsed
-     */
-    static public function currentLine() { $d = self::getInstance(); return $d->currentLine; }
-    
-    /**
-     * increment the line counter by the given number
-     */
-    static public function incLine($nb) { 
-        $d = self::getInstance(); 
-        $d->currentLine+= $nb;
-    }
-    
-    /**
-     * increment the line counter by counting the number
-     * of break line which are in the given string
-     */
-    static public function incLineS($str) { 
-        $d = self::getInstance(); 
-        $d->currentLine+= substr_count($str, "\n"); 
-    }
+    protected $parserInfo;
 
-
-// non static methods
+    function getParserInfo() { return $this->parserInfo; }
 
     /**
      * @var jDaoRecord
      */
     protected $projectRec;
 
+    protected $config;
+
     /**
      * @param jDocConfig $conf
      */
-    public function setConfig($conf){
-        $this->config = $conf;
+    public function setConfig($configfile){
+        
+        $this->config = parse_ini_file($configfile,true);
+        
+        $this->config['excludedFilesReg'] = array();
+
+        if(isset($this->config['excludedFiles'])) {
+            $this->setExcludedFiles(explode(',',$this->config['excludedFiles']));
+        }
+        else
+            $this->config['excludedFiles'] = array('.svn','CVS', '.hg');
+            
+        if(!isset($this->config['sourceDirectories']['path']))
+            throw new Exception ("no source directory defined in the config");
+        if(!isset($this->config['projectName']))
+            throw new Exception ("no project defined in the config");
+
+        $this->config = (object) $this->config;
+        
         $projectdao = jDao::get('jphpdoc~projects');
-        if(! $this->projectRec = $projectdao->getByName($this->config->getProjectName())) {
+        if(! $this->projectRec = $projectdao->getByName($this->config->projectName)) {
             $this->projectRec = jDao::createRecord('jphpdoc~projects');
-            $this->projectRec->name = $this->config->getProjectName();
+            $this->projectRec->name = $this->config->projectName;
             $projectdao->insert($this->projectRec);
         }
         else {
@@ -98,6 +79,38 @@ class jDoc {
             jDao::get('classes')->deleteByProject($this->projectRec->id);
         }
     }
+
+
+    public function setExcludedFiles($files) {
+        $this->config['excludedFiles'] = array();
+        foreach($files as $f){
+            if($f{0} == '*'){
+                $s = preg_quote(substr($f,1),'/');
+                $s = '/.*'.$s.'$/';
+                $this->config['excludedFilesReg'][] = $s;
+            }elseif(substr($f,-1,1) == '*'){
+                $s = preg_quote(substr($f,0,-1),'/');
+                $s = '/^'.$s.'.*/';
+                $this->config['excludedFilesReg'][] = $s;
+            }else{
+                $this->config['excludedFiles'][] = $f;
+            }
+        }
+    }
+
+    /**
+     * Test if a filename is allowed or not
+     * @return boolean true if the file shouldn't be parsed
+     */
+    public function isExcludedFile($name){
+        if(in_array($name, $this->config->excludedFiles)) return true;
+        foreach($this->config->excludedFilesReg as $reg){
+            if(preg_match($reg, $name)) return true;
+        }
+        return false;
+    }
+
+
 
     /**
      * @var jDaoRecord
@@ -118,7 +131,7 @@ class jDoc {
         $fileRec->dirname = "";
         $this->filesDao->insert($fileRec);
 
-        foreach($this->config->getSourceDirectories() as $sourcepath) {
+        foreach($this->config->sourceDirectories['path'] as $sourcepath) {
             $sourcepath = realpath($sourcepath);
             $this->fullSourcePath = $sourcepath;
             if($sourcepath !='')
@@ -143,7 +156,7 @@ class jDoc {
             }
             
             if ($rdi->isDir() || $rdi->isFile()) {
-                if($this->config->isExcludedFile($rdi->getFilename())) continue;
+                if($this->isExcludedFile($rdi->getFilename())) continue;
                 if ($rdi->hasChildren()){
                     $fileRec = jDao::createRecord('jphpdoc~files');
                     $fileRec->project_id = $this->projectRec->id;
@@ -154,74 +167,13 @@ class jDoc {
                     $this->filesDao->insert($fileRec);
                     $this->readFiles($rdi->getChildren());
                 }else{
-                    $this->currentFile = $rdi->current();
-                    $this->currentLine = 1;
+                    $this->parserInfo = new jParserInfo($this->projectRec->id, $this->fullSourcePath, $rdi->current(), $rdi->getFilename());
                     if(preg_match('/\\.php5?$/',$rdi->getFilename())){
-                        $this->addPhpFile($rdi->current(), $rdi->getFilename());
+                        $fileparser = new jFileParser($this->parserInfo);
+                        $fileparser->parse();
                     }
                 }
             }
         }
     }
-
-    /**
-     * parse a php file
-     * @param string $filepath  the path of the file
-     * @param string $filename  the file name
-     */
-    protected function addPhpFile($filepath, $filename){
-        
-        $relativeFullPath = substr($filepath, strlen($this->fullSourcePath)+1);
-        $relativePath = substr(dirname($filepath), strlen($this->fullSourcePath)+1);
-        
-        $fileRec = jDao::createRecord('jphpdoc~files');
-        $fileRec->project_id = $this->projectRec->id;
-        $fileRec->isdir = 0;
-        $fileRec->fullpath = $relativeFullPath;
-        $fileRec->filename = $filename;
-        $fileRec->dirname = $relativePath;
-        $this->filesDao->insert($fileRec);
-
-        $content = file_get_contents($filepath);
-
-        $lines = explode("\n", $content);
-        $filecontentdao = jDao::get("jphpdoc~files_content");
-        $line = jDao::createRecord("jphpdoc~files_content");
-        foreach ($lines as $n=>$l) {
-            $line->file_id = $fileRec->id;
-            $line->project_id = $this->projectRec->id;
-            $line->linenumber = $n;
-            $line->content = $l;
-            $filecontentdao->insert($line);   
-        }
-
-
-        $tokens = new ArrayObject(token_get_all($content));
-
-        $filepath = substr($filepath, strlen($this->fullSourcePath)+1);
-
-        $this->fileList[$filepath] = new jFileDescriptor($filepath, $filename);
-
-        $fileparser = new jFileParser( $tokens->getIterator(), $this->fileList[$filepath]);
-
-        $fileparser->parse();
-
-    }
-
-
-
-    public function getClassInfo($classname){
-
-    }
-
-    public function getFunctionInfo($classInfo){
-
-    }
-
-    public function getGlobalVarInfo($classInfo){
-
-    }
-
 }
-
-?>

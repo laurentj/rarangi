@@ -100,7 +100,8 @@ simple_urlengine_https =
 ;   m~*@r    -> for all actions of the module "m" and for the request of type "r"
 ;   @r       -> for all actions for the request of type "r"
 
-index = "@classic"
+unittests = "junittests~*@classic"
+index = "jphpdoc~*@classic"
 xmlrpc = "@xmlrpc"
 jsonrpc = "@jsonrpc"
 rdf = "@rdf"

@@ -10,15 +10,31 @@
 
 
 abstract class jParser_base {
-    protected $iterator;
-    protected $manager;
 
-    function __construct( $it){
-        $this->manager = jDoc::getInstance();
-        $this->iterator = $it;
+    /**
+     * @var jDescriptor
+     */
+    protected $info;
+    
+    protected $iterator;
+
+    /**
+     * @var jParserInfo
+     */
+    public $parserInfo;
+
+    function __construct( $fatherParser){
+        $this->iterator = $fatherParser->iterator;
+        $this->parserInfo = $fatherParser->parserInfo;
     }
 
     abstract public function parse();
+    
+    public function getInfo() { return $this->info; }
+    
+    public function getParserInfo() { return $this->parserInfo; }
+    
+    public function getIterator() { return $this->iterator; }
 
     /**
      * set the cursor after the next "<?php" token
@@ -29,14 +45,14 @@ abstract class jParser_base {
 
             if(is_array($tok)){
                 if($tok[0] == T_OPEN_TAG){
-                    jDoc::incLineS($tok[1]); //the token include next \n some time
+                    $this->parserInfo->incLineS($tok[1]); //the token include next \n some time
                     return;
                 }
                 if(in_array($tok[0], array(T_COMMENT, T_DOC_COMMENT,T_ENCAPSED_AND_WHITESPACE, 
                             T_INLINE_HTML, T_STRING, T_WHITESPACE)))
-                    jDoc::incLineS($tok[1]);
+                    $this->parserInfo->incLineS($tok[1]);
             }else{
-                jDoc::incLineS($tok);
+                $this->parserInfo->incLineS($tok);
             }
             $this->iterator->next();
         }
@@ -56,7 +72,7 @@ abstract class jParser_base {
 
             if(is_array($tok)){
                 if($tok[0] == T_WHITESPACE || $tok[0] == T_ENCAPSED_AND_WHITESPACE || $tok[0] == T_INLINE_HTML){
-                    jDoc::incLineS($tok[1]);
+                    $this->parserInfo->incLineS($tok[1]);
                 }elseif($tok[0] == T_CLOSE_TAG) {
                     $this->iterator->next();
                     $this->toNextPhpSection();
@@ -65,10 +81,10 @@ abstract class jParser_base {
                 }else
                     return $tok;
             }elseif(!preg_match('/^\s*$/',$tok)){
-                jDoc::incLineS($tok);
+                $this->parserInfo->incLineS($tok);
                 return $tok;
             }else{
-                jDoc::incLineS($tok);
+                $this->parserInfo->incLineS($tok);
             }
             $this->iterator->next();
         }
@@ -81,13 +97,13 @@ abstract class jParser_base {
             if(is_string($tok))
                 return $tok;
             else
-                throw new Exception ("invalid syntax");
+                throw new Exception ("invalid syntax. token expected : string \"$tokentype\", got ".token_name($tok[0]));
         }
         else {
             if(!is_array($tok))
-                throw new Exception ("invalid syntax");
+                throw new Exception ("invalid syntax. token expected : ".token_name($tokentype).", got a string :\"$tok\"" );
             if($tok[0] != $tokentype)
-                throw new Exception ("invalid syntax");
+                throw new Exception ("invalid syntax token expected : ".token_name($tokentype).", got another token : ".token_name($tok[0]));
             return $tok[1];
         }
     }
@@ -105,4 +121,3 @@ abstract class jParser_base {
 
 }
 
-?>
