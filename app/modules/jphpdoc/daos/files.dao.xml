@@ -6,6 +6,8 @@
     <record>
         <property name="id" fieldname="id" datatype="autoincrement"/>
         <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
+        <property name="package_id" fieldname="package_id" datatype="int"/>
+        <property name="subpackage_id" fieldname="subpackage_id" datatype="int"/>
         <property name="fullpath" fieldname="fullpath" datatype="string" required="true" maxlength="255"/>
         <property name="isdir" fieldname="isdir" datatype="boolean" required="true"/>
         <property name="dirname" fieldname="dirname" datatype="string" required="true" maxlength="255"/>

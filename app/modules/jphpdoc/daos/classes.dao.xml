@@ -6,6 +6,8 @@
     <record>
         <property name="name" fieldname="name" datatype="string" required="true" maxlength="100"/>
         <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
+        <property name="package_id" fieldname="package_id" datatype="int"/>
+        <property name="subpackage_id" fieldname="subpackage_id" datatype="int"/>
         <property name="file_id" fieldname="file_id" datatype="int" required="true"/>
         <property name="linenumber" fieldname="linenumber" datatype="int" required="true"/>
         <property name="mother_class" fieldname="mother_class" datatype="string" default="" maxlength="100"/>

@@ -2,27 +2,29 @@
 -- version 2.11.3deb1ubuntu1.1
 -- http://www.phpmyadmin.net
 --
--- Serveur: localhost
--- Généré le : Mer 26 Novembre 2008 à 15:32
--- Version du serveur: 5.0.51
--- Version de PHP: 5.2.4-2ubuntu5.3
+-- Host: localhost
+-- Generation Time: Nov 27, 2008 at 11:06 PM
+-- Server version: 5.0.51
+-- PHP Version: 5.2.4-2ubuntu5.3
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 --
--- Base de données: `jphpdoc`
+-- Database: `phpdoc`
 --
 
 -- --------------------------------------------------------
 
 --
--- Structure de la table `classes`
+-- Table structure for table `classes`
 --
 
 CREATE TABLE IF NOT EXISTS `classes` (
   `name` varchar(100) NOT NULL,
   `project_id` int(11) NOT NULL,
   `file_id` int(11) NOT NULL,
+  `package_id` int(11) default NULL,
+  `subpackage_id` int(11) default NULL,
   `linenumber` int(11) NOT NULL,
   `mother_class` varchar(100) default NULL,
   PRIMARY KEY  (`name`,`project_id`)
@@ -31,11 +33,13 @@ CREATE TABLE IF NOT EXISTS `classes` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `files`
+-- Table structure for table `files`
 --
 
 CREATE TABLE IF NOT EXISTS `files` (
   `id` int(11) NOT NULL auto_increment,
+  `package_id` int(11) default NULL,
+  `subpackage_id` int(11) default NULL,
   `project_id` int(11) NOT NULL,
   `fullpath` varchar(255) NOT NULL,
   `isdir` tinyint(4) NOT NULL default '0',
@@ -46,12 +50,12 @@ CREATE TABLE IF NOT EXISTS `files` (
   KEY `dirname` (`dirname`),
   KEY `fullpath` (`fullpath`),
   KEY `filename` (`filename`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=38 ;
 
 -- --------------------------------------------------------
 
 --
--- Structure de la table `files_content`
+-- Table structure for table `files_content`
 --
 
 CREATE TABLE IF NOT EXISTS `files_content` (
@@ -66,11 +70,26 @@ CREATE TABLE IF NOT EXISTS `files_content` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `projects`
+-- Table structure for table `packages`
+--
+
+CREATE TABLE IF NOT EXISTS `packages` (
+  `id` int(11) NOT NULL auto_increment,
+  `project_id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `is_sub` tinyint(4) NOT NULL default '0',
+  PRIMARY KEY  (`id`),
+  KEY `project_id` (`project_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `projects`
 --
 
 CREATE TABLE IF NOT EXISTS `projects` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(50) NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
