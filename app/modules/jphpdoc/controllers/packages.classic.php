@@ -10,31 +10,8 @@
 
 class packagesCtrl extends jController {
     
-    protected function _prepareResp() {
-        $rep => $this->getResponse('html');
-        
-        
-    }
-    
-    /**
-    * display the list of projects
-    */
-    function index() {
-        $rep = $this->getResponse('html');
+    protected function _prepareTpl() {
         $tpl = new jTpl();
-        $tpl->assign('projectslist', jDao::get('projects')->findAll());
-        $rep->body->assign('MAIN', $tpl->fetch('projects_list'));
-        return $rep;
-    }
-
-    /**
-    * display the main page of a project
-    */
-    function project() {
-        $rep = $this->getResponse('html');
-
-        $tpl = new jTpl();
-        
         $projectname = $this->param('project');
         $dao = jDao::get('projects');
         $project = $dao->getByName($projectname);
@@ -42,15 +19,62 @@ class packagesCtrl extends jController {
         $tpl->assign('project',$project);
         $tpl->assign('projectname',$projectname);
         
-        if(!$project){
-            $rep->setHttpStatus('404','Not found');
-        }
-        else {
-            
-        }
+        return $tpl;
+    }
+    
+    /**
+    * display the list of packages
+    */
+    function index() {
+        $rep = $this->getResponse('html');
+        $tpl = $this->_prepareTpl();
 
-        $rep->body->assign('MAIN', $tpl->fetch('projects_details'));
-
+        $rep->body->assign('MAIN', $tpl->fetch('packages_list'));
         return $rep;
     }
+    
+    /**
+    * display details of a package and the list of subpackages
+    */
+    function details() {
+        $rep = $this->getResponse('html');
+        $tpl = $this->_prepareTpl();
+
+        $rep->body->assign('MAIN', $tpl->fetch('package_details'));
+        return $rep;
+    }
+
+    /**
+    * display the details of a subpackage
+    */
+    function subpackdetails() {
+        $rep = $this->getResponse('html');
+        $tpl = $this->_prepareTpl();
+
+        $rep->body->assign('MAIN', $tpl->fetch('subpackage_details'));
+        return $rep;
+    }
+
+    /**
+    * display the list of classes of a package
+    */
+    function classes() {
+        $rep = $this->getResponse('html');
+        $tpl = $this->_prepareTpl();
+
+        $rep->body->assign('MAIN', $tpl->fetch('classes_list'));
+        return $rep;
+    }
+
+    /**
+    * display the list of functions of a package
+    */
+    function functions() {
+        $rep = $this->getResponse('html');
+        $tpl = $this->_prepareTpl();
+
+        $rep->body->assign('MAIN', $tpl->fetch('functions_list'));
+        return $rep;
+    }
+
 }

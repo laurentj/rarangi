@@ -50,7 +50,7 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
             }
 
             if(preg_match('!^packages/([^/]+)/([^/]+)/(classes|functions)/?$!', $match[3], $m)) {
-                $urlact->setParam('action', 'packages:'.$m[3].'list');
+                $urlact->setParam('action', 'packages:'.$m[3]);
                 $urlact->setParam('package', $m[1]);
                 $urlact->setParam('subpackage', $m[2]);
                 return $urlact;
@@ -89,12 +89,12 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
                 $url->delParam('package');
                 $url->delParam('subpackage');
                 break;
-            case 'packages:classeslist':
+            case 'packages:classes':
                 $url->pathInfo .= 'packages/' . $url->getParam('package').'/'. $url->getParam('subpackage').'/classes/';
                 $url->delParam('package');
                 $url->delParam('subpackage');
                 break;
-            case 'packages:functionslist':
+            case 'packages:functions':
                 $url->pathInfo .= 'packages/' . $url->getParam('package').'/'. $url->getParam('subpackage').'/functions/';
                 $url->delParam('package');
                 $url->delParam('subpackage');
