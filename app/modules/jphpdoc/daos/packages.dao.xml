@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dao xmlns="http://jelix.org/ns/dao/1.0">
+    <datasources>
+        <primarytable name="packages" realname="packages" primarykey="id" />
+    </datasources>
+    <record>
+        <property name="id" fieldname="id" datatype="autoincrement"/>
+        <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
+        <property name="name" fieldname="name" datatype="string" required="true" maxlength="50"/>
+        <property name="is_sub" fieldname="is_sub" datatype="int" required="true" default="0"/>
+    </record>
+    <factory>
+        <method name="getByProject" type="select">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+    </factory>
+</dao>
