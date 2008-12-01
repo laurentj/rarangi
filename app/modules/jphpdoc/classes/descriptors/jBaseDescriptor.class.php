@@ -111,7 +111,7 @@ class jBaseDescriptor {
 
     public $projectId;
     public $fileId;
-    public $line;
+    public $line = 0;
     
     function __construct($projectId, $fileId, $line){
         $this->projectId = $projectId;

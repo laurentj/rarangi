@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Serveur: localhost
--- Généré le : Lun 01 Décembre 2008 à 11:48
+-- Généré le : Lun 01 Décembre 2008 à 15:10
 -- Version du serveur: 5.0.51
 -- Version de PHP: 5.2.4-2ubuntu5.3
 
@@ -20,15 +20,21 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 --
 
 CREATE TABLE IF NOT EXISTS `classes` (
+  `id` int(11) NOT NULL auto_increment,
   `name` varchar(100) NOT NULL,
   `project_id` int(11) NOT NULL,
-  `file_id` int(11) NOT NULL,
+  `file_id` int(11) default NULL,
   `package_id` int(11) default NULL,
   `subpackage_id` int(11) default NULL,
   `linenumber` int(11) NOT NULL,
-  `mother_class` varchar(100) default NULL,
+  `mother_class` int(11) default NULL,
   `is_abstract` tinyint(1) NOT NULL,
-  PRIMARY KEY  (`name`,`project_id`)
+  `is_interface` tinyint(1) NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `name` (`name`,`project_id`),
+  KEY `file_id` (`file_id`),
+  KEY `package_id` (`package_id`),
+  KEY `mother_class` (`mother_class`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -67,6 +73,18 @@ CREATE TABLE IF NOT EXISTS `files_content` (
   PRIMARY KEY  (`file_id`,`linenumber`),
   KEY `project_id` (`project_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `interface_class`
+--
+
+CREATE TABLE IF NOT EXISTS `interface_class` (
+  `class_id` int(11) NOT NULL,
+  `interface_id` int(11) NOT NULL,
+  PRIMARY KEY  (`class_id`,`interface_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 

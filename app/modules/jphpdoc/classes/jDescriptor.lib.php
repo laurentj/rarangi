@@ -67,8 +67,8 @@ variable globale
 $dirname = dirname(__FILE__).'/descriptors/';
 require($dirname.'jBaseDescriptor.class.php');
 require($dirname.'jFileDescriptor.class.php');
-require($dirname.'jClassDescriptor.class.php');
 require($dirname.'jInterfaceDescriptor.class.php');
+require($dirname.'jClassDescriptor.class.php');
 require($dirname.'jPropertyDescriptor.class.php');
 require($dirname.'jMethodDescriptor.class.php');
 require($dirname.'jFunctionDescriptor.class.php');

@@ -16,5 +16,11 @@ class jMethodDescriptor  extends jBaseDescriptor {
     public $parameters;
     public $return;
     public $staticVars;
+    
+    public $accessibility;
+    public $isStatic;
+    public $isFinal;
+    public $isAbstract;
+
 }
 

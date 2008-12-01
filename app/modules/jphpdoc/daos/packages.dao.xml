@@ -10,6 +10,12 @@
         <property name="is_sub" fieldname="is_sub" datatype="boolean" required="true" default="0"/>
     </record>
     <factory>
+        <method name="deleteByProject" type="delete">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
         <method name="findByProject" type="select">
             <parameter name="project" />
             <conditions>

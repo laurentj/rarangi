@@ -11,15 +11,15 @@
 /**
  * Object which parses a class content
  */
-class jClassParser extends jParser_base {
+class jClassParser extends jInterfaceParser {
 
     /**
-     * @param Iterator $it  the iterator on tokens
+     * @param jParser_base $fatherParser  the parser which instancy this class
      * @param string $doccomment the documented comment associated to the class
      * @param boolean $isAbstract  indicates if the class is an abstract class
      */
     function __construct($fatherParser, $doccomment, $isAbstract = false){
-        parent::__construct($fatherParser);
+        jParser_base::__construct($fatherParser);
         $this->info = new jClassDescriptor($this->parserInfo->getProjectId(),
                                            $fatherParser->getInfo()->fileId,
                                            $this->parserInfo->currentLine());
@@ -28,11 +28,9 @@ class jClassParser extends jParser_base {
         $this->info->isAbstract = $isAbstract;
     }
 
-    public function parse(){
-
-        $this->info->name = $this->toNextSpecificPhpToken(T_STRING);
-
-        // read the content between the name and the next '{'
+   
+    protected function parseDeclaration(){
+         // read the content between the name and the next '{'
         $tok = $this->toNextPhpToken();
         while(is_array($tok)) {
             if($tok[0] != T_IMPLEMENTS && $tok[0] != T_EXTENDS) {
@@ -54,52 +52,6 @@ class jClassParser extends jParser_base {
 
         if(!is_string($tok) || $tok != '{' )
             throw new Exception ("Class parsing, invalid syntax");
-
-        $bracketlevel = 1;
-
-        $previousDocComment = '';
-        $doExit = false;
-        while(!$doExit &&  ($tok = $this->toNextPhpToken()) !== false ) {
-            if (is_array($tok)) {
-                switch($tok[0]){
-
-                case T_FUNCTION:
-                    //$subparser = new jFunctionParser($this, $previousDocComment);
-                    //$subparser->parse();
-                    break;
-                case T_INCLUDE:
-                case T_INCLUDE_ONCE:
-                case T_REQUIRE:
-                case T_REQUIRE_ONCE:
-                    //$subparser = new jIncludeParser($this, $previousDocComment);
-                    //$subparser->parse();
-                    break;
-                case T_VARIABLE:
-                    //$subparser = new jGlobalVariableParser($this, $previousDocComment);
-                    //$subparser->parse();
-                    break;
-                case T_DOC_COMMENT:
-                    $previousDocComment = $tok[1];
-                    break;
-                }
-            } else {
-                switch($tok){
-                case '{':
-                    $bracketlevel++;
-                    break;
-                case '}':
-                    $bracketlevel--;
-                    $doExit = ($bracketlevel == 0);
-                    break;
-                case 'define':
-                    //$subparser = new jDefineParser($this, $previousDocComment);
-                    //$subparser->parse();
-                    break;
-                default:
-                }
-                $previousDocComment = '';
-            }
-        }
-        $this->info->save();
     }
+    
 }

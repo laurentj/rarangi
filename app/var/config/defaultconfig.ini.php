@@ -36,8 +36,8 @@ quietMessage="Une erreur technique est survenue. Désolé pour ce désagrément.
 
 ; mots clés que vous pouvez utiliser : ECHO, ECHOQUIET, EXIT, LOGFILE, SYSLOG, MAIL, TRACE
 default      = ECHO EXIT
-error        = ECHO EXIT
-warning      = ECHO
+error        = ECHO TRACE LOGFILE EXIT
+warning      = ECHO TRACE LOGFILE
 notice       = ECHO
 strict       = ECHO
 ; pour les exceptions, il y a implicitement un EXIT

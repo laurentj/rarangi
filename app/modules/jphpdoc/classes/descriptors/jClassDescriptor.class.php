@@ -10,41 +10,32 @@
 /**
  *
  */
-class jClassDescriptor extends jBaseDescriptor {
+class jClassDescriptor extends jInterfaceDescriptor {
 
     public $isAbstract = false;
-
-    public $name;
-    public $inheritsFrom = null;
     public $interfaces = array();
 
+    protected $isInterface = false;
+
     public function save() {
-        if($this->name == '')
-            throw new Exception('class name undefined');
-        
-        
-        
+        parent::save();
+
         $dao = jDao::get('jphpdoc~classes');
 
-        $record = jDao::createRecord('jphpdoc~classes');
-        $record->name = $this->name;
-        $record->project_id = $this->projectId;
-        $record->file_id = $this->fileId;
-        $record->linenumber = $this->line;
-        $record->mother_class = $this->inheritsFrom;
-        $record->is_abstract = $this->isAbstract;
-        $record->package_id = $this->getPackageId($this->package);
-        $record->subpackage_id = $this->getPackageId($this->subpackage, true);
-        
-        if($dao->get($this->name, $this->projectId)) {
-            // if there is already a record, this is an empty record, created
-            // during the parsing of an other class which inherits from the current class
-            // so we can update all fields
-            $dao->update($record);
+        foreach($this->interfaces as $interface) {
+            $iface = $dao->get($interface, $this->projectId);
+            if (!$iface) {
+                $iface = jDao::createRecord('jphpdoc~classes');
+                $iface->name = $interface;
+                $iface->project_id = $this->projectId;
+                $iface->isInterface = true;
+                $dao->insert($iface);
+            }
+            $class_iface = jDao::createRecord('jphpdoc~interface_class');
+            $class_iface->class_id = $this->classId;
+            $class_iface->interface_id = $iface->id;
+            jDao::get('jphpdoc~interface_class')->insert($class_iface);
         }
-        else {
-            $dao->insert($record);
-        }  
     }
 }
 

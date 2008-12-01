@@ -115,7 +115,8 @@ class jFileParser extends jParser_base {
                 }
             }
         }
-        
+        } catch(jException $e) {
+            return;       
         } catch(Exception $e) {
             jLogger::error($e->getMessage());
             return;

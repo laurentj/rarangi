@@ -1,23 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dao xmlns="http://jelix.org/ns/dao/1.0">
     <datasources>
-        <primarytable name="classes" realname="classes" primarykey="name,project_id" />
+        <primarytable name="classes" realname="classes" primarykey="id" />
     </datasources>
     <record>
+        <property name="id" fieldname="id" datatype="autoincrement"/>
         <property name="name" fieldname="name" datatype="string" required="true" maxlength="100"/>
         <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
         <property name="package_id" fieldname="package_id" datatype="int"/>
         <property name="subpackage_id" fieldname="subpackage_id" datatype="int"/>
-        <property name="file_id" fieldname="file_id" datatype="int" required="true"/>
-        <property name="linenumber" fieldname="linenumber" datatype="int" required="true"/>
-        <property name="mother_class" fieldname="mother_class" datatype="string" default="" maxlength="100"/>
+        <property name="file_id" fieldname="file_id" datatype="int" />
+        <property name="linenumber" fieldname="linenumber" datatype="int" default="0" required="true"/>
+        <property name="mother_class" fieldname="mother_class" datatype="integer" />
         <property name="is_abstract" fieldname="is_abstract" datatype="boolean" required="true"/>
+        <property name="is_interface" fieldname="is_interface" datatype="boolean" required="true"/>
     </record>
     <factory>
         <method name="deleteByProject" type="delete">
             <parameter name="project" />
             <conditions>
                 <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+        <method name="getByName" type="selectfirst">
+            <parameter name="project" />
+            <parameter name="name" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+                <eq property="name" expr="$name" />
             </conditions>
         </method>
     </factory>

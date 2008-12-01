@@ -7,24 +7,47 @@
 * @link        http://forge.jelix.org/projects/jphpdoc
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
+
 /**
- * Object which parses a function content
+ * Object which parses a function content (method or standalone function)
  */
 class jFunctionParser extends jParser_base {
 
-    /**
-     * @var jFunctionDescriptor
-     */
-    protected $info;
+    protected $isMethod = false;
 
     /**
-     * @param Iterator $it  the iterator on tokens
+     * @param jParser_base $fatherParser  the parser which instancy this class
      * @param string $doccomment the documented comment associated to the function
+     * @param integer $accessibility   T_PRIVATE, T_PUBLIC, T_PROTECTED
+     * @param boolean $isStatic  indicates if the function is a static function of a class
+     * @param boolean $isFinal indicates if the function is a final function in the class
+     * @param boolean $isAbstract  indicates if the function is an abstract function in the class
+
      */
-    function __construct( $it, $doccomment){
-        //$this->info = new jFunctionDescriptor();
-        //$this->info->initFromPhpDoc($doccomment);
-        parent::__construct( $it);
+    function __construct( $fatherParser, $doccomment, $accessibility, $isStatic, $isFinal, $isAbstract){
+        
+        parent::__construct($fatherParser);
+        
+        if($fatherParser instanceof jClassParser) {
+            $this->isMethod = true;
+            $this->info = new jMethodDescriptor($this->parserInfo->getProjectId(),
+                                               $fatherParser->getInfo()->fileId,
+                                               $this->parserInfo->currentLine());
+            $this->info->inheritsFrom($fatherParser->getInfo());
+            $this->info->initFromPhpDoc($doccomment);
+            $this->info->accessibility = $accessibility;
+            $this->info->isStatic = $isStatic;
+            $this->info->isFinal = $isFinal;
+            $this->info->isAbstract = $isAbstract;
+        }
+        else {
+            $this->isMethod = false;
+            $this->info = new jFunctionDescriptor($this->parserInfo->getProjectId(),
+                                               $fatherParser->getInfo()->fileId,
+                                               $this->parserInfo->currentLine());
+            $this->info->inheritsFrom($fatherParser->getInfo());
+            $this->info->initFromPhpDoc($doccomment);
+        }
     }
 
     public function parse(){

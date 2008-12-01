@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dao xmlns="http://jelix.org/ns/dao/1.0">
+    <datasources>
+        <primarytable name="interface_class" realname="interface_class" primarykey="class_id,interface_id" />
+    </datasources>
+    <record>
+        <property name="class_id" fieldname="class_id" datatype="int" required="true"/>
+        <property name="interface_id" fieldname="interface_id" datatype="int" required="true"/>
+    </record>
+    <factory>
+        <method name="deleteByProject" type="delete">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+    </factory>
+</dao>

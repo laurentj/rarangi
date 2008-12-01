@@ -11,25 +11,29 @@
 
 require_once( dirname(__FILE__).'/../classes/jLogger.class.php');
 require_once( dirname(__FILE__).'/../classes/jDoc.class.php');
-require_once( dirname(__FILE__).'/../classes/parsers/jParserInfo.class.php');
-require_once( dirname(__FILE__).'/../classes/parsers/jParser_base.class.php');
 
 class ut_class_parser_test extends jClassParser {
     
     public $tokAfterInit = null;
     
-    function __construct( $content, $numberOfToken, $doccomment="/**\n*/"){
+    function __construct( $content, $numberOfToken, $doccomment="/**\n*/", $isAbstract=false){
         $tokens = new ArrayObject(token_get_all($content));
         $this->iterator = $tokens->getIterator();
         $this->parserInfo = new jParserInfo(1, '', '', '');
+        
         $this->toNextPhpSection();
         for($i=0; $i< $numberOfToken;$i++)
             $this->tokAfterInit = $this->toNextPhpToken();
 
+        $fatherInfo =  new jFileDescriptor($this->parserInfo->getProjectId(),
+                                          $this->parserInfo->getFullSourcePath(),
+                                          $this->parserInfo->currentFile(),
+                                          $this->parserInfo->currentFileName());
+
         $this->info = new jClassDescriptor(1, 1, $this->parserInfo->currentLine());
-
+        $this->info->inheritsFrom($fatherInfo);
         $this->info->initFromPhpDoc($doccomment);
-
+        $this->info->isAbstract = $isAbstract;
     }
 
     function getIterator() { return $this->iterator;}
@@ -77,11 +81,17 @@ class ut_class_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($this->logger->getLog()),0);
         $this->assertEqual($p->getInfo()->name , 'foo');
         
-        $records = array(array('name'=>'foo',
+        $records = array(array(
+            'name'=>'foo',
             'project_id'=>1,
             'file_id'=>1,
             'linenumber'=>2,
-            'mother_class'=>''));
+            'package_id'=>null,
+            'subpackage_id'=>null,
+            'mother_class'=>null,
+            'is_abstract'=>0,
+            'is_interface'=>0,
+            ));
         $this->assertTableContainsRecords('classes', $records);
     }
 
