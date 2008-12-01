@@ -6,6 +6,7 @@
     <record>
         <property name="class_id" fieldname="class_id" datatype="int" required="true"/>
         <property name="interface_id" fieldname="interface_id" datatype="int" required="true"/>
+        <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
     </record>
     <factory>
         <method name="deleteByProject" type="delete">

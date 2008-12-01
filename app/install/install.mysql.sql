@@ -2,21 +2,21 @@
 -- version 2.11.3deb1ubuntu1.1
 -- http://www.phpmyadmin.net
 --
--- Serveur: localhost
--- Généré le : Lun 01 Décembre 2008 à 15:10
--- Version du serveur: 5.0.51
--- Version de PHP: 5.2.4-2ubuntu5.3
+-- Host: localhost
+-- Generation Time: Dec 01, 2008 at 10:52 PM
+-- Server version: 5.0.51
+-- PHP Version: 5.2.4-2ubuntu5.3
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 --
--- Base de données: `jphpdoc`
+-- Database: `phpdoc`
 --
 
 -- --------------------------------------------------------
 
 --
--- Structure de la table `classes`
+-- Table structure for table `classes`
 --
 
 CREATE TABLE IF NOT EXISTS `classes` (
@@ -35,12 +35,12 @@ CREATE TABLE IF NOT EXISTS `classes` (
   KEY `file_id` (`file_id`),
   KEY `package_id` (`package_id`),
   KEY `mother_class` (`mother_class`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
 --
--- Structure de la table `files`
+-- Table structure for table `files`
 --
 
 CREATE TABLE IF NOT EXISTS `files` (
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `files` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `files_content`
+-- Table structure for table `files_content`
 --
 
 CREATE TABLE IF NOT EXISTS `files_content` (
@@ -77,19 +77,20 @@ CREATE TABLE IF NOT EXISTS `files_content` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `interface_class`
+-- Table structure for table `interface_class`
 --
 
 CREATE TABLE IF NOT EXISTS `interface_class` (
   `class_id` int(11) NOT NULL,
   `interface_id` int(11) NOT NULL,
+  `project_id` int(11) NOT NULL,
   PRIMARY KEY  (`class_id`,`interface_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Structure de la table `packages`
+-- Table structure for table `packages`
 --
 
 CREATE TABLE IF NOT EXISTS `packages` (
@@ -104,7 +105,7 @@ CREATE TABLE IF NOT EXISTS `packages` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `projects`
+-- Table structure for table `projects`
 --
 
 CREATE TABLE IF NOT EXISTS `projects` (

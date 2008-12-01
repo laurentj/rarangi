@@ -12,8 +12,8 @@
         <property name="file_id" fieldname="file_id" datatype="int" />
         <property name="linenumber" fieldname="linenumber" datatype="int" default="0" required="true"/>
         <property name="mother_class" fieldname="mother_class" datatype="integer" />
-        <property name="is_abstract" fieldname="is_abstract" datatype="boolean" required="true"/>
-        <property name="is_interface" fieldname="is_interface" datatype="boolean" required="true"/>
+        <property name="is_abstract" fieldname="is_abstract" datatype="boolean" default="0" required="true"/>
+        <property name="is_interface" fieldname="is_interface" datatype="boolean" default="0" required="true"/>
     </record>
     <factory>
         <method name="deleteByProject" type="delete">

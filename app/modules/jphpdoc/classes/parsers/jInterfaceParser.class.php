@@ -113,22 +113,22 @@ class jInterfaceParser extends jParser_base {
     protected function parseDeclaration(){
          // read the content between the name and the next '{'
         $tok = $this->toNextPhpToken();
-        
+
         while(is_array($tok)) {
             if($tok[0] == T_COMMENT) {
                 $tok = $this->toNextPhpToken();
                 continue;
             }
             if($tok[0] != T_EXTENDS) {
-                throw new Exception ("Class parsing, invalid syntax, bad token : ".token_name($tok[0]));
+                throw new Exception ("Interface parsing, invalid syntax, bad token : ".token_name($tok[0]));
             }
             $this->info->inheritsFrom = $this->toNextSpecificPhpToken(T_STRING);
+            $tok = $this->toNextPhpToken();
             break;
         }
-        $tok = $this->toNextPhpToken();
 
         if(!is_string($tok) || $tok != '{' )
-            throw new Exception ("Interface parsing, invalid syntax");
+            throw new Exception ("Interface parsing, invalid syntax, '{' expected");
     }
 
 }

@@ -13,6 +13,7 @@
  */
 class jInterfaceDescriptor extends jBaseDescriptor {
 
+
     protected $isInterface = true;
 
     public $name ='';
@@ -21,7 +22,7 @@ class jInterfaceDescriptor extends jBaseDescriptor {
 
     public $members = array();
 
-    protected $classId = null;
+    public $classId = null;
 
     public function save() {
         if($this->name == '')
@@ -36,6 +37,8 @@ class jInterfaceDescriptor extends jBaseDescriptor {
                 $mother = jDao::createRecord('jphpdoc~classes');
                 $mother->name = $this->inheritsFrom;
                 $mother->project_id = $this->projectId;
+                if($this->isInterface)
+                    $mother->is_interface = true;
                 $dao->insert($mother);
             }
             $mother_id = $mother->id;
@@ -53,7 +56,10 @@ class jInterfaceDescriptor extends jBaseDescriptor {
         $record->file_id = $this->fileId;
         $record->linenumber = $this->line;
         $record->mother_class = $mother_id;
-        $record->is_abstract = $this->isAbstract;
+        if (!$this->isInterface)
+            $record->is_abstract = $this->isAbstract;
+        else
+            $record->is_abstract = 0;
         $record->package_id = $this->getPackageId($this->package);
         $record->subpackage_id = $this->getPackageId($this->subpackage, true);
         $record->is_interface = $this->isInterface;

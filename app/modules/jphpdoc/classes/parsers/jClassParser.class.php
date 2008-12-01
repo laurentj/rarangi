@@ -51,7 +51,7 @@ class jClassParser extends jInterfaceParser {
         }
 
         if(!is_string($tok) || $tok != '{' )
-            throw new Exception ("Class parsing, invalid syntax");
+            throw new Exception ("Class parsing, invalid syntax, '{' expected");
     }
     
 }
