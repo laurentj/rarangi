@@ -8,7 +8,9 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
-
+/**
+ * @notimplemented
+ */
 class jDescriptorTagBase {
     const FILE_LEVEL = 1;
     const CLASS_LEVEL = 2;
