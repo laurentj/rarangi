@@ -78,6 +78,7 @@ class jDoc {
             jDao::get('files')->deleteByProject($this->projectRec->id);
             jDao::get('classes')->deleteByProject($this->projectRec->id);
             jDao::get('packages')->deleteByProject($this->projectRec->id);
+            jDao::get('class_properties')->deleteByProject($this->projectRec->id);
         }
     }
 

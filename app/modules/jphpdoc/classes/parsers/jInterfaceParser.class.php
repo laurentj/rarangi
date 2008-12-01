@@ -26,6 +26,11 @@ class jInterfaceParser extends jParser_base {
         $this->info->initFromPhpDoc($doccomment);
     }
 
+    const MEMBER_TYPE_CONST = 1;
+    const MEMBER_TYPE_VAR = 2;
+    const MEMBER_TYPE_FUNC = 3;
+    const MEMBER_TYPE_FUNC_ABST = 4;
+
     public function parse(){
 
         $this->info->name = $this->toNextSpecificPhpToken(T_STRING);
@@ -37,48 +42,52 @@ class jInterfaceParser extends jParser_base {
         $previousDocComment = '';
         $doExit = false;
         
-        $memberAccessibility = T_PUBLIC;
+        $memberAccessibility = 0;
         $memberStatic = false;
         $memberFinal = false;
-        $functionAbstract = false;
-        
-        $propertyExpected = false;
-        $constExpected = false;
+        $memberType = 0;
         
         while(!$doExit &&  ($tok = $this->toNextPhpToken()) !== false ) {
             if (is_array($tok)) {
                 switch($tok[0]){
 
                 case T_FUNCTION:
-                    //$subparser = new jFunctionParser($this, $previousDocComment, $memberAccessibility, $memberStatic, $memberFinal, $functionAbstract);
+                    //$subparser = new jFunctionParser($this, $previousDocComment, $memberAccessibility, $memberStatic, $memberFinal, $memberType == self::MEMBER_TYPE_FUNC_ABST);
                     //$subparser->parse();
                     $memberAccessibility = 0;
                     $memberStatic = false;
                     $memberFinal = false;
-                    $functionAbstract = false;
+                    $memberType= 0;
                     break;
                 case T_VARIABLE:
-                    //$subparser = new jPropertyParser($this, $previousDocComment);
-                    //$subparser->parse();
-                    $propertyExpected = false;
+                    $info = new jPropertyDescriptor($this->info->projectId, $this->info->fileId, $this->parserInfo->currentLine());
+                    $info->initFromPhpDoc($previousDocComment);
+                    $info->accessibility = $memberAccessibility;
+                    $info->isStatic = $memberStatic;
+                    list($pname, $pvalue) = $this->readVarnameAndValue(';');
+                    $info->name = $pname;
+                    $info->defaultValue = $pvalue;
+                    $this->info->members[]=$info;
                     $memberAccessibility = 0;
                     $memberStatic = false;
                     $memberFinal = false;
+                    $memberType= 0;
                     break;
                 case T_DOC_COMMENT:
                     $previousDocComment = $tok[1];
                     break;
                 case T_CONST:
-                    $constExpected = true;
+                    $memberType = self::MEMBER_TYPE_CONST;
                     break;
                 case T_FINAL:
                     $memberFinal = true;
+                    $memberType = self::MEMBER_TYPE_FUNC;
                     break;
                 case T_PRIVATE:
                     $memberAccessibility = T_PRIVATE;
                     break;
                 case T_VAR:
-                    $propertyExpected = true;
+                    $memberType = self::MEMBER_TYPE_VAR;
                 case T_PUBLIC:
                     $memberAccessibility = T_PUBLIC;
                     break;
@@ -90,6 +99,7 @@ class jInterfaceParser extends jParser_base {
                     break;
                 case T_ABSTRACT:
                     $functionAbstract = true;
+                    $memberType = self::MEMBER_TYPE_FUNC_ABST;
                     break;
                 }
             } else {
@@ -132,4 +142,3 @@ class jInterfaceParser extends jParser_base {
     }
 
 }
-?>

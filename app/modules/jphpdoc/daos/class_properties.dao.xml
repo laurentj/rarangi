@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dao xmlns="http://jelix.org/ns/dao/1.0">
+    <datasources>
+        <primarytable name="class_properties" realname="class_properties" primarykey="name,class_id" />
+    </datasources>
+    <record>
+        <property name="name" fieldname="name" datatype="string" required="true" maxlength="150"/>
+        <property name="class_id" fieldname="class_id" datatype="int" required="true"/>
+        <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
+        <property name="line_number" fieldname="line_number" datatype="int" required="true"/>
+        <property name="datatype" fieldname="datatype" datatype="string" required="true" maxlength="150"/>
+        <property name="default_value" fieldname="default_value" datatype="text"/>
+        <property name="is_static" fieldname="is_static" datatype="int" required="true"/>
+        <property name="accessibility" fieldname="accessibility" datatype="string" maxlength="3" required="true"/>
+        <property name="short_description" fieldname="short_description" datatype="string"/>
+        <property name="description" fieldname="description" datatype="string"/>
+    </record>
+    <factory>
+        <method name="deleteByProject" type="delete">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+    </factory>
+</dao>

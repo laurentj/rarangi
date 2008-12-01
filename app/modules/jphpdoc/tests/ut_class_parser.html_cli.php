@@ -50,6 +50,7 @@ class ut_class_parser extends jUnitTestCaseDb {
         jLogger::addLogger($this->logger);
         $this->emptyTable('classes');
         $this->emptyTable('interface_class');
+        $this->emptyTable('class_properties');
     }
 
     function tearDown() {
@@ -209,6 +210,60 @@ class ut_class_parser extends jUnitTestCaseDb {
         
     }
 
-
+    function testSimpleClass() {
+        $content = " <?php \nclass foo {\n public \$bar; \n protected static \$baz =\"lorem ipsum\"; \n}\n ?>";
+        $p = new ut_class_parser_test($content,1);
+        $p->parse();
+        $this->assertEqual($p->getParserInfo()->currentLine(), 5);
+        
+        if($this->assertTrue($p->getIterator()->valid())) {
+            $tok = $p->getIterator()->current();
+            $this->assertEqual($tok, '}');
+        }
+        $this->assertEqual(count($this->logger->getLog()),0);
+        $this->assertEqual($p->getInfo()->name , 'foo');
+        
+        $records = array(array(
+            'id'=>$p->getInfo()->classId,
+            'name'=>'foo',
+            'project_id'=>1,
+            'file_id'=>1,
+            'linenumber'=>2,
+            'package_id'=>null,
+            'subpackage_id'=>null,
+            'mother_class'=>null,
+            'is_abstract'=>0,
+            'is_interface'=>0,
+            ));
+        $this->assertTableContainsRecords('classes', $records);
+        
+        $records = array(
+            array(
+                'name'=>'bar',
+                'class_id'=>$p->getInfo()->classId,
+                'project_id'=>1,
+                'line_number'=>3,
+                'datatype'=>'',
+                'default_value'=>'',
+                'is_static'=>0,
+                'accessibility'=>'PUB',
+                'short_description'=>'',
+                'description'=>''
+            ),
+            array(
+                'name'=>'baz',
+                'class_id'=>$p->getInfo()->classId,
+                'project_id'=>1,
+                'line_number'=>4,
+                'datatype'=>'',
+                'default_value'=>'"lorem ipsum"',
+                'is_static'=>1,
+                'accessibility'=>'PRO',
+                'short_description'=>'',
+                'description'=>''
+            ),
+        );
+        $this->assertTableContainsRecords('class_properties', $records);
+    }
 
 }

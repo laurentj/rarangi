@@ -119,5 +119,66 @@ abstract class jParser_base {
             return;
     }
 
+    protected function readVarnameAndValue($endToken = ';') {
+        $tok = $this->iterator->current();
+        if(is_array($tok) && $tok[0] != T_VARIABLE)
+            throw new Exception('not a variable declaration');
+        $name = substr($tok[1],1);
+        $tok = $this->toNextPhpToken();
+        if(!$tok || !is_string($tok))
+            throw new Exception('variable declaration invalid');
+        if($tok == '=') {
+            $value = '';
+            $tok = $this->toNextPhpToken();
+            $exit = $this->isEndToken($tok, $endToken);
+            $insideArray = false;
+            $parenthesisLevel = 0;
+            
+            while ( $tok && !$exit) {
+                if(is_array($tok)) {
+                    $value.= $tok[1];
+                    if($tok[0] == T_ARRAY)
+                        $insideArray = true;
+                }
+                else {
+                    $value .= $tok;
+                    if ($insideArray) {
+                        if($tok == '(') {
+                            $parenthesisLevel++;
+                        }
+                        elseif($tok == ')') {
+                            $parenthesisLevel--;
+                            if($parenthesisLevel == 0)
+                                $insideArray = false;
+                        }
+                    }
+                }
+                $tok = $this->toNextPhpToken();
+                
+                if (!$insideArray) {
+                    $exit =  $this->isEndToken($tok, $endToken);
+                }
+            }
+            if(!$tok) {
+                throw  new Exception('value of variable invalid ('.$name.','.$value.')');
+            }
+            return array($name, $value);
+        }
+        else if($this->isEndToken($tok, $endToken)) {
+            return array($name, null);
+        }
+        else
+            throw  new Exception('bad end of variable declaration');
+    }
+    
+    protected function isEndToken($tok, $endToken){
+        if(is_array($endToken)) {
+            return in_array($tok, $endToken);
+        }
+        else {
+            return $tok == $endToken;
+        }
+    }
+    
 }
 

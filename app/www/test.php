@@ -2,13 +2,13 @@
 header('Content-type:text/plain');
 
 
-$t= token_get_all("
+$t= token_get_all('
 <?php
 
-class truc implements machin, bidule {
-	
-}
-");
+$truc = array( );
+$machin = array(1,3);
+
+?>');
 
 function stringify($s){
 	return '"'.str_replace(array("\n","\t"), array('\n','\t'),$s).'"';

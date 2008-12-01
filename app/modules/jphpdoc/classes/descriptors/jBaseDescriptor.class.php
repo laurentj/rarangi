@@ -16,13 +16,13 @@ class jBaseDescriptor {
      *
      * @var string
      */
-    public $shortDescription;
+    public $shortDescription = null;
 
     /**
      *
      * @var string 
      */
-    public $description;
+    public $description = null;
 
     /**
      *
@@ -44,7 +44,7 @@ class jBaseDescriptor {
 
     /**
      * list of array(name,email)
-     * @var arrayt
+     * @var array
      */
     public $contributor;    //  name <email>
 
@@ -157,6 +157,7 @@ class jBaseDescriptor {
                             $this->subpackage = trim($content);
                             break;
                     }
+                    $currentTag = $tag;
                 }
                 else {
                     if($currentTag == 'shortDescription') {
@@ -183,6 +184,8 @@ class jBaseDescriptor {
             }
         }
     }
+    
+    protected function parseSpecificTag($tag, $content) {}
     
     public function save() {}
     

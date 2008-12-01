@@ -63,6 +63,8 @@ class jInterfaceDescriptor extends jBaseDescriptor {
         $record->package_id = $this->getPackageId($this->package);
         $record->subpackage_id = $this->getPackageId($this->subpackage, true);
         $record->is_interface = $this->isInterface;
+        $record->short_description = $this->shortDescription;
+        $record->description = $this->description;
         
         if(!$toInsert) {
             // if there is already a record, this is an empty record, created
