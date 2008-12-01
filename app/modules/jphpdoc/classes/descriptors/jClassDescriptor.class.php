@@ -11,26 +11,18 @@
  *
  */
 class jClassDescriptor extends jBaseDescriptor {
-    public $package;
-    public $subpackage;
+
+    public $isAbstract = false;
+
     public $name;
     public $inheritsFrom = null;
     public $interfaces = array();
-    
-    
-    public $projectId;
-    public $fileId;
-    public $line;
-    
-    function __construct($projectId, $fileId, $line){
-        $this->projectId = $projectId;
-        $this->fileId = $fileId;
-        $this->line = $line;
-    }
 
     public function save() {
         if($this->name == '')
             throw new Exception('class name undefined');
+        
+        
         
         $dao = jDao::get('jphpdoc~classes');
 
@@ -40,6 +32,9 @@ class jClassDescriptor extends jBaseDescriptor {
         $record->file_id = $this->fileId;
         $record->linenumber = $this->line;
         $record->mother_class = $this->inheritsFrom;
+        $record->is_abstract = $this->isAbstract;
+        $record->package_id = $this->getPackageId($this->package);
+        $record->subpackage_id = $this->getPackageId($this->subpackage, true);
         
         if($dao->get($this->name, $this->projectId)) {
             // if there is already a record, this is an empty record, created

@@ -25,6 +25,18 @@ class jBaseDescriptor {
     public $description;
 
     /**
+     *
+     * @var string 
+     */
+    public $package;
+    
+    /**
+     *
+     * @var string 
+     */
+    public $subpackage;
+
+    /**
      * list of array(name,email)
      * @var array
      */
@@ -97,28 +109,32 @@ class jBaseDescriptor {
      */
     public $todo;    //description
 
+    public $projectId;
+    public $fileId;
+    public $line;
+    
+    function __construct($projectId, $fileId, $line){
+        $this->projectId = $projectId;
+        $this->fileId = $fileId;
+        $this->line = $line;
+    }
 
     /**
      * the object is initialized with all informations of an other 
      * @param jBaseDescriptor $desc a descriptor
      */
-    public function inheritFrom($desc){
-        $this->shortDescription = $desc->shortDescription ;
-        $this->description = $desc->description ;
+    public function inheritsFrom($desc) {
+        $this->projectId = $desc->projectId;
+        $this->package = $desc->package ;
+        $this->subpackage = $desc->subpackage ;
         $this->author = $desc->author ;
         $this->contributor = $desc->contributor ;
         $this->copyright = $desc->copyright ;
         $this->deprecated = $desc->deprecated ;
-        $this->example = $desc->example ;
         $this->ignore = $desc->ignore ;
-        $this->internal = $desc->internal ;
         $this->internaluse = $desc->internaluse ;
         $this->link = $desc->link ;
-        $this->see = $desc->see ;
-        $this->uses = $desc->uses ;
-        $this->since = $desc->since ;
-        $this->changelog = $desc->changelog ;
-        $this->todo = $desc->todo ;
+        $this->since = $desc->since;
     }
 
     /**
@@ -133,7 +149,14 @@ class jBaseDescriptor {
             if(preg_match('/^\s*\*\s*(?:@(\w+))?(.*)$/',$ligne,$m)){
                 list(,$tag, $content) = $m;
                 if($tag != ''){
-
+                    switch($tag) {
+                        case 'package':
+                            $this->package = trim($content);
+                            break;
+                        case 'subpackage':
+                            $this->subpackage = trim($content);
+                            break;
+                    }
                 }
                 else {
                     if($currentTag == 'shortDescription') {
@@ -162,6 +185,21 @@ class jBaseDescriptor {
     }
     
     public function save() {}
+    
+    
+    protected function getPackageId($packageName, $isSubPackage = false) {
+        if($packageName == '')
+            return null;
+        $package = jDao::get('jphpdoc~packages')->getByName($this->projectId, $packageName, $isSubPackage);
+        if(!$package) {
+            $package = jDao::createRecord('jphpdoc~packages');
+            $package->project_id = $this->projectId;
+            $package->name = $packageName;
+            $package->is_sub = $isSubPackage;
+            jDao::get('jphpdoc~packages')->insert($package);
+        }
+        return $package->id;
+    }
 }
 
 

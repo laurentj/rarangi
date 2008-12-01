@@ -12,7 +12,5 @@
  *
  */
 class jConstantDescriptor  extends jBaseDescriptor {
-    public $package;
-    public $subpackage;
     public $value;
 }

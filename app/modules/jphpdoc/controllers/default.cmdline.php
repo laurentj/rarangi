@@ -43,8 +43,6 @@ class defaultCtrl extends jControllerCmdLine {
 
         $docparser->run();
 
-        
-
         return $rep;
     }
 }

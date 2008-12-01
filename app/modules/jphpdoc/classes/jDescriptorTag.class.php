@@ -11,7 +11,7 @@
 /**
  * @notimplemented
  */
-class jDescriptorTagBase {
+abstract class jDescriptorTagBase {
     const FILE_LEVEL = 1;
     const CLASS_LEVEL = 2;
     const INTERFACE_LEVEL = 3;
@@ -28,13 +28,7 @@ class jDescriptorTagBase {
 
     
 
-    public function parseValue() {
-    }
-
-    
-
-
-
+    abstract public function parseValue();
 
 }
 

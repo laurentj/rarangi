@@ -7,13 +7,23 @@
         <property name="id" fieldname="id" datatype="autoincrement"/>
         <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
         <property name="name" fieldname="name" datatype="string" required="true" maxlength="50"/>
-        <property name="is_sub" fieldname="is_sub" datatype="int" required="true" default="0"/>
+        <property name="is_sub" fieldname="is_sub" datatype="boolean" required="true" default="0"/>
     </record>
     <factory>
-        <method name="getByProject" type="select">
+        <method name="findByProject" type="select">
             <parameter name="project" />
             <conditions>
                 <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+        <method name="getByName" type="selectfirst">
+            <parameter name="project" />
+            <parameter name="name" />
+            <parameter name="is_sub" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+                <eq property="name" expr="$name" />
+                <eq property="is_sub" expr="$is_sub" />
             </conditions>
         </method>
     </factory>

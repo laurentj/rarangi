@@ -12,8 +12,6 @@
  *
  */
 class jInterfaceDescriptor extends jBaseDescriptor {
-    public $package;
-    public $subpackage;
     public $name;
     public $inheritsFrom;
 }

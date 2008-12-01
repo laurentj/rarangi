@@ -38,7 +38,7 @@ class jFileParser extends jParser_base {
         $filecontentdao = jDao::get("jphpdoc~files_content");
         $line = jDao::createRecord("jphpdoc~files_content");
         foreach ($lines as $n=>$l) {
-            $line->file_id = $this->info->id;
+            $line->file_id = $this->info->fileId;
             $line->project_id = $parserInfo->getProjectId();
             $line->linenumber = $n;
             $line->content = $l;
@@ -70,12 +70,12 @@ class jFileParser extends jParser_base {
             
 
         $previousDocComment = '';
-        $isAbstract = '';
+        $isAbstract = false;
         while( ($tok = $this->toNextPhpToken()) !== false) {
             if (is_array($tok)) {
                 switch($tok[0]){
                 case T_CLASS:
-                    $subparser = new jClassParser($this, $previousDocComment);
+                    $subparser = new jClassParser($this, $previousDocComment, $isAbstract);
                     $subparser->parse();
                     break;
                 /*case T_INTERFACE:
@@ -97,6 +97,9 @@ class jFileParser extends jParser_base {
                     $subparser = new jGlobalVariableParser($this, $previousDocComment);
                     $subparser->parse();
                     break;*/
+                case T_ABSTRACT:
+                    $isAbstract = true;
+                    break;
                 case T_DOC_COMMENT:
                     $previousDocComment = $tok[1];
                     break;

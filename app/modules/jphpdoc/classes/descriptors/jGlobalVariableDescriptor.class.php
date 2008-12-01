@@ -12,8 +12,6 @@
  *
  */
 class jGlobalVariableDescriptor  extends jBaseDescriptor {
-    public $package;
-    public $subpackage;
     public $datatype;
 }
 

@@ -13,8 +13,6 @@
  *
  */
 class jFunctionDescriptor  extends jBaseDescriptor {
-    public $package;
-    public $subpackage;
     public $usedGlobalsVars;
     public $parameters;
     public $return;

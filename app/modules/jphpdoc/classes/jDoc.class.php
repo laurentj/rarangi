@@ -9,7 +9,7 @@
 */
 
 $dirnamefile = dirname(__FILE__).'/';
-require($dirnamefile.'jDescriptor.class.php');
+require($dirnamefile.'jDescriptor.lib.php');
 require($dirnamefile.'parsers/jParserInfo.class.php');
 require($dirnamefile.'parsers/jFileParser.class.php');
 

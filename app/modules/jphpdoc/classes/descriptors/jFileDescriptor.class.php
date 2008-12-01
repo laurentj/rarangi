@@ -15,10 +15,8 @@ class jFileDescriptor extends jBaseDescriptor  {
     public $fullpath;
     public $filepath;
     public $filename;
-    public $id;
+
     public $licence; // libelle, lien
-    public $package;
-    public $subpackage;
     
     protected $record;
     
@@ -32,15 +30,18 @@ class jFileDescriptor extends jBaseDescriptor  {
         $this->fullpath = $fullpath;
         
         $this->record = jDao::createRecord('jphpdoc~files');
-        $this->record->project_id = $projectId;
+        $this->projectId = $this->record->project_id = $projectId;
         $this->record->isdir = 0;
         $this->record->fullpath = $relativeFullPath;
         $this->record->filename = $filename;
         $this->record->dirname = $relativePath;
+
         jDao::get('jphpdoc~files')->insert($this->record);
-        $this->id = $this->record->id;
+        $this->fileId = $this->record->id;
     }
     public function save() {
+        $this->record->package_id = $this->getPackageId($this->package);
+        $this->record->subpackage_id = $this->getPackageId($this->subpackage, true);
         jDao::get('jphpdoc~files')->update($this->record);
     }
 }

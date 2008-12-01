@@ -16,13 +16,16 @@ class jClassParser extends jParser_base {
     /**
      * @param Iterator $it  the iterator on tokens
      * @param string $doccomment the documented comment associated to the class
+     * @param boolean $isAbstract  indicates if the class is an abstract class
      */
-    function __construct($fatherParser, $doccomment){
+    function __construct($fatherParser, $doccomment, $isAbstract = false){
         parent::__construct($fatherParser);
         $this->info = new jClassDescriptor($this->parserInfo->getProjectId(),
-                                           $fatherParser->getInfo()->id,
+                                           $fatherParser->getInfo()->fileId,
                                            $this->parserInfo->currentLine());
+        $this->info->inheritsFrom($fatherParser->getInfo());
         $this->info->initFromPhpDoc($doccomment);
+        $this->info->isAbstract = $isAbstract;
     }
 
     public function parse(){
