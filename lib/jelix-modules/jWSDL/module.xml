@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module xmlns="http://jelix.org/ns/module/1.0">
     <info id="jwsdl@modules.jelix.org" name="jwsdl" createdate="">
-       <version stability="stable">1.1b2pre.1179</version>
+       <version stability="stable">1.1b2pre.1189</version>
         <label lang="en-EN">jWSDL</label>
         <description lang="en-EN">WSDL generator for SOAP web services</description>
         <licence URL="http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html">LGPL 2.1</licence>
@@ -11,6 +11,6 @@
         <homepageURL>http://jelix.org</homepageURL>
     </info>
     <dependencies>
-       <jelix minversion="1.1b2pre.1179" maxversion="1.1b2pre.1179" />
+       <jelix minversion="1.1b2pre.1189" maxversion="1.1b2pre.1189" />
     </dependencies>
 </module>
