@@ -32,5 +32,22 @@
                 <eq property="name" expr="$name" />
             </conditions>
         </method>
+        <method name="getByNameAndFile" type="selectfirst">
+            <parameter name="project" />
+            <parameter name="name" />
+            <parameter name="file" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+                <eq property="name" expr="$name" />
+                <conditions logic="or">
+                    <eq property="file_id" expr="$file" />
+                    <isnull property="file_id" />
+                </conditions>
+            </conditions>
+            <order>
+               <orderitem property="file_id" way="desc" />
+            </order>
+        </method>
+
     </factory>
 </dao>

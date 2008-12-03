@@ -13,7 +13,6 @@
  */
 class jInterfaceDescriptor extends jBaseDescriptor {
 
-
     protected $isInterface = true;
 
     public $name ='';
@@ -32,7 +31,7 @@ class jInterfaceDescriptor extends jBaseDescriptor {
         
         $mother_id = null;
         if($this->inheritsFrom !== null) {
-            $mother = $dao->getByName($this->inheritsFrom, $this->projectId);
+            $mother = $dao->getByName($this->projectId, $this->inheritsFrom);
             if(!$mother) {
                 $mother = jDao::createRecord('jphpdoc~classes');
                 $mother->name = $this->inheritsFrom;
@@ -43,8 +42,8 @@ class jInterfaceDescriptor extends jBaseDescriptor {
             }
             $mother_id = $mother->id;
         }
-        
-        $record = $dao->getByName($this->name, $this->projectId);
+
+        $record = $dao->getByNameAndFile($this->projectId, $this->name, $this->fileId);
         $toInsert=false;
         if(!$record) {
             $toInsert=true;
@@ -82,6 +81,5 @@ class jInterfaceDescriptor extends jBaseDescriptor {
             $member->save();
         }
     }
-
 }
 

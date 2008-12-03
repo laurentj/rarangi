@@ -31,7 +31,7 @@ class jFileParser extends jParser_base {
                                           $parserInfo->getFullSourcePath(),
                                           $parserInfo->currentFile(),
                                           $parserInfo->currentFileName());
-
+        jLogger::message("Parsing file ".$this->info->filepath);
         $content = file_get_contents($this->info->fullpath);
 
         $lines = explode("\n", $content);
@@ -77,16 +77,22 @@ class jFileParser extends jParser_base {
                 case T_CLASS:
                     $subparser = new jClassParser($this, $previousDocComment, $isAbstract);
                     $subparser->parse();
+                    $previousDocComment = '';
+                    $isAbstract = false;
                     break;
-                /*case T_INTERFACE:
+                case T_INTERFACE:
                     $subparser = new jInterfaceParser($this, $previousDocComment);
                     $subparser->parse();
+                    $previousDocComment = '';
+                    $isAbstract = false;
                     break;
                 case T_FUNCTION:
                     $subparser = new jFunctionParser($this, $previousDocComment);
                     $subparser->parse();
+                    $previousDocComment = '';
+                    $isAbstract = false;
                     break;
-                case T_INCLUDE:
+                /*case T_INCLUDE:
                 case T_INCLUDE_ONCE:
                 case T_REQUIRE:
                 case T_REQUIRE_ONCE:
@@ -116,13 +122,14 @@ class jFileParser extends jParser_base {
             }
         }
         } catch(jException $e) {
+            $GLOBALS['gJCoord']->handleError($GLOBALS['gJConfig']->error_handling['exception'], 'exception',
+            $e->getCode(), $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace());
             return;       
         } catch(Exception $e) {
             jLogger::error($e->getMessage());
             return;
         }
         $this->info->save();
-        jLogger::message($this->info->filepath. " is ok \n");
     }
 }
 

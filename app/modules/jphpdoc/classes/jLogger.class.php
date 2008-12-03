@@ -83,8 +83,15 @@ class jLogger {
      *                     of jILoggerDriver interface
      */
     protected static function call($str, $meth){
-        $f = jDoc::getInstance()->getParserInfo()->currentFile();
-        $l = jDoc::getInstance()->getParserInfo()->currentLine();
+        $pi = jDoc::getInstance()->getParserInfo();
+        if($pi) {
+            $f = $pi->currentFile();
+            $l = $pi->currentLine();
+        }
+        else {
+            $f = '';
+            $l = 0;
+        }
         foreach(self::$loggers as $log){
             $log->$meth($str, $f, $l);
         }
@@ -176,13 +183,21 @@ class jConsoleLogger implements jILoggerDriver {
  * a logger which stores messages in memory
  */
 class jInMemoryLogger implements jILoggerDriver {
-    protected $log = array();
+    protected $log = array('message'=>array(),
+                           'notice'=>array(),
+                           'warning'=>array(),
+                           'error'=>array()
+                           );
 
-    public function message($str, $f, $l){ $this->log[] = array(0, $str, $f, $l);}
-    public function notice($str, $f, $l){ $this->log[] = array(1, $str, $f, $l);}
-    public function warning($str, $f, $l){ $this->log[] = array(2, $str, $f, $l);}
-    public function error($str, $f, $l){ $this->log[] = array(3, $str, $f, $l);}
-    public function clear(){ $this->log = array(); }
+    public function message($str, $f, $l){ $this->log['message'][] = array(0, $str, $f, $l);}
+    public function notice($str, $f, $l){ $this->log['notice'][] = array(1, $str, $f, $l);}
+    public function warning($str, $f, $l){ $this->log['warning'][] = array(2, $str, $f, $l);}
+    public function error($str, $f, $l){ $this->log['error'][] = array(3, $str, $f, $l);}
+    public function clear(){ $this->log = array('message'=>array(),
+                           'notice'=>array(),
+                           'warning'=>array(),
+                           'error'=>array()
+                           ); }
     
     /**
      * return the list of messages

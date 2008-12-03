@@ -74,11 +74,14 @@ class jDoc {
             $projectdao->insert($this->projectRec);
         }
         else {
+            jDao::get('interface_class')->deleteByProject($this->projectRec->id);
+            jDao::get('class_properties')->deleteByProject($this->projectRec->id);
+            jDao::get('class_methods')->deleteByProject($this->projectRec->id);
+            jDao::get('classes')->deleteByProject($this->projectRec->id);
+            jDao::get('functions')->deleteByProject($this->projectRec->id);
             jDao::get('files_content')->deleteByProject($this->projectRec->id);
             jDao::get('files')->deleteByProject($this->projectRec->id);
-            jDao::get('classes')->deleteByProject($this->projectRec->id);
             jDao::get('packages')->deleteByProject($this->projectRec->id);
-            jDao::get('class_properties')->deleteByProject($this->projectRec->id);
         }
     }
 

@@ -34,7 +34,10 @@ class jInterfaceParser extends jParser_base {
     public function parse(){
 
         $this->info->name = $this->toNextSpecificPhpToken(T_STRING);
-
+        if ($this->info instanceof jClassDescriptor)
+            jLogger::message("   parsing class ".$this->info->name);
+        else
+            jLogger::message("   parsing interface ".$this->info->name);
         $this->parseDeclaration();
         
         $bracketlevel = 1;
@@ -50,10 +53,10 @@ class jInterfaceParser extends jParser_base {
         while(!$doExit &&  ($tok = $this->toNextPhpToken()) !== false ) {
             if (is_array($tok)) {
                 switch($tok[0]){
-
                 case T_FUNCTION:
-                    //$subparser = new jFunctionParser($this, $previousDocComment, $memberAccessibility, $memberStatic, $memberFinal, $memberType == self::MEMBER_TYPE_FUNC_ABST);
-                    //$subparser->parse();
+                    $subparser = new jFunctionParser($this, $previousDocComment, $memberAccessibility, $memberStatic, $memberFinal, $memberType == self::MEMBER_TYPE_FUNC_ABST);
+                    $subparser->parse();
+                    $this->info->members[]=$subparser->getInfo();
                     $memberAccessibility = 0;
                     $memberStatic = false;
                     $memberFinal = false;

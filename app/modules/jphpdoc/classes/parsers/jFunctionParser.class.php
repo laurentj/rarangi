@@ -14,6 +14,7 @@
 class jFunctionParser extends jParser_base {
 
     protected $isMethod = false;
+    protected $isInInterface = false;
 
     /**
      * @param jParser_base $fatherParser  the parser which instancy this class
@@ -24,11 +25,13 @@ class jFunctionParser extends jParser_base {
      * @param boolean $isAbstract  indicates if the function is an abstract function in the class
 
      */
-    function __construct( $fatherParser, $doccomment, $accessibility, $isStatic, $isFinal, $isAbstract){
+    function __construct( $fatherParser, $doccomment, $accessibility=0, $isStatic=false, $isFinal=false, $isAbstract=false){
         
         parent::__construct($fatherParser);
         
-        if($fatherParser instanceof jClassParser) {
+        if($fatherParser instanceof jClassParser || $fatherParser instanceof jInterfaceParser) {
+            if (!($fatherParser instanceof jClassParser))
+                $this->isInInterface = true;
             $this->isMethod = true;
             $this->info = new jMethodDescriptor($this->parserInfo->getProjectId(),
                                                $fatherParser->getInfo()->fileId,
@@ -51,8 +54,59 @@ class jFunctionParser extends jParser_base {
     }
 
     public function parse(){
+        $this->info->name = $this->toNextSpecificPhpToken(T_STRING);
 
+        $this->toNextSpecificPhpToken('(');
+        $tok = $this->toNextPhpToken();
+        while($tok != ')') {
+            if (is_array($tok)) {
+                if ($tok[0] == T_STRING) {
+                    $this->toNextSpecificPhpToken(T_VARIABLE);
+                    list($pname, $pvalue) = $this->readVarnameAndValue(array(',',')'));
+                    $tok = $this->iterator->current();
+                }
+                else if ($tok[0] == T_VARIABLE) {
+                    list($pname, $pvalue) = $this->readVarnameAndValue(array(',',')'));
+                    $tok = $this->iterator->current();
+                }
+                else
+                    $tok = $this->toNextPhpToken();
+            }
+            else {
+                $tok = $this->toNextPhpToken();
+            }
+        }
+
+        if ($this->isMethod && ($this->info->isAbstract || $this->isInInterface)) {
+            $this->toNextSpecificPhpToken(';');
+            return;
+        }
+
+        $this->toNextSpecificPhpToken('{');
+        $bracketlevel = 1;
+        $doExit = false;
+
+        while(!$doExit &&  ($tok = $this->toNextPhpToken()) !== false ) {
+            if (is_array($tok)) {
+                /*switch($tok[0]){
+                case T_:
+                    break;
+                }*/
+            } else {
+                switch($tok){
+                case '{':
+                    $bracketlevel++;
+                    break;
+                case '}':
+                    $bracketlevel--;
+                    $doExit = ($bracketlevel == 0);
+                    break;
+                default:
+                }
+            }
+        }
+
+        if(!$this->isMethod) $this->info->save();
     }
 
 }
-?>

@@ -9,7 +9,6 @@ startAction = "default:index"
 ; for junittests module
 enableTests = on
 
-
 [error_handling]
 logFile = error-cli.log
 
@@ -20,5 +19,5 @@ warning      = ECHO TRACE LOGFILE
 notice       = ECHO LOGFILE
 strict       = ECHO
 ; pour les exceptions, il y a implicitement un EXIT
-exception    = ECHO TRACE
+exception    = ECHO TRACE LOGFILE
 

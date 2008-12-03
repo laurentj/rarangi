@@ -3,14 +3,14 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Dec 02, 2008 at 12:57 AM
+-- Generation Time: Dec 03, 2008 at 01:41 AM
 -- Server version: 5.0.51
 -- PHP Version: 5.2.4-2ubuntu5.3
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 --
--- Database: `phpdoctests`
+-- Database: `phpdoc`
 --
 
 -- --------------------------------------------------------
@@ -19,6 +19,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 -- Table structure for table `classes`
 --
 
+DROP TABLE IF EXISTS `classes`;
 CREATE TABLE IF NOT EXISTS `classes` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(255) NOT NULL,
@@ -33,8 +34,7 @@ CREATE TABLE IF NOT EXISTS `classes` (
   `short_description` tinytext,
   `description` text,
   PRIMARY KEY  (`id`),
-  UNIQUE KEY `name` (`name`,`project_id`),
-  KEY `file_id` (`file_id`),
+  UNIQUE KEY `name` (`name`,`project_id`,`file_id`),
   KEY `package_id` (`package_id`),
   KEY `mother_class` (`mother_class`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
@@ -42,9 +42,31 @@ CREATE TABLE IF NOT EXISTS `classes` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `class_methods`
+--
+
+DROP TABLE IF EXISTS `class_methods`;
+CREATE TABLE IF NOT EXISTS `class_methods` (
+  `name` varchar(150) NOT NULL,
+  `class_id` int(11) NOT NULL,
+  `project_id` int(11) NOT NULL,
+  `line_number` int(11) NOT NULL,
+  `is_static` tinyint(1) NOT NULL,
+  `is_final` tinyint(1) NOT NULL default '0',
+  `is_abstract` tinyint(1) NOT NULL default '0',
+  `accessibility` char(3) NOT NULL,
+  `short_description` tinytext,
+  `description` text,
+  PRIMARY KEY  (`name`,`class_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `class_properties`
 --
 
+DROP TABLE IF EXISTS `class_properties`;
 CREATE TABLE IF NOT EXISTS `class_properties` (
   `name` varchar(150) NOT NULL,
   `class_id` int(11) NOT NULL,
@@ -65,6 +87,7 @@ CREATE TABLE IF NOT EXISTS `class_properties` (
 -- Table structure for table `files`
 --
 
+DROP TABLE IF EXISTS `files`;
 CREATE TABLE IF NOT EXISTS `files` (
   `id` int(11) NOT NULL auto_increment,
   `package_id` int(11) default NULL,
@@ -87,6 +110,7 @@ CREATE TABLE IF NOT EXISTS `files` (
 -- Table structure for table `files_content`
 --
 
+DROP TABLE IF EXISTS `files_content`;
 CREATE TABLE IF NOT EXISTS `files_content` (
   `file_id` int(11) NOT NULL,
   `linenumber` int(11) NOT NULL,
@@ -99,9 +123,27 @@ CREATE TABLE IF NOT EXISTS `files_content` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `functions`
+--
+
+DROP TABLE IF EXISTS `functions`;
+CREATE TABLE IF NOT EXISTS `functions` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(150) NOT NULL,
+  `project_id` int(11) NOT NULL,
+  `line_number` int(11) NOT NULL,
+  `short_description` tinytext,
+  `description` text,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `interface_class`
 --
 
+DROP TABLE IF EXISTS `interface_class`;
 CREATE TABLE IF NOT EXISTS `interface_class` (
   `class_id` int(11) NOT NULL,
   `interface_id` int(11) NOT NULL,
@@ -115,6 +157,7 @@ CREATE TABLE IF NOT EXISTS `interface_class` (
 -- Table structure for table `packages`
 --
 
+DROP TABLE IF EXISTS `packages`;
 CREATE TABLE IF NOT EXISTS `packages` (
   `id` int(11) NOT NULL auto_increment,
   `project_id` int(11) NOT NULL,
@@ -122,7 +165,7 @@ CREATE TABLE IF NOT EXISTS `packages` (
   `is_sub` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `project_id` (`project_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -130,8 +173,9 @@ CREATE TABLE IF NOT EXISTS `packages` (
 -- Table structure for table `projects`
 --
 
+DROP TABLE IF EXISTS `projects`;
 CREATE TABLE IF NOT EXISTS `projects` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(50) NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;

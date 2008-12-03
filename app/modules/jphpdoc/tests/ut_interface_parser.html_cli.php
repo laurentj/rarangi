@@ -78,7 +78,10 @@ class ut_interface_parser extends jUnitTestCaseDb {
             $tok = $p->getIterator()->current();
             $this->assertEqual($tok, '}');
         }
-        $this->assertEqual(count($this->logger->getLog()),0);
+        $log = $this->logger->getLog();
+        $this->assertEqual(count($log['error']),0);
+        $this->assertEqual(count($log['warning']),0);
+        $this->assertEqual(count($log['notice']),0);
         $this->assertEqual($p->getInfo()->name , 'foo');
         
         $records = array(array(
@@ -106,7 +109,10 @@ class ut_interface_parser extends jUnitTestCaseDb {
             $tok = $p->getIterator()->current();
             $this->assertEqual($tok, '}');
         }
-        $this->assertEqual(count($this->logger->getLog()),0);
+        $log = $this->logger->getLog();
+        $this->assertEqual(count($log['error']),0);
+        $this->assertEqual(count($log['warning']),0);
+        $this->assertEqual(count($log['notice']),0);
         
         $this->assertEqual($p->getInfo()->name , 'foo');
         $this->assertEqual($p->getInfo()->inheritsFrom , 'bar');

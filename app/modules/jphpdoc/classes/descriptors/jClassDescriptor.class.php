@@ -23,7 +23,7 @@ class jClassDescriptor extends jInterfaceDescriptor {
         $dao = jDao::get('jphpdoc~classes');
 
         foreach($this->interfaces as $interface) {
-            $iface = $dao->getByName($interface, $this->projectId);
+            $iface = $dao->getByName($this->projectId, $interface);
             if (!$iface) {
                 $iface = jDao::createRecord('jphpdoc~classes');
                 $iface->name = $interface;

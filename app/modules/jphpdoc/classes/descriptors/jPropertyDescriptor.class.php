@@ -27,7 +27,7 @@ class jPropertyDescriptor extends jBaseDescriptor {
     
     protected function parseSpecificTag($tag, $content) {
         if($tag == 'var') {
-            $this->datatype = $datatype;
+            $this->datatype = $content;
         }
     }
     
