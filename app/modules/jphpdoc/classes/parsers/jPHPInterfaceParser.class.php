@@ -10,7 +10,7 @@
 /**
  * Object which parses an interface content
  */
-class jInterfaceParser extends jParser_base {
+class jPHPInterfaceParser extends jPHPParser_base {
 
     /**
      * @param jParser_base $fatherParser  the parser which instancy this class
@@ -54,7 +54,7 @@ class jInterfaceParser extends jParser_base {
             if (is_array($tok)) {
                 switch($tok[0]){
                 case T_FUNCTION:
-                    $subparser = new jFunctionParser($this, $previousDocComment, $memberAccessibility, $memberStatic, $memberFinal, $memberType == self::MEMBER_TYPE_FUNC_ABST);
+                    $subparser = new jPHPFunctionParser($this, $previousDocComment, $memberAccessibility, $memberStatic, $memberFinal, $memberType == self::MEMBER_TYPE_FUNC_ABST);
                     $subparser->parse();
                     $this->info->members[]=$subparser->getInfo();
                     $memberAccessibility = 0;

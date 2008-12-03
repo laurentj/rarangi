@@ -9,18 +9,17 @@
 */
 
 $dirnamefile = dirname(__FILE__).'/';
-require($dirnamefile.'jParser_base.class.php');
-require($dirnamefile.'jInterfaceParser.class.php');
-require($dirnamefile.'jClassParser.class.php');
-require($dirnamefile.'jIncludeParser.class.php');
-require($dirnamefile.'jFunctionParser.class.php');
-require($dirnamefile.'jGlobalVariableParser.class.php');
-require($dirnamefile.'jDefineParser.class.php');
+require($dirnamefile.'jPHPParser_base.class.php');
+require($dirnamefile.'jPHPInterfaceParser.class.php');
+require($dirnamefile.'jPHPClassParser.class.php');
+require($dirnamefile.'jPHPIncludeParser.class.php');
+require($dirnamefile.'jPHPFunctionParser.class.php');
+require($dirnamefile.'jPHPDefineParser.class.php');
 
 /**
  * Object which parses a file content
  */
-class jFileParser extends jParser_base {
+class jPHPFileParser extends jPHPParser_base {
 
     /**
      * @param Iterator $it  the iterator on tokens
@@ -75,19 +74,19 @@ class jFileParser extends jParser_base {
             if (is_array($tok)) {
                 switch($tok[0]){
                 case T_CLASS:
-                    $subparser = new jClassParser($this, $previousDocComment, $isAbstract);
+                    $subparser = new jPHPClassParser($this, $previousDocComment, $isAbstract);
                     $subparser->parse();
                     $previousDocComment = '';
                     $isAbstract = false;
                     break;
                 case T_INTERFACE:
-                    $subparser = new jInterfaceParser($this, $previousDocComment);
+                    $subparser = new jPHPInterfaceParser($this, $previousDocComment);
                     $subparser->parse();
                     $previousDocComment = '';
                     $isAbstract = false;
                     break;
                 case T_FUNCTION:
-                    $subparser = new jFunctionParser($this, $previousDocComment);
+                    $subparser = new jPHPFunctionParser($this, $previousDocComment);
                     $subparser->parse();
                     $previousDocComment = '';
                     $isAbstract = false;
@@ -96,12 +95,10 @@ class jFileParser extends jParser_base {
                 case T_INCLUDE_ONCE:
                 case T_REQUIRE:
                 case T_REQUIRE_ONCE:
-                    $subparser = new jIncludeParser($this, $previousDocComment);
+                    $subparser = new jPHPIncludeParser($this, $previousDocComment);
                     $subparser->parse();
                     break;
                 case T_VARIABLE:
-                    $subparser = new jGlobalVariableParser($this, $previousDocComment);
-                    $subparser->parse();
                     break;*/
                 case T_ABSTRACT:
                     $isAbstract = true;

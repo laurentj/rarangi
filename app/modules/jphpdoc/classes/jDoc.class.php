@@ -10,8 +10,8 @@
 
 $dirnamefile = dirname(__FILE__).'/';
 require($dirnamefile.'jDescriptor.lib.php');
-require($dirnamefile.'parsers/jParserInfo.class.php');
-require($dirnamefile.'parsers/jFileParser.class.php');
+require($dirnamefile.'jParserInfo.class.php');
+require($dirnamefile.'parsers/jPHPFileParser.class.php');
 
 /**
  * main class : it launches the parsing of files
@@ -174,7 +174,7 @@ class jDoc {
                 }else{
                     $this->parserInfo = new jParserInfo($this->projectRec->id, $this->fullSourcePath, $rdi->current(), $rdi->getFilename());
                     if(preg_match('/\\.php5?$/',$rdi->getFilename())){
-                        $fileparser = new jFileParser($this->parserInfo);
+                        $fileparser = new jPHPFileParser($this->parserInfo);
                         $fileparser->parse();
                     }
                 }

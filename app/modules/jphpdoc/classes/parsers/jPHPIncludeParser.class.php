@@ -9,21 +9,21 @@
 */
 
 /**
- * Object which parses a define declaration
+ * Object which parses an include/require declaration
  */
-class jDefineParser extends jParser_base {
+class jPHPIncludeParser extends jPHPParser_base {
 
     /**
-     * @var jDefineDescriptor
+     * @var jIncludeDescriptor
      */
     protected $info;
 
     /**
      * @param Iterator $it  the iterator on tokens
-     * @param string $doccomment the documented comment associated to the define
+     * @param string $doccomment the documented comment associated to the include declaration
      */
     function __construct( $it, $doccomment){
-        //$this->info = new jDefineDescriptor();
+        //$this->info = new jIncludeDescriptor();
         //$this->info->initFromPhpDoc($doccomment);
         parent::__construct( $it);
     }

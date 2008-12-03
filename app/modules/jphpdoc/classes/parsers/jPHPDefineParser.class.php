@@ -9,21 +9,21 @@
 */
 
 /**
- * Object which parses a global variable declaration
+ * Object which parses a define declaration
  */
-class jGlobalVariableParser extends jParser_base {
+class jPHPDefineParser extends jPHPParser_base {
 
     /**
-     * @var jGlobalVariableDescriptor
+     * @var jDefineDescriptor
      */
     protected $info;
 
     /**
      * @param Iterator $it  the iterator on tokens
-     * @param string $doccomment the documented comment associated to the  global variable
+     * @param string $doccomment the documented comment associated to the define
      */
     function __construct( $it, $doccomment){
-        //$this->info = new jGlobalVariableDescriptor();
+        //$this->info = new jDefineDescriptor();
         //$this->info->initFromPhpDoc($doccomment);
         parent::__construct( $it);
     }

@@ -10,11 +10,11 @@
 */
 
 require_once( dirname(__FILE__).'/../classes/jDoc.class.php');
-require_once( dirname(__FILE__).'/../classes/parsers/jParserInfo.class.php');
-require_once( dirname(__FILE__).'/../classes/parsers/jParser_base.class.php');
+require_once( dirname(__FILE__).'/../classes/jParserInfo.class.php');
+require_once( dirname(__FILE__).'/../classes/parsers/jPHPParser_base.class.php');
 
 
-class dummyParser extends jParser_base {
+class dummyParser extends jPHPParser_base {
 
     function __construct( $iterator){
         $this->iterator = $iterator;

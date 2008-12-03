@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dao xmlns="http://jelix.org/ns/dao/1.0">
+    <datasources>
+        <primarytable name="functions" realname="functions" primarykey="id" />
+    </datasources>
+    <record>
+        <property name="id" fieldname="id" datatype="autoincrement"/>
+        <property name="name" fieldname="name" datatype="string" required="true" maxlength="150"/>
+        <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
+        <property name="line_number" fieldname="line_number" datatype="int" required="true"/>
+        <property name="short_description" fieldname="short_description" datatype="text" default=""/>
+        <property name="description" fieldname="description" datatype="text" default=""/>
+    </record>
+    <factory>
+        <method name="deleteByProject" type="delete">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+    </factory>
+</dao>

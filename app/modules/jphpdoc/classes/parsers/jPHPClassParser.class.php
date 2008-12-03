@@ -11,7 +11,7 @@
 /**
  * Object which parses a class content
  */
-class jClassParser extends jInterfaceParser {
+class jPHPClassParser extends jPHPInterfaceParser {
 
     /**
      * @param jParser_base $fatherParser  the parser which instancy this class
@@ -19,7 +19,7 @@ class jClassParser extends jInterfaceParser {
      * @param boolean $isAbstract  indicates if the class is an abstract class
      */
     function __construct($fatherParser, $doccomment, $isAbstract = false){
-        jParser_base::__construct($fatherParser);
+        jPHPParser_base::__construct($fatherParser);
         $this->info = new jClassDescriptor($this->parserInfo->getProjectId(),
                                            $fatherParser->getInfo()->fileId,
                                            $this->parserInfo->currentLine());

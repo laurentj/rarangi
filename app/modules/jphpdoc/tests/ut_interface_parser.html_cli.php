@@ -12,7 +12,7 @@
 require_once( dirname(__FILE__).'/../classes/jLogger.class.php');
 require_once( dirname(__FILE__).'/../classes/jDoc.class.php');
 
-class ut_interface_parser_test extends jInterfaceParser {
+class ut_interface_parser_test extends jPHPInterfaceParser {
     
     public $tokAfterInit = null;
     

@@ -9,7 +9,7 @@
 */
 
 
-abstract class jParser_base {
+abstract class jPHPParser_base {
 
     /**
      * @var jDescriptor

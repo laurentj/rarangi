@@ -11,7 +11,7 @@
 /**
  * Object which parses a function content (method or standalone function)
  */
-class jFunctionParser extends jParser_base {
+class jPHPFunctionParser extends jPHPParser_base {
 
     protected $isMethod = false;
     protected $isInInterface = false;
@@ -29,8 +29,8 @@ class jFunctionParser extends jParser_base {
         
         parent::__construct($fatherParser);
         
-        if($fatherParser instanceof jClassParser || $fatherParser instanceof jInterfaceParser) {
-            if (!($fatherParser instanceof jClassParser))
+        if($fatherParser instanceof jPHPClassParser || $fatherParser instanceof jPHPInterfaceParser) {
+            if (!($fatherParser instanceof jPHPClassParser))
                 $this->isInInterface = true;
             $this->isMethod = true;
             $this->info = new jMethodDescriptor($this->parserInfo->getProjectId(),
