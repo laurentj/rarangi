@@ -3,7 +3,8 @@
 * @package   jphpdoc
 * @subpackage 
 * @author    Laurent Jouanneau
-* @copyright 2008 Laurent Jouanneau
+* @contributor  Loic Mathaud
+* @copyright 2008 Laurent Jouanneau, 2008 Loic Mathaud
 * @link      http://forge.jelix.org/projects/jphpdoc/
 * @licence   GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
@@ -28,8 +29,29 @@ class packagesCtrl extends jController {
     function index() {
         $rep = $this->getResponse('html');
         $tpl = $this->_prepareTpl();
+        
+        $project = $tpl->get('project');
+        $projectname = $tpl->get('projectname');
+        $rep->title = 'Packages for project '. $projectname;
+        
+        if (!$project) {
+            $rep->setHttpStatus('404','Not found');
+        } else {
+            $rep->body->assignZone('SUBMENUBAR', 'project_menubar', array(
+                                                            'project'=>$project));
+        }
+        
+        // Get packages
+        $dao = jDao::get('packages');
+        $packages = $dao->findByProject($project->id);
 
+        if (!$packages) {
+            $rep->setHttpStatus('404', 'Not found');
+        }
+        $tpl->assign('packages', $packages);
+        
         $rep->body->assign('MAIN', $tpl->fetch('packages_list'));
+        
         return $rep;
     }
     
@@ -39,6 +61,40 @@ class packagesCtrl extends jController {
     function details() {
         $rep = $this->getResponse('html');
         $tpl = $this->_prepareTpl();
+        
+        $project = $tpl->get('project');
+        $projectname = $tpl->get('projectname');
+        $packagename = $this->param('package');
+        $tpl->assign('packagename', $packagename);
+        $rep->title = 'Details for package '. $packagename .' in project '. $projectname;
+        
+        if (!$project) {
+            $rep->setHttpStatus('404','Not found');
+        } else {
+            $rep->body->assignZone('SUBMENUBAR', 'project_menubar', array(
+                                                            'project'=>$project));
+        }
+        
+        // Get package
+        $dao = jDao::get('packages');
+        $package = $dao->getByName($project->id, $packagename, 0);
+        if (!$package) {
+            $rep->setHttpStatus('404', 'Not found');
+        }
+        $tpl->assign('package', $package);
+        
+        // Get subpackages TODO
+        $subpackages = false;
+        $tpl->assign('subpackages', $subpackages);
+        
+        // Get classes
+        $dao_classes = jDao::get('classes');
+        $classes = $dao_classes->findByPackage($project->id, $package->id);
+        $tpl->assign('classes', $classes);
+        
+        // Get functions TODO
+        $functions = false;
+        $tpl->assign('functions', $functions);
 
         $rep->body->assign('MAIN', $tpl->fetch('package_details'));
         return $rep;
@@ -46,6 +102,7 @@ class packagesCtrl extends jController {
 
     /**
     * display the details of a subpackage
+    * TODO
     */
     function subpackdetails() {
         $rep = $this->getResponse('html');
@@ -57,6 +114,7 @@ class packagesCtrl extends jController {
 
     /**
     * display the list of classes of a package
+    * TODO
     */
     function classes() {
         $rep = $this->getResponse('html');
@@ -68,6 +126,7 @@ class packagesCtrl extends jController {
 
     /**
     * display the list of functions of a package
+    * TODO
     */
     function functions() {
         $rep = $this->getResponse('html');

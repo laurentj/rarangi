@@ -48,6 +48,13 @@
                <orderitem property="file_id" way="desc" />
             </order>
         </method>
-
+        <method name="findByPackage" type="select">
+            <parameter name="project" />
+            <parameter name="package" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+                <eq property="package_id" expr="$package" />
+            </conditions>
+        </method>
     </factory>
 </dao>
