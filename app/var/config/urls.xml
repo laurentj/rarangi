@@ -2,10 +2,10 @@
 <urls xmlns="http://jelix.org/ns/urls/1.0">
     <classicentrypoint name="index" default="true">
 
-        <url pathinfo="/" module="jphpdoc" action="default:index">
+        <url pathinfo="/" module="rarangi" action="default:index">
         </url>
         
-        <url handler="project" module="jphpdoc" action="default:project"
+        <url handler="project" module="rarangi" action="default:project"
              actionoverride="sources:index,packages:index,packages:details,packages:subpackdetails,packages:classeslist,packages:functionslist"/>
     </classicentrypoint>
 

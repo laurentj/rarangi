@@ -1,11 +1,11 @@
 <?php
 /**
-* @package   jphpdoc
+* @package   rarangi
 * @subpackage 
-* @author    yourname
-* @copyright 2008 yourname
-* @link      http://www.yourwebsite.undefined
-* @licence    All right reserved
+* @author    Laurent Jouanneau
+* @copyright 2008 Laurent Jouanneau
+* @link      http://forge.jelix.org/projects/rarangi
+* @licence   GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
 
@@ -13,7 +13,7 @@ require_once (JELIX_LIB_CORE_PATH.'response/jResponseHtml.class.php');
 
 class myHtmlResponse extends jResponseHtml {
 
-    public $bodyTpl = 'jphpdoc~main';
+    public $bodyTpl = 'rarangi~main';
 
     function __construct() {
         parent::__construct();
@@ -29,9 +29,9 @@ class myHtmlResponse extends jResponseHtml {
         $this->body->assignIfNone('MAIN','<p>no content</p>');
         
         if($this->title != '')
-            $this->title .=' - jPhpDoc';
+            $this->title .=' - Rarangi';
         else
-            $this->title = 'jPhpDoc';
+            $this->title = 'Rarangi';
         
     }
 }

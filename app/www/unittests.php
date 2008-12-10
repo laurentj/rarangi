@@ -1,11 +1,11 @@
 <?php
 /**
-* @package   jphpdoc
+* @package   rarangi
 * @subpackage 
-* @author    yourname
-* @copyright 2008 yourname
-* @link      http://www.yourwebsite.undefined
-* @licence    All right reserved
+* @author    Laurent Jouanneau
+* @copyright 2008 Laurent Jouanneau
+* @link      http://forge.jelix.org/projects/rarangi
+* @licence   GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
 require ('../application.init.php');

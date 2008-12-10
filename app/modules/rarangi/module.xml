@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://jelix.org/ns/project/1.0">
-    <info id="rarangi@forge.jelix.org" name="rarangi" createdate="2008-11-25">
+<module xmlns="http://jelix.org/ns/module/1.0">
+    <info id="rarangi-module@forge.jelix.org" name="rarangi" createdate="2008-11-25">
         <version stability="pre-alpha" date="">0.1pre</version>
         <label lang="en_EN">Rarangi</label>
         <description lang="en_EN"></description>
@@ -14,14 +14,4 @@
     <dependencies>
         <jelix minversion="1.1b2pre.1179" maxversion="1.1b2pre.1179" />
     </dependencies>
-    <directories>
-        <config></config>
-        <log></log>
-        <var></var>
-        <www></www>
-        <temp></temp>
-    </directories>
-    <entrypoints>
-        <entry file="index.php" config="index/config.ini.php" />
-    </entrypoints>
-</project>
+</module>

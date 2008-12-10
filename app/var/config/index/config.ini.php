@@ -1,7 +1,7 @@
 ;<?php die(''); ?>
 ;for security reasons , don't remove or modify the first line
 
-startModule=jphpdoc
+startModule=rarangi
 startAction=default:index
 
 [coordplugins]

@@ -101,7 +101,7 @@ simple_urlengine_https =
 ;   @r       -> for all actions for the request of type "r"
 
 unittests = "junittests~*@classic"
-index = "jphpdoc~*@classic"
+index = "rarangi~*@classic"
 xmlrpc = "@xmlrpc"
 jsonrpc = "@jsonrpc"
 rdf = "@rdf"
