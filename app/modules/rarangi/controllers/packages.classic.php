@@ -82,11 +82,7 @@ class packagesCtrl extends jController {
             $rep->setHttpStatus('404', 'Not found');
         }
         $tpl->assign('package', $package);
-        
-        // Get subpackages TODO
-        $subpackages = false;
-        $tpl->assign('subpackages', $subpackages);
-        
+
         // Get classes
         $dao_classes = jDao::get('classes');
         $classes = $dao_classes->findByPackage($project->id, $package->id);
@@ -97,18 +93,6 @@ class packagesCtrl extends jController {
         $tpl->assign('functions', $functions);
 
         $rep->body->assign('MAIN', $tpl->fetch('package_details'));
-        return $rep;
-    }
-
-    /**
-    * display the details of a subpackage
-    * TODO
-    */
-    function subpackdetails() {
-        $rep = $this->getResponse('html');
-        $tpl = $this->_prepareTpl();
-
-        $rep->body->assign('MAIN', $tpl->fetch('subpackage_details'));
         return $rep;
     }
 

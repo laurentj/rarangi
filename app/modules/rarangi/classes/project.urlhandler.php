@@ -42,17 +42,9 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
                 return $urlact;
             }
 
-            if(preg_match('!^packages/([^/]+)/([^/]+)/?$!', $match[3], $m)) {
-                $urlact->setParam('action', 'packages:subpackdetails');
+            if(preg_match('!^packages/([^/]+)/(classes|functions)/?$!', $match[3], $m)) {
+                $urlact->setParam('action', 'packages:'.$m[2]);
                 $urlact->setParam('package', $m[1]);
-                $urlact->setParam('subpackage', $m[2]);
-                return $urlact;
-            }
-
-            if(preg_match('!^packages/([^/]+)/([^/]+)/(classes|functions)/?$!', $match[3], $m)) {
-                $urlact->setParam('action', 'packages:'.$m[3]);
-                $urlact->setParam('package', $m[1]);
-                $urlact->setParam('subpackage', $m[2]);
                 return $urlact;
             }
         }
@@ -84,20 +76,13 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
                 $url->pathInfo .= 'packages/' . $url->getParam('package').'/';
                 $url->delParam('package');
                 break;
-            case 'packages:subpackdetails':
-                $url->pathInfo .= 'packages/' . $url->getParam('package').'/'. $url->getParam('subpackage').'/';
-                $url->delParam('package');
-                $url->delParam('subpackage');
-                break;
             case 'packages:classes':
-                $url->pathInfo .= 'packages/' . $url->getParam('package').'/'. $url->getParam('subpackage').'/classes/';
+                $url->pathInfo .= 'packages/' . $url->getParam('package').'/classes/';
                 $url->delParam('package');
-                $url->delParam('subpackage');
                 break;
             case 'packages:functions':
-                $url->pathInfo .= 'packages/' . $url->getParam('package').'/'. $url->getParam('subpackage').'/functions/';
+                $url->pathInfo .= 'packages/' . $url->getParam('package').'/functions/';
                 $url->delParam('package');
-                $url->delParam('subpackage');
                 break;
         }
     }

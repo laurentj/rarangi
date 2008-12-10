@@ -75,7 +75,6 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->shortDescription,'');
         $this->assertEqual($desc->description,'');
         $this->assertEqual($desc->package,'jDoc');
-        $this->assertEqual($desc->subpackage,'');
 
         $c = '/**
 * @package jDoc machin bidule
@@ -84,7 +83,6 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->shortDescription,'');
         $this->assertEqual($desc->description,'');
         $this->assertEqual($desc->package,'jDoc machin bidule');
-        $this->assertEqual($desc->subpackage,'');
         
         $c = '/**
 * @package jDoc
@@ -93,8 +91,7 @@ class ut_doccomment extends jUnitTestCase {
         $desc->initFromPhpDoc($c);
         $this->assertEqual($desc->shortDescription,'');
         $this->assertEqual($desc->description,'');
-        $this->assertEqual($desc->package,'jDoc');
-        $this->assertEqual($desc->subpackage,'parser');
+        $this->assertEqual($desc->package,'jDoc.parser');
 
         $c = '/**
 * lorem ipsum
@@ -104,8 +101,7 @@ class ut_doccomment extends jUnitTestCase {
         $desc->initFromPhpDoc($c);
         $this->assertEqual($desc->shortDescription,'lorem ipsum');
         $this->assertEqual($desc->description,'');
-        $this->assertEqual($desc->package,'jDoc');
-        $this->assertEqual($desc->subpackage,'parser');
+        $this->assertEqual($desc->package,'jDoc.parser');
     }
 
 }

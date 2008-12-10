@@ -29,12 +29,6 @@ class raBaseDescriptor {
      * @var string 
      */
     public $package;
-    
-    /**
-     *
-     * @var string 
-     */
-    public $subpackage;
 
     /**
      * list of array(name,email)
@@ -126,7 +120,6 @@ class raBaseDescriptor {
     public function inheritsFrom($desc) {
         $this->projectId = $desc->projectId;
         $this->package = $desc->package ;
-        $this->subpackage = $desc->subpackage ;
         $this->author = $desc->author ;
         $this->contributor = $desc->contributor ;
         $this->copyright = $desc->copyright ;
@@ -154,7 +147,7 @@ class raBaseDescriptor {
                             $this->package = trim($content);
                             break;
                         case 'subpackage':
-                            $this->subpackage = trim($content);
+                            $this->package .= '.'.trim($content);
                             break;
                     }
                     $currentTag = $tag;
@@ -190,15 +183,14 @@ class raBaseDescriptor {
     public function save() {}
     
     
-    protected function getPackageId($packageName, $isSubPackage = false) {
+    protected function getPackageId($packageName) {
         if($packageName == '')
             return null;
-        $package = jDao::get('rarangi~packages')->getByName($this->projectId, $packageName, $isSubPackage);
+        $package = jDao::get('rarangi~packages')->getByName($this->projectId, $packageName);
         if(!$package) {
             $package = jDao::createRecord('rarangi~packages');
             $package->project_id = $this->projectId;
             $package->name = $packageName;
-            $package->is_sub = $isSubPackage;
             jDao::get('rarangi~packages')->insert($package);
         }
         return $package->id;

@@ -60,7 +60,6 @@ class raInterfaceDescriptor extends raBaseDescriptor {
         else
             $record->is_abstract = 0;
         $record->package_id = $this->getPackageId($this->package);
-        $record->subpackage_id = $this->getPackageId($this->subpackage, true);
         $record->is_interface = $this->isInterface;
         $record->short_description = $this->shortDescription;
         $record->description = $this->description;

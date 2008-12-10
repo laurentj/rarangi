@@ -5,14 +5,10 @@
 
     <h3>Informations on the package</h3>
     <ul>
-        <li>{if $subpackages}{$subpackages->rowCount()}{else}0{/if} subpackages</li>
         <li>{if $classes}{$classes->rowCount()}{else}0{/if} classes</li>
         <li>{if $functions}{$functions->rowCount()}{else}0{/if} functions</li>
     </ul>
-    
-    <h3>List of subpackages</h3>
-    <p>here list of subpackage (but we can't at the moment)</p>
-    
+
     <h3>List of classes</h3>
     {if $classes}
     <ul>

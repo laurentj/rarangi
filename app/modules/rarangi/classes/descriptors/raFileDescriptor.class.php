@@ -41,7 +41,6 @@ class raFileDescriptor extends raBaseDescriptor  {
     }
     public function save() {
         $this->record->package_id = $this->getPackageId($this->package);
-        $this->record->subpackage_id = $this->getPackageId($this->subpackage, true);
         jDao::get('rarangi~files')->update($this->record);
     }
 }
