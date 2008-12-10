@@ -11,7 +11,7 @@
 /**
  * 
  */
-class jBaseDescriptor {
+class raBaseDescriptor {
     /**
      *
      * @var string

@@ -9,14 +9,14 @@
 */
 
 $dirnamefile = dirname(__FILE__).'/';
-require($dirnamefile.'jDescriptor.lib.php');
-require($dirnamefile.'jParserInfo.class.php');
-require($dirnamefile.'parsers/jPHPFileParser.class.php');
+require($dirnamefile.'raDescriptor.lib.php');
+require($dirnamefile.'raParserInfo.class.php');
+require($dirnamefile.'parsers/raPHPFileParser.class.php');
 
 /**
  * main class : it launches the parsing of files
  */
-class jDoc {
+class raDocGenerator {
 
     protected function __construct(){ }
 
@@ -26,7 +26,7 @@ class jDoc {
     static public function getInstance(){
         static $doc=null;
         if($doc === null){
-            $doc = new jDoc();
+            $doc = new raDocGenerator();
         }
         return $doc;
     }
@@ -115,8 +115,6 @@ class jDoc {
         return false;
     }
 
-
-
     /**
      * @var jDaoRecord
      */
@@ -172,9 +170,9 @@ class jDoc {
                     $this->filesDao->insert($fileRec);
                     $this->readFiles($rdi->getChildren());
                 }else{
-                    $this->parserInfo = new jParserInfo($this->projectRec->id, $this->fullSourcePath, $rdi->current(), $rdi->getFilename());
+                    $this->parserInfo = new raParserInfo($this->projectRec->id, $this->fullSourcePath, $rdi->current(), $rdi->getFilename());
                     if(preg_match('/\\.php5?$/',$rdi->getFilename())){
-                        $fileparser = new jPHPFileParser($this->parserInfo);
+                        $fileparser = new raPHPFileParser($this->parserInfo);
                         $fileparser->parse();
                     }
                 }

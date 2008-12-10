@@ -11,7 +11,7 @@
 /**
  *
  */
-class jInterfaceDescriptor extends jBaseDescriptor {
+class raInterfaceDescriptor extends raBaseDescriptor {
 
     protected $isInterface = true;
 

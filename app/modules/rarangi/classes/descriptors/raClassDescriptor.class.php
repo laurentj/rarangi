@@ -10,7 +10,7 @@
 /**
  *
  */
-class jClassDescriptor extends jInterfaceDescriptor {
+class raClassDescriptor extends raInterfaceDescriptor {
 
     public $isAbstract = false;
     public $interfaces = array();

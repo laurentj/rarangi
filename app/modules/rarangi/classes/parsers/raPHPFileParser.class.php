@@ -9,28 +9,28 @@
 */
 
 $dirnamefile = dirname(__FILE__).'/';
-require($dirnamefile.'jPHPParser_base.class.php');
-require($dirnamefile.'jPHPInterfaceParser.class.php');
-require($dirnamefile.'jPHPClassParser.class.php');
-require($dirnamefile.'jPHPIncludeParser.class.php');
-require($dirnamefile.'jPHPFunctionParser.class.php');
-require($dirnamefile.'jPHPDefineParser.class.php');
+require($dirnamefile.'raPHPParser_base.class.php');
+require($dirnamefile.'raPHPInterfaceParser.class.php');
+require($dirnamefile.'raPHPClassParser.class.php');
+require($dirnamefile.'raPHPIncludeParser.class.php');
+require($dirnamefile.'raPHPFunctionParser.class.php');
+require($dirnamefile.'raPHPDefineParser.class.php');
 
 /**
  * Object which parses a file content
  */
-class jPHPFileParser extends jPHPParser_base {
+class raPHPFileParser extends raPHPParser_base {
 
     /**
      * @param Iterator $it  the iterator on tokens
      */
     function __construct($parserInfo){
         
-        $this->info = new jFileDescriptor($parserInfo->getProjectId(),
+        $this->info = new raFileDescriptor($parserInfo->getProjectId(),
                                           $parserInfo->getFullSourcePath(),
                                           $parserInfo->currentFile(),
                                           $parserInfo->currentFileName());
-        jLogger::message("Parsing file ".$this->info->filepath);
+        raLogger::message("Parsing file ".$this->info->filepath);
         $content = file_get_contents($this->info->fullpath);
 
         $lines = explode("\n", $content);
@@ -53,14 +53,14 @@ class jPHPFileParser extends jPHPParser_base {
         $this->toNextPhpSection();
         $tok = $this->toNextPhpToken();
         if($tok === false){
-            jLogger::notice("file is empty");
+            raLogger::notice("file is empty");
             return;
         }
 
         if(!is_array($tok)){
-            jLogger::warning("The file is not beginning by a doc comment !");
+            raLogger::warning("The file is not beginning by a doc comment !");
         }elseif($tok[0] != T_DOC_COMMENT){
-            jLogger::warning("The file is not beginning by a doc comment (2) !");
+            raLogger::warning("The file is not beginning by a doc comment (2) !");
         }else{
             $this->info->initFromPhpDoc($tok[1]);
         }
@@ -74,19 +74,19 @@ class jPHPFileParser extends jPHPParser_base {
             if (is_array($tok)) {
                 switch($tok[0]){
                 case T_CLASS:
-                    $subparser = new jPHPClassParser($this, $previousDocComment, $isAbstract);
+                    $subparser = new raPHPClassParser($this, $previousDocComment, $isAbstract);
                     $subparser->parse();
                     $previousDocComment = '';
                     $isAbstract = false;
                     break;
                 case T_INTERFACE:
-                    $subparser = new jPHPInterfaceParser($this, $previousDocComment);
+                    $subparser = new raPHPInterfaceParser($this, $previousDocComment);
                     $subparser->parse();
                     $previousDocComment = '';
                     $isAbstract = false;
                     break;
                 case T_FUNCTION:
-                    $subparser = new jPHPFunctionParser($this, $previousDocComment);
+                    $subparser = new raPHPFunctionParser($this, $previousDocComment);
                     $subparser->parse();
                     $previousDocComment = '';
                     $isAbstract = false;
@@ -95,7 +95,7 @@ class jPHPFileParser extends jPHPParser_base {
                 case T_INCLUDE_ONCE:
                 case T_REQUIRE:
                 case T_REQUIRE_ONCE:
-                    $subparser = new jPHPIncludeParser($this, $previousDocComment);
+                    $subparser = new raPHPIncludeParser($this, $previousDocComment);
                     $subparser->parse();
                     break;
                 case T_VARIABLE:

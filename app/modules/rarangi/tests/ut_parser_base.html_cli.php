@@ -1,6 +1,6 @@
 <?php
 /**
-* @package     jDoc
+* @package     rarangi
 * @subpackage  tests
 * @author      Laurent Jouanneau
 * @contributor
@@ -9,16 +9,16 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
-require_once( dirname(__FILE__).'/../classes/jDoc.class.php');
-require_once( dirname(__FILE__).'/../classes/jParserInfo.class.php');
-require_once( dirname(__FILE__).'/../classes/parsers/jPHPParser_base.class.php');
+require_once( dirname(__FILE__).'/../classes/raDocGenerator.class.php');
+require_once( dirname(__FILE__).'/../classes/raParserInfo.class.php');
+require_once( dirname(__FILE__).'/../classes/parsers/raPHPParser_base.class.php');
 
 
-class dummyParser extends jPHPParser_base {
+class dummyParser extends raPHPParser_base {
 
     function __construct( $iterator){
         $this->iterator = $iterator;
-        $this->parserInfo = new jParserInfo(1,'','','');
+        $this->parserInfo = new raParserInfo(1,'','','');
     }
 
     public function parse(){}

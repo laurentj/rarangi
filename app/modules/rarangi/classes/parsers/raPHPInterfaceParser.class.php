@@ -10,7 +10,7 @@
 /**
  * Object which parses an interface content
  */
-class jPHPInterfaceParser extends jPHPParser_base {
+class raPHPInterfaceParser extends raPHPParser_base {
 
     /**
      * @param jParser_base $fatherParser  the parser which instancy this class
@@ -19,7 +19,7 @@ class jPHPInterfaceParser extends jPHPParser_base {
      */
     function __construct($fatherParser, $doccomment){
         parent::__construct($fatherParser);
-        $this->info = new jInterfaceDescriptor($this->parserInfo->getProjectId(),
+        $this->info = new raInterfaceDescriptor($this->parserInfo->getProjectId(),
                                            $fatherParser->getInfo()->fileId,
                                            $this->parserInfo->currentLine());
         $this->info->inheritsFrom($fatherParser->getInfo());
@@ -34,10 +34,10 @@ class jPHPInterfaceParser extends jPHPParser_base {
     public function parse(){
 
         $this->info->name = $this->toNextSpecificPhpToken(T_STRING);
-        if ($this->info instanceof jClassDescriptor)
-            jLogger::message("   parsing class ".$this->info->name);
+        if ($this->info instanceof raClassDescriptor)
+            raLogger::message("   parsing class ".$this->info->name);
         else
-            jLogger::message("   parsing interface ".$this->info->name);
+            raLogger::message("   parsing interface ".$this->info->name);
         $this->parseDeclaration();
         
         $bracketlevel = 1;
@@ -54,7 +54,7 @@ class jPHPInterfaceParser extends jPHPParser_base {
             if (is_array($tok)) {
                 switch($tok[0]){
                 case T_FUNCTION:
-                    $subparser = new jPHPFunctionParser($this, $previousDocComment, $memberAccessibility, $memberStatic, $memberFinal, $memberType == self::MEMBER_TYPE_FUNC_ABST);
+                    $subparser = new raPHPFunctionParser($this, $previousDocComment, $memberAccessibility, $memberStatic, $memberFinal, $memberType == self::MEMBER_TYPE_FUNC_ABST);
                     $subparser->parse();
                     $this->info->members[]=$subparser->getInfo();
                     $memberAccessibility = 0;
@@ -63,7 +63,7 @@ class jPHPInterfaceParser extends jPHPParser_base {
                     $memberType= 0;
                     break;
                 case T_VARIABLE:
-                    $info = new jPropertyDescriptor($this->info->projectId, $this->info->fileId, $this->parserInfo->currentLine());
+                    $info = new raPropertyDescriptor($this->info->projectId, $this->info->fileId, $this->parserInfo->currentLine());
                     $info->initFromPhpDoc($previousDocComment);
                     $info->accessibility = $memberAccessibility;
                     $info->isStatic = $memberStatic;

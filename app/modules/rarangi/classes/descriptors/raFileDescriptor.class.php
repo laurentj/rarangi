@@ -11,7 +11,7 @@
 /**
  *
  */
-class jFileDescriptor extends jBaseDescriptor  {
+class raFileDescriptor extends raBaseDescriptor  {
     public $fullpath;
     public $filepath;
     public $filename;

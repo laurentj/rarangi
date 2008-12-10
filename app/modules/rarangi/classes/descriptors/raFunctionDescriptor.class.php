@@ -11,7 +11,7 @@
 /**
  *
  */
-class jFunctionDescriptor  extends jBaseDescriptor {
+class raFunctionDescriptor  extends raBaseDescriptor {
 
     public $name;
 

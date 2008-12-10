@@ -1,6 +1,6 @@
 <?php
 /**
-* @package     jDoc
+* @package     rarangi
 * @subpackage  tests
 * @author      Laurent Jouanneau
 * @contributor
@@ -9,9 +9,9 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
-require_once( dirname(__FILE__).'/../classes/jDoc.class.php');
+require_once( dirname(__FILE__).'/../classes/raDocGenerator.class.php');
 
-class docConfigTest extends jDoc {
+class docConfigTest extends raDocGenerator {
 
     static public function getInstance(){
         static $doc=null;

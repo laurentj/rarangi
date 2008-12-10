@@ -12,7 +12,7 @@
 /**
  * 
  */
-class jParserInfo {
+class raParserInfo {
 
     /**
      * @var jDocConfig

@@ -1,6 +1,6 @@
 <?php
 /**
-* @package     jDoc
+* @package     rarangi
 * @subpackage  tests
 * @author      Laurent Jouanneau
 * @contributor

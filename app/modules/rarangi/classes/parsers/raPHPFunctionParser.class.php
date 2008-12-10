@@ -11,7 +11,7 @@
 /**
  * Object which parses a function content (method or standalone function)
  */
-class jPHPFunctionParser extends jPHPParser_base {
+class raPHPFunctionParser extends raPHPParser_base {
 
     protected $isMethod = false;
     protected $isInInterface = false;
@@ -29,11 +29,11 @@ class jPHPFunctionParser extends jPHPParser_base {
         
         parent::__construct($fatherParser);
         
-        if($fatherParser instanceof jPHPClassParser || $fatherParser instanceof jPHPInterfaceParser) {
-            if (!($fatherParser instanceof jPHPClassParser))
+        if($fatherParser instanceof raPHPClassParser || $fatherParser instanceof raPHPInterfaceParser) {
+            if (!($fatherParser instanceof raPHPClassParser))
                 $this->isInInterface = true;
             $this->isMethod = true;
-            $this->info = new jMethodDescriptor($this->parserInfo->getProjectId(),
+            $this->info = new raMethodDescriptor($this->parserInfo->getProjectId(),
                                                $fatherParser->getInfo()->fileId,
                                                $this->parserInfo->currentLine());
             $this->info->inheritsFrom($fatherParser->getInfo());
@@ -45,7 +45,7 @@ class jPHPFunctionParser extends jPHPParser_base {
         }
         else {
             $this->isMethod = false;
-            $this->info = new jFunctionDescriptor($this->parserInfo->getProjectId(),
+            $this->info = new raFunctionDescriptor($this->parserInfo->getProjectId(),
                                                $fatherParser->getInfo()->fileId,
                                                $this->parserInfo->currentLine());
             $this->info->inheritsFrom($fatherParser->getInfo());

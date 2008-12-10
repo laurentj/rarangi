@@ -12,17 +12,17 @@
 /**
  * This object is responsible to manage all messages sended during the process
  * 
- * It calls "driver" which implement jILoggerDriver interface. theses drivers
+ * It calls "driver" which implement raILoggerDriver interface. theses drivers
  * can are responsible to store, display or send the messages.
  *
  * This class contains only static methods
- * @package     jDoc
+ * @package     rarangi
  */
-class jLogger {
+class raLogger {
 
     /**
      * list of active driver
-     * @var array  array of jILoggerDriver objects
+     * @var array  array of raILoggerDriver objects
      */
     protected static $loggers = array();
 
@@ -80,10 +80,10 @@ class jLogger {
      * call all registered drivers with the current message
      * @param string $str the message
      * @param string $meth the type of message : it should be the name of a method 
-     *                     of jILoggerDriver interface
+     *                     of raILoggerDriver interface
      */
     protected static function call($str, $meth){
-        $pi = jDoc::getInstance()->getParserInfo();
+        $pi = raDocGenerator::getInstance()->getParserInfo();
         if($pi) {
             $f = $pi->currentFile();
             $l = $pi->currentLine();
@@ -115,7 +115,7 @@ class jLogger {
 /**
  * interface for logger driver
  */
-interface jILoggerDriver {
+interface raILoggerDriver {
     /**
      * process a simple message
      * @param string $str the message
@@ -158,7 +158,7 @@ interface jILoggerDriver {
 /**
  * a logger which displays messages in the standard output
  */
-class jConsoleLogger implements jILoggerDriver {
+class raConsoleLogger implements raILoggerDriver {
 
     protected $resp;
     protected $verbose;
@@ -182,7 +182,7 @@ class jConsoleLogger implements jILoggerDriver {
 /**
  * a logger which stores messages in memory
  */
-class jInMemoryLogger implements jILoggerDriver {
+class raInMemoryLogger implements raILoggerDriver {
     protected $log = array('message'=>array(),
                            'notice'=>array(),
                            'warning'=>array(),

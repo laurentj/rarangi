@@ -32,13 +32,13 @@ class defaultCtrl extends jControllerCmdLine {
     function index() {
         $rep = $this->getResponse();
         
-        jClasses::inc("jDoc");
-        jClasses::inc("jLogger");
+        jClasses::inc("raDocGenerator");
+        jClasses::inc("raLogger");
 
-        jLogger::addLogger(new jInMemoryLogger());
-        jLogger::addLogger(new jConsoleLogger($rep, isset($this->_options['-v'])));
+        raLogger::addLogger(new raInMemoryLogger());
+        raLogger::addLogger(new raConsoleLogger($rep, isset($this->_options['-v'])));
 
-        $docparser = jDoc::getInstance();
+        $docparser = raDocGenerator::getInstance();
         $docparser->setConfig($this->param('config'));
 
         $docparser->run();

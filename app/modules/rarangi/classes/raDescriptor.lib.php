@@ -65,12 +65,12 @@ variable globale
 */
 
 $dirname = dirname(__FILE__).'/descriptors/';
-require($dirname.'jBaseDescriptor.class.php');
-require($dirname.'jFileDescriptor.class.php');
-require($dirname.'jInterfaceDescriptor.class.php');
-require($dirname.'jClassDescriptor.class.php');
-require($dirname.'jPropertyDescriptor.class.php');
-require($dirname.'jMethodDescriptor.class.php');
-require($dirname.'jFunctionDescriptor.class.php');
-require($dirname.'jGlobalVariableDescriptor.class.php');
-require($dirname.'jConstantDescriptor.class.php');
+require($dirname.'raBaseDescriptor.class.php');
+require($dirname.'raFileDescriptor.class.php');
+require($dirname.'raInterfaceDescriptor.class.php');
+require($dirname.'raClassDescriptor.class.php');
+require($dirname.'raPropertyDescriptor.class.php');
+require($dirname.'raMethodDescriptor.class.php');
+require($dirname.'raFunctionDescriptor.class.php');
+require($dirname.'raGlobalVariableDescriptor.class.php');
+require($dirname.'raConstantDescriptor.class.php');

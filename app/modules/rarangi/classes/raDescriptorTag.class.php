@@ -1,6 +1,6 @@
 <?php
 /**
-* @package     jDoc
+* @package     rarangi
 * @author      Laurent Jouanneau
 * @contributor
 * @copyright   2007 Laurent Jouanneau
@@ -11,7 +11,7 @@
 /**
  * @notimplemented
  */
-abstract class jDescriptorTagBase {
+abstract class raDescriptorTagBase {
     const FILE_LEVEL = 1;
     const CLASS_LEVEL = 2;
     const INTERFACE_LEVEL = 3;

@@ -1,6 +1,6 @@
 <?php
 /**
-* @package     jDoc
+* @package     rarangi
 * @subpackage  tests
 * @author      Laurent Jouanneau
 * @contributor
@@ -9,13 +9,13 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
-require_once( dirname(__FILE__).'/../classes/jDescriptor.lib.php');
+require_once( dirname(__FILE__).'/../classes/raDescriptor.lib.php');
 
 
 class ut_doccomment extends jUnitTestCase {
 
     function testDescription() {
-        $desc = new jBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor(1, 1, 1);
         $c = '/**
 */';
         $desc->initFromPhpDoc($c);
@@ -23,7 +23,7 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->shortDescription,'');
         $this->assertEqual($desc->description,'');
         
-        $desc = new jBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor(1, 1, 1);
         $c =
         '/**
           * lorem ipsum
@@ -32,7 +32,7 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->shortDescription,'lorem ipsum');
         $this->assertEqual($desc->description,'');
 
-        $desc = new jBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor(1, 1, 1);
         $c =
         '/**
           * lorem ipsum
@@ -42,7 +42,7 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->shortDescription,"lorem ipsum\nqsdosdpqosi");
         $this->assertEqual($desc->description,'');
         
-        $desc = new jBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor(1, 1, 1);
         $c =
         '/**
           * lorem ipsum
@@ -53,7 +53,7 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->shortDescription,"lorem ipsum");
         $this->assertEqual($desc->description,'qsdosdpqosi');
 
-        $desc = new jBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor(1, 1, 1);
         $c =
         '/**
           * lorem ipsum2
@@ -67,7 +67,7 @@ class ut_doccomment extends jUnitTestCase {
     }
 
     function testPackage(){
-        $desc = new jBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor(1, 1, 1);
         $c = '/**
 * @package jDoc
 */';

@@ -11,7 +11,6 @@
 /**
  *
  */
-class jGlobalVariableDescriptor  extends jBaseDescriptor {
-    public $datatype;
+class raConstantDescriptor  extends raBaseDescriptor {
+    public $value;
 }
-

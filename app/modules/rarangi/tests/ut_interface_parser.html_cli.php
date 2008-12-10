@@ -1,6 +1,6 @@
 <?php
 /**
-* @package     jDoc
+* @package     rarangi
 * @subpackage  tests
 * @author      Laurent Jouanneau
 * @contributor
@@ -9,28 +9,28 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
-require_once( dirname(__FILE__).'/../classes/jLogger.class.php');
-require_once( dirname(__FILE__).'/../classes/jDoc.class.php');
+require_once( dirname(__FILE__).'/../classes/raLogger.class.php');
+require_once( dirname(__FILE__).'/../classes/raDocGenerator.class.php');
 
-class ut_interface_parser_test extends jPHPInterfaceParser {
+class ut_interface_parser_test extends raPHPInterfaceParser {
     
     public $tokAfterInit = null;
     
     function __construct( $content, $numberOfToken, $doccomment="/**\n*/", $isAbstract=false){
         $tokens = new ArrayObject(token_get_all($content));
         $this->iterator = $tokens->getIterator();
-        $this->parserInfo = new jParserInfo(1, '', '', '');
+        $this->parserInfo = new raParserInfo(1, '', '', '');
         
         $this->toNextPhpSection();
         for($i=0; $i< $numberOfToken;$i++)
             $this->tokAfterInit = $this->toNextPhpToken();
 
-        $fatherInfo =  new jFileDescriptor($this->parserInfo->getProjectId(),
+        $fatherInfo =  new raFileDescriptor($this->parserInfo->getProjectId(),
                                           $this->parserInfo->getFullSourcePath(),
                                           $this->parserInfo->currentFile(),
                                           $this->parserInfo->currentFileName());
 
-        $this->info = new jInterfaceDescriptor(1, 1, $this->parserInfo->currentLine());
+        $this->info = new raInterfaceDescriptor(1, 1, $this->parserInfo->currentLine());
         $this->info->inheritsFrom($fatherInfo);
         $this->info->initFromPhpDoc($doccomment);
     }
@@ -44,9 +44,9 @@ class ut_interface_parser extends jUnitTestCaseDb {
     protected $logger;
     
     function setUp() {
-        jLogger::removeLoggers();
-        $this->logger = new jInMemoryLogger();
-        jLogger::addLogger($this->logger);
+        raLogger::removeLoggers();
+        $this->logger = new raInMemoryLogger();
+        raLogger::addLogger($this->logger);
         $this->emptyTable('classes');
         $this->emptyTable('interface_class');
     }
