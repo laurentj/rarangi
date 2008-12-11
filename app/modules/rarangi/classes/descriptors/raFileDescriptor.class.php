@@ -16,7 +16,8 @@ class raFileDescriptor extends raBaseDescriptor  {
     public $filepath;
     public $filename;
 
-    public $licence; // libelle, lien
+    public $licenceLink = '';
+    public $licenceLabel = '';
     
     protected $record;
     
@@ -41,6 +42,8 @@ class raFileDescriptor extends raBaseDescriptor  {
     }
     public function save() {
         $this->record->package_id = $this->getPackageId($this->package);
+        // TODO : take all authors indicated in sub components and agregate them
+        // into the authors. same for contributors
         jDao::get('rarangi~files')->update($this->record);
     }
 }

@@ -38,11 +38,15 @@ fichier
 
 classes
     package
+    @method int borp() borp(int $int1, int $int2) multiply two integers    <--- magic methods (__call)
+	@property mixed $regular regular read/write property <-- magic property accessible by __set, __get
+	@property-read int $foo the foo prop  <-- magic property accessible only by __get
+	@property-write string $bar the bar prop  <-- magic property accessible only by __set
 
 fonctions
     global  datatype $varname
     package
-    param  datatype $param description
+    param  datatype|datatype $param description
     return datatype description
     staticvar   datatype $name variable statique utilisée à l'interieur de la fonction
 
@@ -56,6 +60,7 @@ propriete
     var  datatype description
 
 variable globale
+    name   indique le vrai nom de la variable globale (ou alors tenter de parser $_GLOBALS['']...)
     package
     global  datatype description
 

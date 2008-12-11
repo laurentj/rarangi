@@ -13,98 +13,98 @@
  */
 class raBaseDescriptor {
     /**
-     *
+     * short description of the component (label)
      * @var string
      */
     public $shortDescription = null;
 
     /**
-     *
+     * long description of the component
      * @var string 
      */
     public $description = null;
 
     /**
-     *
+     * package name
      * @var string 
      */
-    public $package;
+    public $package = '';
 
     /**
-     * list of array(name,email)
+     * list of authors array( ... array(name,email)...)
      * @var array
      */
-    public $author;    //  name <email>
+    public $authors = array();
 
     /**
-     * list of array(name,email)
+     * list of contributors array( ... array(name,email)...)
      * @var array
      */
-    public $contributor;    //  name <email>
+    public $contributors = array();
 
     /**
-     *
+     * copyright informations
      * @var string
      */
-    public $copyright;    //   info
+    public $copyright = '';
     /**
-     * 
+     * Indicate if it is deprecated + some optional information
+     * like the version since it is deprecated
      * @var 
      */
-    public $deprecated;    //  sinceversion  info
+    public $deprecated = '';
     /**
-     *
+     * filename of an example to include in the documentation
+     * array ( ... array(filename, label)... )
+     * @var string
+     */
+    //public $examples;
+    /**
+     * indicate if the component should be ignored
+     * @var boolean
+     */
+    public $ignore = false;
+    /**
+     * internal documentation for contributors
      * @var 
      */
-    public $example;    //     filename (inclus exemple indiqué dans le fichier)
+    public $internal = '';
     /**
-     *
-     * @var 
+     * links for details
+     * array(.... array(link, label)...)
+     * @var array
      */
-    public $ignore;    //      (ne documente pas le truc)
+    public $links;
     /**
-     *
-     * @var 
+     * array of components to link on the details page of the component
+     * a string in the array = file.ext|elementname|class::methodname()|class::$variablename|functionname()|function functionname
+     * @var array
      */
-    public $internal;    //    documentation interne
+    public $see;
     /**
-     *
-     * @var 
+     * =see with backlinks
+     * @var array
      */
-    public $internaluse;    // ne documenter que dans la doc dev
+    public $uses;
     /**
-     *
-     * @var 
+     * the version in which the component has been created
+     * @var string
      */
-    public $link;    //     lien libelle
+    public $since;
     /**
-     *
-     * @var 
+     * changelogs
+     * array( array('version','description')...)
+     * @var array
      */
-    public $see;    //   file.ext|elementname|class::methodname()|class::$variablename|functionname()|function functionname
+    public $changelog;
     /**
-     *
-     * @var 
+     * the description of what to do.
+     * @var string
      */
-    public $uses;    //  =see avec lien de retour
-    /**
-     *
-     * @var 
-     */
-    public $since;    //   version
-    /**
-     *
-     * @var 
-     */
-    public $changelog;    //  //version description
-    /**
-     *
-     * @var 
-     */
-    public $todo;    //description
+    public $todo;
 
-    public $projectId;
-    public $fileId;
+    public $projectId = null;
+    public $fileId = null;
     public $line = 0;
     
     function __construct($projectId, $fileId, $line){
