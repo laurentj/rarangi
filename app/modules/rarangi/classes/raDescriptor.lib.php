@@ -34,16 +34,14 @@ communs (utilisable dans toutes les sections, et si present pour fichier, sont h
 fichier
     licence  lien libelle
     package       (classes, fonctions, variables en herite si non present à leur niveau)
-    subpackage    (classes, fonctions, variables en herite si non present à leur niveau)
+
 
 classes
     package
-    subpackage
 
 fonctions
     global  datatype $varname
     package
-    subpackage
     param  datatype $param description
     return datatype description
     staticvar   datatype $name variable statique utilisée à l'interieur de la fonction
@@ -59,7 +57,6 @@ propriete
 
 variable globale
     package
-    subpackage
     global  datatype description
 
 */

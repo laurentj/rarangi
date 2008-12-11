@@ -141,13 +141,15 @@ class raBaseDescriptor {
         foreach($lignes as $ligne){
             if(preg_match('/^\s*\*\s*(?:@(\w+))?(.*)$/',$ligne,$m)){
                 list(,$tag, $content) = $m;
+                $content = trim($content);
                 if($tag != ''){
                     switch($tag) {
                         case 'package':
-                            $this->package = trim($content);
+                            $this->package = $content;
                             break;
                         case 'subpackage':
-                            $this->package .= '.'.trim($content);
+                            if($content !='')
+                                $this->package .= '.'.$content;
                             break;
                     }
                     $currentTag = $tag;

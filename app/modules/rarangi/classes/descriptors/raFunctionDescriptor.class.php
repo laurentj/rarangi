@@ -36,6 +36,7 @@ class raFunctionDescriptor  extends raBaseDescriptor {
         $record = jDao::createRecord('rarangi~functions');
         $record->name = $this->name;
         $record->project_id = $this->projectId;
+        $record->package_id = $this->getPackageId($this->package);
         $record->line_number = $this->line;        
         $record->short_description = $this->shortDescription;
         $record->description = $this->description;

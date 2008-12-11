@@ -21,7 +21,15 @@
     {/if}
     
     <h3>List of functions</h3>
-    <p>here list of function (but we can't at the moment)</p>
+    {if $functions}
+    <ul>
+    {foreach $functions as $func}
+        <li>{$func->name|eschtml}</li>
+    {/foreach}
+    </ul>
+    {else}
+        <p>No Functions in that package</p>
+    {/if}
 
     </div>
 {else}

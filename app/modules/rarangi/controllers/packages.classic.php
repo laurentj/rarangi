@@ -89,7 +89,8 @@ class packagesCtrl extends jController {
         $tpl->assign('classes', $classes);
         
         // Get functions TODO
-        $functions = false;
+        $dao_functions = jDao::get('functions');
+        $functions = $dao_functions->findByPackage($project->id, $package->id);
         $tpl->assign('functions', $functions);
 
         $rep->body->assign('MAIN', $tpl->fetch('package_details'));

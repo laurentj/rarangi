@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS `classes` (
   `project_id` int(11) NOT NULL,
   `file_id` int(11) default NULL,
   `package_id` int(11) default NULL,
-  `subpackage_id` int(11) default NULL,
   `linenumber` int(11) NOT NULL,
   `mother_class` int(11) default NULL,
   `is_abstract` tinyint(1) NOT NULL,
@@ -91,7 +90,6 @@ DROP TABLE IF EXISTS `files`;
 CREATE TABLE IF NOT EXISTS `files` (
   `id` int(11) NOT NULL auto_increment,
   `package_id` int(11) default NULL,
-  `subpackage_id` int(11) default NULL,
   `project_id` int(11) NOT NULL,
   `fullpath` varchar(255) NOT NULL,
   `isdir` tinyint(4) NOT NULL default '0',
@@ -131,10 +129,12 @@ CREATE TABLE IF NOT EXISTS `functions` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(150) NOT NULL,
   `project_id` int(11) NOT NULL,
+  `package_id` int(11) default NULL,
   `line_number` int(11) NOT NULL,
   `short_description` tinytext,
   `description` text,
-  PRIMARY KEY  (`id`)
+  PRIMARY KEY  (`id`),
+  KEY `package_id` (`package_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -162,7 +162,6 @@ CREATE TABLE IF NOT EXISTS `packages` (
   `id` int(11) NOT NULL auto_increment,
   `project_id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
-  `is_sub` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `project_id` (`project_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
