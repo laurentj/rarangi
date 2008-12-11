@@ -103,6 +103,13 @@ class raBaseDescriptor {
      */
     public $todo;
 
+    /**
+     * other tags which are not supported natively
+     * @var array
+     */
+    public $otherTags = array();
+
+
     public $projectId = null;
     public $fileId = null;
     public $line = 0;
@@ -119,14 +126,14 @@ class raBaseDescriptor {
      */
     public function inheritsFrom($desc) {
         $this->projectId = $desc->projectId;
-        $this->package = $desc->package ;
-        $this->author = $desc->author ;
-        $this->contributor = $desc->contributor ;
-        $this->copyright = $desc->copyright ;
-        $this->deprecated = $desc->deprecated ;
-        $this->ignore = $desc->ignore ;
-        $this->internaluse = $desc->internaluse ;
-        $this->link = $desc->link ;
+        $this->package = $desc->package;
+        $this->authors = $desc->authors;
+        $this->contributors = $desc->contributors;
+        $this->copyright = $desc->copyright;
+        $this->deprecated = $desc->deprecated;
+        $this->ignore = $desc->ignore;
+        $this->internal = $desc->internal;
+        $this->links = $desc->links;
         $this->since = $desc->since;
     }
 
@@ -151,6 +158,53 @@ class raBaseDescriptor {
                             if($content !='')
                                 $this->package .= '.'.$content;
                             break;
+                        case 'author':
+                        case 'contributor':
+                            $people = explode(",",$content);
+                            foreach($people as $p) {
+                                if(trim($p) == '')
+                                    continue;
+                                if(preg_match('/^([^\<]+)(?:\<([^\>]*)\>)?$/', $p,$m)) {
+                                    $n = trim($m[1]);
+                                    $e = (isset($m[2])?trim($m[2]):'');
+                                    if ($tag == 'author')
+                                        $this->authors[]=array($n,$e);
+                                    else
+                                        $this->contributors[]=array($n,$e);
+                                }
+                                else {
+                                    raLogger::warning($tag." name malformed :".$p);
+                                    if ($tag == 'author')
+                                        $this->authors[]=array(trim($p),'');
+                                    else
+                                        $this->contributors[]=array(trim($p),'');
+                                }
+                            }
+                            break;
+                        case 'copyright':
+                            break;
+                        case 'deprecated':
+                            break;
+                        case 'ignore':
+                            break;
+                        case 'internal':
+                            break;
+                        case 'links':
+                            break;
+                        case 'see':
+                            break;
+                        case 'uses':
+                            break;
+                        case 'since':
+                            break;
+                        case 'changelog':
+                            break;
+                        case 'todo':
+                            break;
+                        default:
+                            if(!$this->parseSpecificTag($tag, $content)) {
+                                $this->otherTags[$tag] = $content;
+                            }
                     }
                     $currentTag = $tag;
                 }
@@ -180,14 +234,19 @@ class raBaseDescriptor {
         }
     }
     
-    protected function parseSpecificTag($tag, $content) {}
+    protected function parseSpecificTag($tag, $content) {
+        return false;
+    }
     
     public function save() {}
     
+    protected static $_packages = array();
     
     protected function getPackageId($packageName) {
         if($packageName == '')
             return null;
+        if(isset(self::$_packages[$packageName]))
+            return self::$_packages[$packageName];
         $package = jDao::get('rarangi~packages')->getByName($this->projectId, $packageName);
         if(!$package) {
             $package = jDao::createRecord('rarangi~packages');
@@ -195,7 +254,16 @@ class raBaseDescriptor {
             $package->name = $packageName;
             jDao::get('rarangi~packages')->insert($package);
         }
+        self::$_packages[$packageName] = $package->id;
         return $package->id;
+    }
+    
+    protected function saveAuthorsContributors(){
+        $authorId = array();
+        $dao = jDao::get('rarangi~authors');
+        foreach($this->authors as $author) {
+            //$dao
+        }
     }
 }
 

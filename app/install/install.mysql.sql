@@ -1,23 +1,39 @@
 -- phpMyAdmin SQL Dump
--- version 2.11.3deb1ubuntu1.1
+-- version 2.10.3deb1ubuntu0.2
 -- http://www.phpmyadmin.net
---
--- Host: localhost
--- Generation Time: Dec 03, 2008 at 01:41 AM
--- Server version: 5.0.51
--- PHP Version: 5.2.4-2ubuntu5.3
+-- 
+-- Serveur: localhost
+-- Généré le : Jeu 11 Décembre 2008 à 23:17
+-- Version du serveur: 5.0.45
+-- Version de PHP: 5.2.3-1ubuntu6.4
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
---
--- Database: `phpdoc`
---
+-- 
+-- Base de données: `rarangi`
+-- 
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `classes`
---
+-- 
+-- Structure de la table `authors`
+-- 
+
+DROP TABLE IF EXISTS `authors`;
+CREATE TABLE IF NOT EXISTS `authors` (
+  `id` int(11) NOT NULL auto_increment,
+  `project_id` int(11) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `email` varchar(150) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `project_id` (`project_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+-- 
+-- Structure de la table `classes`
+-- 
 
 DROP TABLE IF EXISTS `classes`;
 CREATE TABLE IF NOT EXISTS `classes` (
@@ -40,9 +56,23 @@ CREATE TABLE IF NOT EXISTS `classes` (
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `class_methods`
---
+-- 
+-- Structure de la table `classes_authors`
+-- 
+
+DROP TABLE IF EXISTS `classes_authors`;
+CREATE TABLE IF NOT EXISTS `classes_authors` (
+  `class_id` int(11) NOT NULL,
+  `author_id` int(11) NOT NULL,
+  `as_contributor` tinyint(1) NOT NULL default '0',
+  PRIMARY KEY  (`class_id`,`author_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+-- 
+-- Structure de la table `class_methods`
+-- 
 
 DROP TABLE IF EXISTS `class_methods`;
 CREATE TABLE IF NOT EXISTS `class_methods` (
@@ -61,9 +91,9 @@ CREATE TABLE IF NOT EXISTS `class_methods` (
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `class_properties`
---
+-- 
+-- Structure de la table `class_properties`
+-- 
 
 DROP TABLE IF EXISTS `class_properties`;
 CREATE TABLE IF NOT EXISTS `class_properties` (
@@ -82,9 +112,9 @@ CREATE TABLE IF NOT EXISTS `class_properties` (
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `files`
---
+-- 
+-- Structure de la table `files`
+-- 
 
 DROP TABLE IF EXISTS `files`;
 CREATE TABLE IF NOT EXISTS `files` (
@@ -104,9 +134,23 @@ CREATE TABLE IF NOT EXISTS `files` (
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `files_content`
---
+-- 
+-- Structure de la table `files_authors`
+-- 
+
+DROP TABLE IF EXISTS `files_authors`;
+CREATE TABLE IF NOT EXISTS `files_authors` (
+  `file_id` int(11) NOT NULL,
+  `author_id` int(11) NOT NULL,
+  `as_contributor` tinyint(1) NOT NULL default '0',
+  PRIMARY KEY  (`file_id`,`author_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+-- 
+-- Structure de la table `files_content`
+-- 
 
 DROP TABLE IF EXISTS `files_content`;
 CREATE TABLE IF NOT EXISTS `files_content` (
@@ -120,9 +164,9 @@ CREATE TABLE IF NOT EXISTS `files_content` (
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `functions`
---
+-- 
+-- Structure de la table `functions`
+-- 
 
 DROP TABLE IF EXISTS `functions`;
 CREATE TABLE IF NOT EXISTS `functions` (
@@ -135,13 +179,27 @@ CREATE TABLE IF NOT EXISTS `functions` (
   `description` text,
   PRIMARY KEY  (`id`),
   KEY `package_id` (`package_id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `interface_class`
---
+-- 
+-- Structure de la table `functions_authors`
+-- 
+
+DROP TABLE IF EXISTS `functions_authors`;
+CREATE TABLE IF NOT EXISTS `functions_authors` (
+  `function_id` int(11) NOT NULL,
+  `author_id` int(11) NOT NULL,
+  `as_contributor` tinyint(1) NOT NULL default '0',
+  PRIMARY KEY  (`function_id`,`author_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+-- 
+-- Structure de la table `interface_class`
+-- 
 
 DROP TABLE IF EXISTS `interface_class`;
 CREATE TABLE IF NOT EXISTS `interface_class` (
@@ -153,9 +211,24 @@ CREATE TABLE IF NOT EXISTS `interface_class` (
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `packages`
---
+-- 
+-- Structure de la table `methods_authors`
+-- 
+
+DROP TABLE IF EXISTS `methods_authors`;
+CREATE TABLE IF NOT EXISTS `methods_authors` (
+  `name` varchar(150) NOT NULL,
+  `class_id` int(11) NOT NULL,
+  `author_id` int(11) NOT NULL,
+  `as_contributor` tinyint(1) NOT NULL default '0',
+  PRIMARY KEY  (`name`,`class_id`,`author_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+-- 
+-- Structure de la table `packages`
+-- 
 
 DROP TABLE IF EXISTS `packages`;
 CREATE TABLE IF NOT EXISTS `packages` (
@@ -168,9 +241,9 @@ CREATE TABLE IF NOT EXISTS `packages` (
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `projects`
---
+-- 
+-- Structure de la table `projects`
+-- 
 
 DROP TABLE IF EXISTS `projects`;
 CREATE TABLE IF NOT EXISTS `projects` (

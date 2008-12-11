@@ -55,6 +55,7 @@ class ut_class_parser extends jUnitTestCaseDb {
     }
 
     function tearDown() {
+        raLogger::removeLoggers();
     }
     
     function testClassNoName() {

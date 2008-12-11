@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dao xmlns="http://jelix.org/ns/dao/1.0">
+    <datasources>
+        <primarytable name="files_authors" realname="files_authors" primarykey="file_id,author_id" />
+    </datasources>
+    <record>  
+        <property name="file_id" fieldname="file_id" datatype="int" required="true"/>
+        <property name="author_id" fieldname="author_id" datatype="int" required="true"/>
+        <property name="as_contributor" fieldname="as_contributor" datatype="int" required="true" default="0"/>
+    </record>
+</dao>
