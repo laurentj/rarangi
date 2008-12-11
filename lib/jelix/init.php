@@ -17,7 +17,7 @@
  * Version number of Jelix
  * @name  JELIX_VERSION
  */
-define ('JELIX_VERSION', '1.1b2pre.1189');
+define ('JELIX_VERSION', '1.2b1pre.1220');
 
 /**
  * base of namespace path used in xml files of jelix
@@ -32,6 +32,8 @@ define ('LIB_PATH',               dirname(JELIX_LIB_PATH).'/');
 
 define ('BYTECODE_CACHE_EXISTS', function_exists('apc_cache_info') || function_exists('eaccelerator_info') || function_exists('xcache_info'));
 
+if(!defined('E_DEPRECATED'))
+    define ('E_DEPRECATED',8192);
 error_reporting (E_ALL | E_STRICT);
 
 

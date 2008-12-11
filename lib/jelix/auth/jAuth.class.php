@@ -3,9 +3,9 @@
 * @package    jelix
 * @subpackage auth
 * @author     Laurent Jouanneau
-* @contributor Frédéric Guillot, Antoine Detante, Julien Issler
+* @contributor Frédéric Guillot, Antoine Detante, Julien Issler, Dominique Papin
 * @copyright  2001-2005 CopixTeam, 2005-2008 Laurent Jouanneau, 2007 Frédéric Guillot, 2007 Antoine Detante
-* @copyright  2007 Julien Issler
+* @copyright  2007-2008 Julien Issler, 2008 Dominique Papin
 *
 * This classes were get originally from an experimental branch of the Copix project (Copix 2.3dev, http://www.copix.org)
 * Few lines of code are still copyrighted 2001-2005 CopixTeam (LGPL licence).
@@ -31,26 +31,23 @@ class jAuth {
         if($config == null){
             global $gJCoord;
             $plugin = $gJCoord->getPlugin('auth');
-            if($plugin === null){
+            if($plugin === null)
                 throw new jException('jelix~auth.error.plugin.missing');
-            }
             $config = & $plugin->config;
 
             if (!isset($config['session_name'])
-                || $config['session_name'] == ''){
-
+                || $config['session_name'] == '')
                 $config['session_name'] = 'JELIX_USER';
-            }
-            if (!isset( $config['persistant_cookie_path']) 
-                ||  $config['persistant_cookie_path'] == '') {
+
+            if (!isset( $config['persistant_cookie_path'])
+                ||  $config['persistant_cookie_path'] == '')
                 $config['persistant_cookie_path'] = $GLOBALS['gJConfig']->urlengine['basePath'];
-            }
         }
         return $config;
     }
 
     /**
-     * load the auth driver
+     * return the auth driver
      * @return jIAuthDriver
      */
     protected static function _getDriver(){
@@ -59,16 +56,30 @@ class jAuth {
             $config = self::_getConfig();
             global $gJConfig;
             $db = strtolower($config['driver']);
-            if(!isset($gJConfig->_pluginsPathList_auth) 
+            if(!isset($gJConfig->_pluginsPathList_auth)
                 || !isset($gJConfig->_pluginsPathList_auth[$db])
-                || !file_exists($gJConfig->_pluginsPathList_auth[$db]) ){
+                || !file_exists($gJConfig->_pluginsPathList_auth[$db]) )
                 throw new jException('jelix~auth.error.driver.notfound',$db);
-            }
+
             require_once($gJConfig->_pluginsPathList_auth[$db].$db.'.auth.php');
             $dname = $config['driver'].'AuthDriver';
             $driver = new $dname($config[$config['driver']]);
         }
         return $driver;
+    }
+
+    /**
+     * return the value of a parameter of the configuration of the current driver
+     * @param string $paramName
+     * @return string the value. null if it doesn't exist
+     */
+    public static function getDriverParam($paramName) {
+        $config = self::_getConfig();
+        $config = $config[$config['driver']];
+        if(isset($config[$paramName]))
+            return $config[$paramName];
+        else
+            return null;
     }
 
     /**
@@ -88,11 +99,11 @@ class jAuth {
 
     /**
      * Create a new user object
-     * 
+     *
      * You should call this method if you want to create a new user. It returns an object,
      * representing a user. Then you should fill its properties and give it to the saveNewUser
      * method.
-     * 
+     *
      * @param string $login the user login
      * @param string $password the user password (not encrypted)
      * @return object the returned object depends on the driver
@@ -104,8 +115,8 @@ class jAuth {
     }
 
     /**
-     * Save a new user 
-     * 
+     * Save a new user
+     *
      * if the saving has succeed, a AuthNewUser event is sent
      * The given object should have been created by calling createUserObject method :
      *
@@ -122,15 +133,14 @@ class jAuth {
      */
     public static function saveNewUser($user){
         $dr = self::_getDriver();
-        if($dr->saveNewUser($user)){
+        if($dr->saveNewUser($user))
             jEvent::notify ('AuthNewUser', array('user'=>$user));
-        }
         return $user;
     }
 
     /**
      * update user data
-     * 
+     *
      * It send a AuthUpdateUser event if the saving has succeed. If you want
      * to change the user password, you must use jAuth::changePassword method
      * instead of jAuth::updateUser method.
@@ -143,14 +153,20 @@ class jAuth {
      *   jAuth::updateUser($user);
      *  </pre>
      *  the type of $user depends of the driver, so it can have other properties.
-     * 
+     *
      * @param object $user  user data
      */
     public static function updateUser($user){
         $dr = self::_getDriver();
-        if($user = $dr->updateUser($user)){
-            jEvent::notify ('AuthUpdateUser', array('user'=>$user));
+        if($dr->updateUser($user) === false)
+            return false;
+
+        if(self::isConnected() && self::getUserSession()->login === $user->login){
+            $config = self::_getConfig();
+            $_SESSION[$config['session_name']] = $user;
         }
+        jEvent::notify ('AuthUpdateUser', array('user'=>$user));
+        return true;
     }
 
     /**
@@ -164,12 +180,15 @@ class jAuth {
         $dr = self::_getDriver();
         $eventresp = jEvent::notify ('AuthCanRemoveUser', array('login'=>$login));
         foreach($eventresp->getResponse() as $rep){
-            if(!isset($rep['canremove']) || $rep['canremove'] === false){
+            if(!isset($rep['canremove']) || $rep['canremove'] === false)
                 return false;
-            }
         }
+        if($dr->removeUser($login)===false)
+            return false;
         jEvent::notify ('AuthRemoveUser', array('login'=>$login));
-        return $dr->removeUser($login);
+        if(self::isConnected() && self::getUserSession()->login === $login)
+            self::logout();
+        return true;
     }
 
     /**
@@ -191,7 +210,13 @@ class jAuth {
      */
     public static function changePassword($login, $newpassword){
         $dr = self::_getDriver();
-        return $dr->changePassword($login, $newpassword);
+        if($dr->changePassword($login, $newpassword)===false)
+            return false;
+        if(self::isConnected() && self::getUserSession()->login === $login){
+            $config = self::_getConfig();
+            $_SESSION[$config['session_name']] = self::getUser($login);
+        }
+        return true;
     }
 
     /**
@@ -221,9 +246,8 @@ class jAuth {
 
             $eventresp = jEvent::notify ('AuthCanLogin', array('login'=>$login, 'user'=>$user));
             foreach($eventresp->getResponse() as $rep){
-                if(!isset($rep['canlogin']) || $rep['canlogin'] === false){
+                if(!isset($rep['canlogin']) || $rep['canlogin'] === false)
                     return false;
-                }
             }
 
             $_SESSION[$config['session_name']] = $user;
@@ -295,9 +319,8 @@ class jAuth {
     */
     public static function getUserSession (){
         $config = self::_getConfig();
-        if (! isset ($_SESSION[$config['session_name']])){
+        if (! isset ($_SESSION[$config['session_name']]))
             $_SESSION[$config['session_name']] = new jAuthDummyUser();
-        }
         return $_SESSION[$config['session_name']];
     }
 
@@ -309,9 +332,8 @@ class jAuth {
     public static function getRandomPassword($length = 10){
         $letter = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         $pass = '';
-        for($i=0;$i<$length;$i++){
+        for($i=0;$i<$length;$i++)
             $pass .= $letter{rand(0,61)};
-        }
         return $pass;
     }
 }

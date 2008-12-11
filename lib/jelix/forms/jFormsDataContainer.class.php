@@ -25,7 +25,7 @@ class jFormsDataContainer {
      * contains data provided by the user in each controls
      * @var array
      * @see jFormsBase::getModifiedControls()
-     * @see jFormsBase::resetModifiedControlsList()
+     * @see jFormsBase::initModifiedControlsList()
      */
     public $originalData = array();
     
@@ -89,6 +89,8 @@ class jFormsDataContainer {
     function clear(){
         $this->data = array();
         $this->errors = array();
+        $this->originalData = array();
+        $this->privateData = array();
     }
 
     public function deactivate($name, $deactivation=true) {

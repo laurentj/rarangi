@@ -26,6 +26,14 @@ class defaultCtrl extends jControllerCmdLine {
      */
     protected $allowed_parameters = array(
             'index' => array('config'=>true));
+    
+    
+    public $help = array(
+        'index'=>'php rarangi.php file.ini
+
+This script parses PHP files according to setting indicated in the given ini file.
+        '
+    );
     /**
     *
     */
