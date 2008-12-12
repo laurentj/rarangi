@@ -63,6 +63,22 @@ class raMethodDescriptor  extends raBaseDescriptor {
         $record->short_description = $this->shortDescription;
         $record->description = $this->description;
         $dao->insert($record);
+
+        list($authors, $contributors) = $this->saveAuthorsContributors();
+        $methauthors = jDao::get("rarangi~methods_authors");
+        $methauthor = jDao::createRecord("rarangi~methods_authors");
+        $methauthor->name = $this->name;
+        $methauthor->class_id = $this->classId;
+        $methauthor->as_contributor = 0;
+        foreach ($authors as $authorid) {
+            $methauthor->author_id = $authorid;
+            $methauthors->insert($methauthor);
+        }
+        $methauthor->as_contributor = 1;
+        foreach ($contributors as $authorid) {
+            $methauthor->author_id = $authorid;
+            $methauthors->insert($methauthor);
+        }
     }
 }
 

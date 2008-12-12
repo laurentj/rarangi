@@ -16,5 +16,21 @@
                 <eq property="project_id" expr="$project" />
             </conditions>
         </method>
+        <method name="getByName" type="selectfirst">
+            <parameter name="name"/>
+            <parameter name="project" />
+            <conditions>
+                <eq property="name" expr="$name" />
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+        <method name="getByEmail" type="selectfirst">
+            <parameter name="email"/>
+            <parameter name="project" />
+            <conditions>
+                <eq property="email" expr="$email" />
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
     </factory>
 </dao>

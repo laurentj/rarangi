@@ -42,5 +42,20 @@ class raFunctionDescriptor  extends raBaseDescriptor {
         $record->description = $this->description;
         
         $dao->insert($record);
+        
+        list($authors, $contributors) = $this->saveAuthorsContributors();
+        $funcauthors = jDao::get("rarangi~functions_authors");
+        $funcauthor = jDao::createRecord("rarangi~functions_authors");
+        $funcauthor->function_id = $record->id;
+        $funcauthor->as_contributor = 0;
+        foreach ($authors as $authorid) {
+            $funcauthor->author_id = $authorid;
+            $funcauthors->insert($funcauthor);
+        }
+        $funcauthor->as_contributor = 1;
+        foreach ($contributors as $authorid) {
+            $funcauthor->author_id = $authorid;
+            $funcauthors->insert($funcauthor);
+        }
     }
 }

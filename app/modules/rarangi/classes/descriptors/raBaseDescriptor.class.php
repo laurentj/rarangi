@@ -259,11 +259,36 @@ class raBaseDescriptor {
     }
     
     protected function saveAuthorsContributors(){
+        return array ($this->_registerAuthors($this->authors), $this->_registerAuthors($this->contributors));
+    }
+
+    private function _registerAuthors(& $developers){
         $authorId = array();
         $dao = jDao::get('rarangi~authors');
-        foreach($this->authors as $author) {
-            //$dao
+        foreach($developers as $author) {
+            list($name, $email) = $author;
+            $dev = null;
+            if($email !='') {
+                $dev = $dao->getByEmail($email, $this->projectId);
+                if ($dev && $dev->name == '' && $name !='') {
+                    $dev->name = $name;
+                    $dao->update($dev);
+                }
+            }
+            else {
+                // find by name
+                $dev = $dao->getByName($name, $this->projectId);
+            }
+            if(!$dev) {
+                $dev = jDao::createRecord('rarangi~authors');
+                $dev->name = $name;
+                $dev->email = $email;
+                $dev->project_id = $this->projectId;
+                $dao->insert($dev);
+            }
+            $authorId[] = $dev->id;
         }
+        return $authorId;
     }
 }
 

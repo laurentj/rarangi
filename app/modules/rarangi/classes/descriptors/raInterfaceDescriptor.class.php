@@ -74,10 +74,25 @@ class raInterfaceDescriptor extends raBaseDescriptor {
             $dao->insert($record);
         }
         $this->classId = $record->id;
-        
+
         foreach($this->members as $member) {
             $member->classId = $record->id;
             $member->save();
+        }
+
+        list($authors, $contributors) = $this->saveAuthorsContributors();
+        $classauthors = jDao::get("rarangi~classes_authors");
+        $classauthor = jDao::createRecord("rarangi~classes_authors");
+        $classauthor->class_id = $this->classId;
+        $classauthor->as_contributor = 0;
+        foreach ($authors as $authorid) {
+            $classauthor->author_id = $authorid;
+            $classauthors->insert($classauthor);
+        }
+        $classauthor->as_contributor = 1;
+        foreach ($contributors as $authorid) {
+            $classauthor->author_id = $authorid;
+            $classauthors->insert($classauthor);
         }
     }
 }
