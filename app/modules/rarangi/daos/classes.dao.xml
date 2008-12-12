@@ -15,6 +15,17 @@
         <property name="is_interface" fieldname="is_interface" datatype="boolean" default="0" required="true"/>
         <property name="short_description" fieldname="short_description" datatype="string" />
         <property name="description" fieldname="description" datatype="string" />
+        <property name="copyright" fieldname="copyright" datatype="string"/>
+        <property name="internal" fieldname="internal" datatype="string"/>
+        <property name="links" fieldname="links" datatype="string"/>
+        <property name="see" fieldname="see" datatype="string"/>
+        <property name="uses" fieldname="uses" datatype="string"/>
+        <property name="changelog" fieldname="changelog" datatype="string"/>
+        <property name="todo" fieldname="todo" datatype="string"/>
+        <property name="since" fieldname="since" datatype="string"/>
+        <property name="license_label" fieldname="license_label" datatype="string"/>
+        <property name="license_link" fieldname="license_link" datatype="string"/>
+        <property name="license_text" fieldname="license_text" datatype="string"/>
     </record>
     <factory>
         <method name="deleteByProject" type="delete">

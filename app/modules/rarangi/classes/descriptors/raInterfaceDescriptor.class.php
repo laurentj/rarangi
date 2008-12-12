@@ -63,7 +63,19 @@ class raInterfaceDescriptor extends raBaseDescriptor {
         $record->is_interface = $this->isInterface;
         $record->short_description = $this->shortDescription;
         $record->description = $this->description;
-        
+
+        $record->copyright = $this->copyright;
+        $record->internal = $this->internal;
+        $record->links = serialize($this->links);
+        $record->see = serialize($this->see);
+        $record->uses = serialize($this->uses);
+        $record->changelog = serialize($this->changelog);
+        $record->todo = $this->todo;
+        $record->since = $this->since;
+        $record->license_label = $this->licenseLabel;
+        $record->license_link = $this->licenseLink;
+        $record->license_text = $this->licenseText;
+
         if(!$toInsert) {
             // if there is already a record, this is an empty record, created
             // during the parsing of an other class which inherits from the current class

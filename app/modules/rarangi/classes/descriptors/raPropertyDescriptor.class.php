@@ -24,7 +24,16 @@ class raPropertyDescriptor extends raBaseDescriptor {
     public $isStatic = false;
     
     public $classId = null;
-    
+
+    protected $acceptPackage= false;
+
+    public function inheritsFrom($desc) {
+        $this->projectId = $desc->projectId;
+        $this->deprecated = $desc->deprecated;
+        $this->ignore = $desc->ignore;
+        $this->since = $desc->since;
+    }
+
     protected function parseSpecificTag($tag, $content) {
         if($tag == 'var') {
             $this->datatype = $content;
@@ -54,6 +63,18 @@ class raPropertyDescriptor extends raBaseDescriptor {
         $record->short_description = $this->shortDescription;
         $record->description = $this->description;
         
+        $record->copyright = $this->copyright;
+        $record->internal = $this->internal;
+        $record->links = serialize($this->links);
+        $record->see = serialize($this->see);
+        $record->uses = serialize($this->uses);
+        $record->changelog = serialize($this->changelog);
+        $record->todo = $this->todo;
+        $record->since = $this->since;
+        $record->license_label = $this->licenseLabel;
+        $record->license_link = $this->licenseLink;
+        $record->license_text = $this->licenseText;
+
         $dao->insert($record);
     }
 

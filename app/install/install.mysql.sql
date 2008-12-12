@@ -1,23 +1,23 @@
 -- phpMyAdmin SQL Dump
--- version 2.10.3deb1ubuntu0.2
+-- version 2.11.3deb1ubuntu1.1
 -- http://www.phpmyadmin.net
--- 
--- Serveur: localhost
--- Généré le : Jeu 11 Décembre 2008 à 23:17
--- Version du serveur: 5.0.45
--- Version de PHP: 5.2.3-1ubuntu6.4
+--
+-- Host: localhost
+-- Generation Time: Dec 12, 2008 at 10:44 PM
+-- Server version: 5.0.51
+-- PHP Version: 5.2.4-2ubuntu5.4
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
--- 
--- Base de données: `rarangi`
--- 
+--
+-- Database: `phpdoc`
+--
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `authors`
--- 
+--
+-- Table structure for table `authors`
+--
 
 DROP TABLE IF EXISTS `authors`;
 CREATE TABLE IF NOT EXISTS `authors` (
@@ -27,13 +27,13 @@ CREATE TABLE IF NOT EXISTS `authors` (
   `email` varchar(150) NOT NULL,
   PRIMARY KEY  (`id`),
   KEY `project_id` (`project_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `classes`
--- 
+--
+-- Table structure for table `classes`
+--
 
 DROP TABLE IF EXISTS `classes`;
 CREATE TABLE IF NOT EXISTS `classes` (
@@ -48,6 +48,17 @@ CREATE TABLE IF NOT EXISTS `classes` (
   `is_interface` tinyint(1) NOT NULL,
   `short_description` tinytext,
   `description` text,
+  `copyright` tinytext,
+  `internal` text,
+  `links` tinytext,
+  `see` tinytext,
+  `uses` tinytext,
+  `since` varchar(100) default NULL,
+  `changelog` text,
+  `todo` text,
+  `license_link` varchar(100) default NULL,
+  `license_label` varchar(150) default NULL,
+  `license_text` text,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`,`project_id`,`file_id`),
   KEY `package_id` (`package_id`),
@@ -56,9 +67,9 @@ CREATE TABLE IF NOT EXISTS `classes` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `classes_authors`
--- 
+--
+-- Table structure for table `classes_authors`
+--
 
 DROP TABLE IF EXISTS `classes_authors`;
 CREATE TABLE IF NOT EXISTS `classes_authors` (
@@ -70,9 +81,9 @@ CREATE TABLE IF NOT EXISTS `classes_authors` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `class_methods`
--- 
+--
+-- Table structure for table `class_methods`
+--
 
 DROP TABLE IF EXISTS `class_methods`;
 CREATE TABLE IF NOT EXISTS `class_methods` (
@@ -85,15 +96,26 @@ CREATE TABLE IF NOT EXISTS `class_methods` (
   `is_abstract` tinyint(1) NOT NULL default '0',
   `accessibility` char(3) NOT NULL,
   `short_description` tinytext,
-  `description` text,
+  `description` text,  
+  `copyright` tinytext,
+  `internal` text,
+  `links` tinytext,
+  `see` tinytext,
+  `uses` tinytext,
+  `since` varchar(100) default NULL,
+  `changelog` text,
+  `todo` text,
+  `license_link` varchar(100) default NULL,
+  `license_label` varchar(150) default NULL,
+  `license_text` text,
   PRIMARY KEY  (`name`,`class_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `class_properties`
--- 
+--
+-- Table structure for table `class_properties`
+--
 
 DROP TABLE IF EXISTS `class_properties`;
 CREATE TABLE IF NOT EXISTS `class_properties` (
@@ -107,14 +129,25 @@ CREATE TABLE IF NOT EXISTS `class_properties` (
   `accessibility` char(3) NOT NULL,
   `short_description` tinytext,
   `description` text,
+  `copyright` tinytext,
+  `internal` text,
+  `links` tinytext,
+  `see` tinytext,
+  `uses` tinytext,
+  `since` varchar(100) default NULL,
+  `changelog` text,
+  `todo` text,
+  `license_link` varchar(100) default NULL,
+  `license_label` varchar(150) default NULL,
+  `license_text` text,
   PRIMARY KEY  (`name`,`class_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `files`
--- 
+--
+-- Table structure for table `files`
+--
 
 DROP TABLE IF EXISTS `files`;
 CREATE TABLE IF NOT EXISTS `files` (
@@ -125,6 +158,19 @@ CREATE TABLE IF NOT EXISTS `files` (
   `isdir` tinyint(4) NOT NULL default '0',
   `dirname` varchar(255) NOT NULL,
   `filename` varchar(255) NOT NULL,
+  `copyright` tinytext,
+  `short_description` tinytext,
+  `description` text,
+  `internal` text,
+  `links` tinytext,
+  `see` tinytext,
+  `uses` tinytext,
+  `since` varchar(100) default NULL,
+  `changelog` text,
+  `todo` text,
+  `license_link` varchar(100) default NULL,
+  `license_label` varchar(150) default NULL,
+  `license_text` text,
   PRIMARY KEY  (`id`),
   KEY `project_id` (`project_id`),
   KEY `dirname` (`dirname`),
@@ -134,9 +180,9 @@ CREATE TABLE IF NOT EXISTS `files` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `files_authors`
--- 
+--
+-- Table structure for table `files_authors`
+--
 
 DROP TABLE IF EXISTS `files_authors`;
 CREATE TABLE IF NOT EXISTS `files_authors` (
@@ -148,9 +194,9 @@ CREATE TABLE IF NOT EXISTS `files_authors` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `files_content`
--- 
+--
+-- Table structure for table `files_content`
+--
 
 DROP TABLE IF EXISTS `files_content`;
 CREATE TABLE IF NOT EXISTS `files_content` (
@@ -164,9 +210,9 @@ CREATE TABLE IF NOT EXISTS `files_content` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `functions`
--- 
+--
+-- Table structure for table `functions`
+--
 
 DROP TABLE IF EXISTS `functions`;
 CREATE TABLE IF NOT EXISTS `functions` (
@@ -177,15 +223,26 @@ CREATE TABLE IF NOT EXISTS `functions` (
   `line_number` int(11) NOT NULL,
   `short_description` tinytext,
   `description` text,
+  `copyright` tinytext,
+  `internal` text,
+  `links` tinytext,
+  `see` tinytext,
+  `uses` tinytext,
+  `since` varchar(100) default NULL,
+  `changelog` text,
+  `todo` text,
+  `license_link` varchar(100) default NULL,
+  `license_label` varchar(150) default NULL,
+  `license_text` text,
   PRIMARY KEY  (`id`),
   KEY `package_id` (`package_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `functions_authors`
--- 
+--
+-- Table structure for table `functions_authors`
+--
 
 DROP TABLE IF EXISTS `functions_authors`;
 CREATE TABLE IF NOT EXISTS `functions_authors` (
@@ -197,9 +254,9 @@ CREATE TABLE IF NOT EXISTS `functions_authors` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `interface_class`
--- 
+--
+-- Table structure for table `interface_class`
+--
 
 DROP TABLE IF EXISTS `interface_class`;
 CREATE TABLE IF NOT EXISTS `interface_class` (
@@ -211,9 +268,9 @@ CREATE TABLE IF NOT EXISTS `interface_class` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `methods_authors`
--- 
+--
+-- Table structure for table `methods_authors`
+--
 
 DROP TABLE IF EXISTS `methods_authors`;
 CREATE TABLE IF NOT EXISTS `methods_authors` (
@@ -226,9 +283,9 @@ CREATE TABLE IF NOT EXISTS `methods_authors` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `packages`
--- 
+--
+-- Table structure for table `packages`
+--
 
 DROP TABLE IF EXISTS `packages`;
 CREATE TABLE IF NOT EXISTS `packages` (
@@ -241,9 +298,9 @@ CREATE TABLE IF NOT EXISTS `packages` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `projects`
--- 
+--
+-- Table structure for table `projects`
+--
 
 DROP TABLE IF EXISTS `projects`;
 CREATE TABLE IF NOT EXISTS `projects` (

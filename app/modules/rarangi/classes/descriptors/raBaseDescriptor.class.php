@@ -5,7 +5,7 @@
 * @contributor
 * @copyright   2006-2008 Laurent Jouanneau
 * @link        http://forge.jelix.org/projects/rarangi
-* @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
+* @license     GNU General Public license see license file or http://www.gnu.org/licenses/gpl.html
 */
 
 /**
@@ -74,34 +74,34 @@ class raBaseDescriptor {
      * array(.... array(link, label)...)
      * @var array
      */
-    public $links;
+    public $links = array();
     /**
      * array of components to link on the details page of the component
      * a string in the array = file.ext|elementname|class::methodname()|class::$variablename|functionname()|function functionname
      * @var array
      */
-    public $see;
+    public $see = array();
     /**
      * =see with backlinks
      * @var array
      */
-    public $uses;
+    public $uses = array();
     /**
      * the version in which the component has been created
      * @var string
      */
-    public $since;
+    public $since = '';
     /**
      * changelogs
      * array( array('version','description')...)
      * @var array
      */
-    public $changelog;
+    public $changelog = array();
     /**
      * the description of what to do.
      * @var string
      */
-    public $todo;
+    public $todo = '';
 
     /**
      * other tags which are not supported natively
@@ -109,10 +109,27 @@ class raBaseDescriptor {
      */
     public $otherTags = array();
 
+    /**
+     * @var string
+     */
+    public $licenseLink = '';
+    
+    /**
+     * @var string
+     */
+    public $licenseLabel = '';
+
+    /**
+     * @var string
+     */
+    public $licenseText = '';
+
 
     public $projectId = null;
     public $fileId = null;
     public $line = 0;
+    
+    protected $acceptPackage= true;
     
     function __construct($projectId, $fileId, $line){
         $this->projectId = $projectId;
@@ -122,7 +139,7 @@ class raBaseDescriptor {
 
     /**
      * the object is initialized with all informations of an other 
-     * @param jBaseDescriptor $desc a descriptor
+     * @param raBaseDescriptor $desc a descriptor
      */
     public function inheritsFrom($desc) {
         $this->projectId = $desc->projectId;
@@ -132,9 +149,10 @@ class raBaseDescriptor {
         $this->copyright = $desc->copyright;
         $this->deprecated = $desc->deprecated;
         $this->ignore = $desc->ignore;
-        $this->internal = $desc->internal;
-        $this->links = $desc->links;
         $this->since = $desc->since;
+        $this->licenseLabel = $desc->licenseLabel;
+        $this->licenseLink = $desc->licenseLink;
+        $this->licenseText = $desc->licenseText;
     }
 
     /**
@@ -146,7 +164,7 @@ class raBaseDescriptor {
         $lignes = preg_split("/\015\012|\015|\012/",$docComment);
         $currentTag = 'shortDescription';
         foreach($lignes as $ligne){
-            if(preg_match('/^\s*\*\s*(?:@(\w+))?(.*)$/',$ligne,$m)){
+            if(preg_match('/^\s*\*\s*(?:@(\w+))?(.*)$/',$ligne,$m)) {
                 list(,$tag, $content) = $m;
                 $content = trim($content);
                 if($tag != ''){
@@ -182,24 +200,54 @@ class raBaseDescriptor {
                             }
                             break;
                         case 'copyright':
+                            $this->copyright .= $content;
                             break;
                         case 'deprecated':
+                            $this->deprecated = trim($content);
                             break;
                         case 'ignore':
+                            $this->ignore = true;
                             break;
                         case 'internal':
+                            $this->internal .= $content;
                             break;
                         case 'links':
+                            $pos = strpos($content," ");
+                            $link = $label = '';
+                            if($pos === false) {
+                                $link = $content;
+                            }
+                            else {
+                                $link = substr($content, 0, $pos);
+                                $label = substr($content, $pos+1);
+                            }
+                            $this->links[] = array($link, $label);
                             break;
                         case 'see':
+                            $this->see[] = $content;
                             break;
                         case 'uses':
+                            $this->uses[] = $content;
                             break;
                         case 'since':
+                            $this->since = $content;
                             break;
                         case 'changelog':
+                            $this->changelog[] = $content;
                             break;
                         case 'todo':
+                            $this->todo = $content;
+                            break;
+                        case 'license':
+                            $pos = strpos($content," ");
+                            $this->licenseLink = $this->licenseLabel = '';
+                            if($pos === false) {
+                                $this->licenseLink = $content;
+                            }
+                            else {
+                                $this->licenseLink = substr($content, 0, $pos);
+                                $this->licenseLabel = substr($content, $pos+1);
+                            }
                             break;
                         default:
                             if(!$this->parseSpecificTag($tag, $content)) {
@@ -209,23 +257,56 @@ class raBaseDescriptor {
                     $currentTag = $tag;
                 }
                 else {
-                    if($currentTag == 'shortDescription') {
-                        if(trim($content) == '' && $this->shortDescription != '') {
+                    switch ($currentTag) {
+                    case 'shortDescription':
+                        if (trim($content) == '' && $this->shortDescription != '') {
                             $currentTag = 'description';
                         } else if($this->shortDescription != ''){
                             $this->shortDescription .= "\n".$content;
                         } else {
                             $this->shortDescription = $content;
                         }
-                        
-                    }
-                    else if($currentTag == 'description') {
-                        if($this->description != ''){
+                        break;
+                    
+                    case 'description':
+                        if ($this->description != '') {
                             $this->description .= "\n".$content;
                         } else {
                             $this->description = $content;
                         }
+                        break;
+                    case 'internal':
+                        $this->internal.="\n".$content;
+                        break;
+                    case 'copyright':
+                        $this->copyright.="\n".$content;
+                        break;
+                    case 'changelog':
+                        $this->changelog[count($this->changelog)-1] .= "\n".$content;
+                        break;
+                    case 'todo':
+                        $this->todo .= "\n".$content;
+                        break;
+                    case 'license':
+                        if ($this->licenseText != '') {
+                            $this->licenseText .= "\n".$content;
+                        } else {
+                            $this->licenseText = $content;
+                        }
+                        break;
+                    case 'deprecated':
+                    case 'ignore':
+                    case 'links':
+                    case 'see':
+                    case 'uses':
+                    case 'since':
+                        break;
+                    default:
+                        if(!$this->addContentToSpecificTag($currentTag, $content)) {
+                            $this->otherTags[$currentTag] .= $content;
+                        }
                     }
+                    
                 }
             }else{
                 //throw new Exception("bad syntax in a doc comment");
@@ -237,6 +318,11 @@ class raBaseDescriptor {
     protected function parseSpecificTag($tag, $content) {
         return false;
     }
+
+    protected function addContentToSpecificTag($tag, $content) {
+        return false;
+    }
+
     
     public function save() {}
     
