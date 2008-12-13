@@ -9,7 +9,8 @@
         <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
         <property name="package_id" fieldname="package_id" datatype="int"/>
         <property name="file_id" fieldname="file_id" datatype="int" />
-        <property name="linenumber" fieldname="linenumber" datatype="int" default="0" required="true"/>
+        <property name="line_start" fieldname="line_start" datatype="int" required="true" default="0"/>
+        <property name="line_end" fieldname="line_end" datatype="int" required="true" default="0"/>
         <property name="mother_class" fieldname="mother_class" datatype="integer" />
         <property name="is_abstract" fieldname="is_abstract" datatype="boolean" default="0" required="true"/>
         <property name="is_interface" fieldname="is_interface" datatype="boolean" default="0" required="true"/>

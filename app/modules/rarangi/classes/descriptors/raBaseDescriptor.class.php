@@ -128,6 +128,7 @@ class raBaseDescriptor {
     public $projectId = null;
     public $fileId = null;
     public $line = 0;
+    public $lineEnd = 0;
     
     protected $acceptPackage= true;
     

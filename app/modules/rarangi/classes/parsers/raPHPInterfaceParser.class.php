@@ -119,6 +119,7 @@ class raPHPInterfaceParser extends raPHPParser_base {
                 $previousDocComment = '';
             }
         }
+        $this->info->lineEnd = $this->parserInfo->currentLine();
         $this->info->save();
     }
  

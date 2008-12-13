@@ -7,7 +7,7 @@
         <property name="name" fieldname="name" datatype="string" required="true" maxlength="150"/>
         <property name="class_id" fieldname="class_id" datatype="int" required="true"/>
         <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
-        <property name="line_number" fieldname="line_number" datatype="int" required="true"/>
+        <property name="line_start" fieldname="line_start" datatype="int" required="true" default="0"/>
         <property name="datatype" fieldname="datatype" datatype="string" required="true" maxlength="150"/>
         <property name="default_value" fieldname="default_value" datatype="text"/>
         <property name="is_static" fieldname="is_static" datatype="int" required="true"/>

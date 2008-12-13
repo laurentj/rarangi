@@ -49,7 +49,7 @@ class raPropertyDescriptor extends raBaseDescriptor {
         $record->name = $this->name;
         $record->class_id = $this->classId;
         $record->project_id = $this->projectId;
-        $record->line_number = $this->line;
+        $record->line_start = $this->line;
         $record->datatype = $this->datatype;
         $record->default_value = $this->defaultValue;
         $record->is_static = $this->isStatic;

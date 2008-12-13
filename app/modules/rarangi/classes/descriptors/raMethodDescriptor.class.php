@@ -56,7 +56,8 @@ class raMethodDescriptor  extends raBaseDescriptor {
         $record->name = $this->name;
         $record->class_id = $this->classId;
         $record->project_id = $this->projectId;
-        $record->line_number = $this->line;
+        $record->line_start = $this->line;
+        $record->line_end = $this->lineEnd;
         $record->is_static = $this->isStatic;
         $record->is_final = $this->isFinal;
         $record->is_abstract = $this->isAbstract;

@@ -8,7 +8,8 @@
         <property name="name" fieldname="name" datatype="string" required="true" maxlength="150"/>
         <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
         <property name="package_id" fieldname="package_id" datatype="int"/>
-        <property name="line_number" fieldname="line_number" datatype="int" required="true"/>
+        <property name="line_start" fieldname="line_start" datatype="int" required="true" default="0"/>
+        <property name="line_end" fieldname="line_end" datatype="int" required="true" default="0"/>
         <property name="short_description" fieldname="short_description" datatype="text" default=""/>
         <property name="description" fieldname="description" datatype="text" default=""/>
         <property name="copyright" fieldname="copyright" datatype="string"/>

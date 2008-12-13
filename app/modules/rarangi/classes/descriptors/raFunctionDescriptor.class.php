@@ -37,7 +37,8 @@ class raFunctionDescriptor  extends raBaseDescriptor {
         $record->name = $this->name;
         $record->project_id = $this->projectId;
         $record->package_id = $this->getPackageId($this->package);
-        $record->line_number = $this->line;        
+        $record->line_start = $this->line;
+        $record->line_end = $this->lineEnd;
         $record->short_description = $this->shortDescription;
         $record->description = $this->description;
         

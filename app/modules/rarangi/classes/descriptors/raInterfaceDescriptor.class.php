@@ -24,6 +24,7 @@ class raInterfaceDescriptor extends raBaseDescriptor {
     public $classId = null;
 
     public function save() {
+
         if($this->name == '')
             throw new Exception('class name undefined');
 
@@ -53,7 +54,8 @@ class raInterfaceDescriptor extends raBaseDescriptor {
         $record->name = $this->name;
         $record->project_id = $this->projectId;
         $record->file_id = $this->fileId;
-        $record->linenumber = $this->line;
+        $record->line_start = $this->line;
+        $record->line_end = $this->lineEnd;
         $record->mother_class = $mother_id;
         if (!$this->isInterface)
             $record->is_abstract = $this->isAbstract;

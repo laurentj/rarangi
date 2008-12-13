@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Dec 12, 2008 at 10:44 PM
+-- Generation Time: Dec 13, 2008 at 11:21 PM
 -- Server version: 5.0.51
 -- PHP Version: 5.2.4-2ubuntu5.4
 
@@ -42,7 +42,8 @@ CREATE TABLE IF NOT EXISTS `classes` (
   `project_id` int(11) NOT NULL,
   `file_id` int(11) default NULL,
   `package_id` int(11) default NULL,
-  `linenumber` int(11) NOT NULL,
+  `line_start` int(11) NOT NULL,
+  `line_end` int(11) NOT NULL default '0',
   `mother_class` int(11) default NULL,
   `is_abstract` tinyint(1) NOT NULL,
   `is_interface` tinyint(1) NOT NULL,
@@ -90,13 +91,14 @@ CREATE TABLE IF NOT EXISTS `class_methods` (
   `name` varchar(150) NOT NULL,
   `class_id` int(11) NOT NULL,
   `project_id` int(11) NOT NULL,
-  `line_number` int(11) NOT NULL,
+  `line_start` int(11) NOT NULL,
+  `line_end` int(11) NOT NULL default '0',
   `is_static` tinyint(1) NOT NULL,
   `is_final` tinyint(1) NOT NULL default '0',
   `is_abstract` tinyint(1) NOT NULL default '0',
   `accessibility` char(3) NOT NULL,
   `short_description` tinytext,
-  `description` text,  
+  `description` text,
   `copyright` tinytext,
   `internal` text,
   `links` tinytext,
@@ -122,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `class_properties` (
   `name` varchar(150) NOT NULL,
   `class_id` int(11) NOT NULL,
   `project_id` int(11) NOT NULL,
-  `line_number` int(11) NOT NULL,
+  `line_start` int(11) NOT NULL,
   `datatype` varchar(150) NOT NULL,
   `default_value` tinytext,
   `is_static` tinyint(1) NOT NULL,
@@ -220,7 +222,8 @@ CREATE TABLE IF NOT EXISTS `functions` (
   `name` varchar(150) NOT NULL,
   `project_id` int(11) NOT NULL,
   `package_id` int(11) default NULL,
-  `line_number` int(11) NOT NULL,
+  `line_start` int(11) NOT NULL,
+  `line_end` int(11) NOT NULL default '0',
   `short_description` tinytext,
   `description` text,
   `copyright` tinytext,

@@ -48,10 +48,12 @@ class ut_class_parser extends jUnitTestCaseDb {
         raLogger::removeLoggers();
         $this->logger = new raInMemoryLogger();
         raLogger::addLogger($this->logger);
-        $this->emptyTable('classes');
-        $this->emptyTable('interface_class');
+        $this->emptyTable('classes_authors');
+        $this->emptyTable('methods_authors');
         $this->emptyTable('class_properties');
         $this->emptyTable('class_methods');
+        $this->emptyTable('interface_class');
+        $this->emptyTable('classes');
     }
 
     function tearDown() {
@@ -93,7 +95,8 @@ class ut_class_parser extends jUnitTestCaseDb {
             'name'=>'foo',
             'project_id'=>1,
             'file_id'=>1,
-            'linenumber'=>2,
+            'line_start'=>2,
+            'line_end'=>3,
             'package_id'=>null,
             'mother_class'=>null,
             'is_abstract'=>0,
@@ -135,7 +138,8 @@ class ut_class_parser extends jUnitTestCaseDb {
             'name'=>'foo',
             'project_id'=>1,
             'file_id'=>1,
-            'linenumber'=>1,
+            'line_start'=>1,
+            'line_end'=>2,
             'package_id'=>null,
             'mother_class'=>$barId,
             'is_abstract'=>0,
@@ -146,7 +150,8 @@ class ut_class_parser extends jUnitTestCaseDb {
             'name'=>'bar',
             'project_id'=>1,
             'file_id'=>null,
-            'linenumber'=>0,
+            'line_start'=>0,
+            'line_end'=>0,
             'package_id'=>null,
             'mother_class'=>null,
             'is_abstract'=>0,
@@ -189,7 +194,8 @@ class ut_class_parser extends jUnitTestCaseDb {
             'name'=>'foo',
             'project_id'=>1,
             'file_id'=>1,
-            'linenumber'=>1,
+            'line_start'=>1,
+            'line_end'=>2,
             'package_id'=>null,
             'mother_class'=>null,
             'is_abstract'=>0,
@@ -200,7 +206,8 @@ class ut_class_parser extends jUnitTestCaseDb {
             'name'=>'bar',
             'project_id'=>1,
             'file_id'=>null,
-            'linenumber'=>0,
+            'line_start'=>0,
+            'line_end'=>0,
             'package_id'=>null,
             'mother_class'=>null,
             'is_abstract'=>0,
@@ -237,7 +244,8 @@ class ut_class_parser extends jUnitTestCaseDb {
             'name'=>'foo',
             'project_id'=>1,
             'file_id'=>1,
-            'linenumber'=>2,
+            'line_start'=>2,
+            'line_end'=>5,
             'package_id'=>null,
             'mother_class'=>null,
             'is_abstract'=>0,
@@ -250,7 +258,7 @@ class ut_class_parser extends jUnitTestCaseDb {
                 'name'=>'bar',
                 'class_id'=>$p->getInfo()->classId,
                 'project_id'=>1,
-                'line_number'=>3,
+                'line_start'=>3,
                 'datatype'=>'',
                 'default_value'=>'',
                 'is_static'=>0,
@@ -262,7 +270,7 @@ class ut_class_parser extends jUnitTestCaseDb {
                 'name'=>'baz',
                 'class_id'=>$p->getInfo()->classId,
                 'project_id'=>1,
-                'line_number'=>4,
+                'line_start'=>4,
                 'datatype'=>'',
                 'default_value'=>'"lorem ipsum"',
                 'is_static'=>1,

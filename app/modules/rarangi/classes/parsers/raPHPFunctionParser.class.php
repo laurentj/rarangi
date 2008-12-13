@@ -105,7 +105,7 @@ class raPHPFunctionParser extends raPHPParser_base {
                 }
             }
         }
-
+        $this->info->lineEnd = $this->parserInfo->currentLine();
         if(!$this->isMethod) $this->info->save();
     }
 
