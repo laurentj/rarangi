@@ -74,25 +74,28 @@ class packagesCtrl extends jController {
             $rep->body->assignZone('SUBMENUBAR', 'project_menubar', array(
                                                             'project'=>$project));
         }
-        
+
         // Get package
         $dao = jDao::get('packages');
         $package = $dao->getByName($project->id, $packagename, 0);
-        if (!$package) {
-            $rep->setHttpStatus('404', 'Not found');
-        }
         $tpl->assign('package', $package);
 
-        // Get classes
-        $dao_classes = jDao::get('classes');
-        $classes = $dao_classes->findByPackage($project->id, $package->id);
-        $tpl->assign('classes', $classes);
-        
-        // Get functions TODO
-        $dao_functions = jDao::get('functions');
-        $functions = $dao_functions->findByPackage($project->id, $package->id);
-        $tpl->assign('functions', $functions);
-
+        if (!$package) {
+            $rep->setHttpStatus('404', 'Not found');
+            $tpl->assign('classes', null);
+            $tpl->assign('functions', null);
+        }
+        else {
+            // Get classes
+            $dao_classes = jDao::get('classes');
+            $classes = $dao_classes->findByPackage($project->id, $package->id);
+            $tpl->assign('classes', $classes);
+            
+            // Get functions
+            $dao_functions = jDao::get('functions');
+            $functions = $dao_functions->findByPackage($project->id, $package->id);
+            $tpl->assign('functions', $functions);
+        }
         $rep->body->assign('MAIN', $tpl->fetch('package_details'));
         return $rep;
     }

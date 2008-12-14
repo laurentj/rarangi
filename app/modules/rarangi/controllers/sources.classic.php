@@ -45,6 +45,7 @@ class sourcesCtrl extends jController {
             $rep->body->assign('MAIN', $tpl->fetch('file_content'));
         }
         else {
+            $rep->setHttpStatus('404', 'Not Found');
             $rep->body->assign('MAIN', "<p>unknow file $path</p>");
         }
 
