@@ -39,7 +39,7 @@ class raPHPFileParser extends raPHPParser_base {
         foreach ($lines as $n=>$l) {
             $line->file_id = $this->info->fileId;
             $line->project_id = $parserInfo->getProjectId();
-            $line->linenumber = $n;
+            $line->linenumber = $n+1;
             $line->content = $l;
             $filecontentdao->insert($line);   
         }

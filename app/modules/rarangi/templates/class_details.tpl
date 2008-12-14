@@ -51,7 +51,7 @@
             <div class="file-info">
                 {if $class->fullpath}
                 Defined in the file <a href="{jurl 'sources:index',
-                                    array('path'=>$class->fullpath)}#{$class->line_start}">{$class->fullpath}</a>
+                                    array('project'=>$project->name,'path'=>$class->fullpath)}#{$class->line_start}">{$class->fullpath}</a>
                 {if $class->since}
                 since {$class->since|eschtml}
                 {/if}

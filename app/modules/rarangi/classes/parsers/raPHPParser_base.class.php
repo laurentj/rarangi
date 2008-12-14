@@ -73,13 +73,17 @@ abstract class raPHPParser_base {
             if(is_array($tok)){
                 if($tok[0] == T_WHITESPACE || $tok[0] == T_ENCAPSED_AND_WHITESPACE || $tok[0] == T_INLINE_HTML){
                     $this->parserInfo->incLineS($tok[1]);
-                }elseif($tok[0] == T_CLOSE_TAG) {
+                } elseif ($tok[0] == T_CLOSE_TAG) {
                     $this->iterator->next();
                     $this->toNextPhpSection();
                     if(!$this->iterator->valid())
                         return false;
-                }else
+                } else {
+                    if ($tok[0] == T_COMMENT || $tok[0] == T_DOC_COMMENT) {
+                        $this->parserInfo->incLineS($tok[1]);
+                    }
                     return $tok;
+                }
             }elseif(!preg_match('/^\s*$/',$tok)){
                 $this->parserInfo->incLineS($tok);
                 return $tok;
