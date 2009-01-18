@@ -1,7 +1,6 @@
-<div class="monbloc">
 {if $class}
     <h2>Class: {$class->name|eschtml}</h2>
-    <div class="blockcontent">
+    <div class="block">
 
     </div>
 {else}
@@ -10,4 +9,3 @@
         <p>Error, unknow class</p>
     </div>
 {/if}
-</div>

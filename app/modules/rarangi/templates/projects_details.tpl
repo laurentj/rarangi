@@ -1,16 +1,20 @@
-<div class="monbloc">
 {if $project}
-    <h2>Project: {$project->name|eschtml}</h2>
-    <div class="blockcontent">
-        <ul>
-            <li><a href="{jurl 'rarangi~packages:index', array('project'=>$project->name)}">Packages</a></li>
-            <li><a href="{jurl 'rarangi~sources:index', array('project'=>$project->name)}">Browse source</a></li>
-        </ul>
+    <h2>{@default.project.details@}</h2>
+    
+    {if $authors->rowCount() > 0}
+    <div class="block">
+    <h3>{@default.authors@}</h3>
+    <ul id="authors">
+    {foreach $authors as $author}
+        <li>{$author->name|eschtml} {if $author->email!=''}&lt;{$author->email|eschtml}&gt;{/if}</li>
+    {/foreach}
+    </ul>
     </div>
+    {/if}
+    
 {else}
     <h2>Project: {$projectname}</h2>
     <div class="blockcontent">
         <p>Error, unknow project</p>
     </div>
 {/if}
-</div>

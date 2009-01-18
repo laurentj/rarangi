@@ -1,16 +1,13 @@
-<div class="monbloc">
 {if $project}
-    <h2>Project: {$project->name|eschtml}</h2>
-    <div class="blockcontent">
+    <h2>{jlocale 'default.packages.title', array($project->name)}</h2>
 
+    <div class="block">
     {if $packages}
-        <h3>Packages</h3>
         <ul>
         {foreach $packages as $package}
             <li><a href="{jurl 'packages:details', array('project'=>$project->name, 'package'=>$package->name)}">{$package->name|eschtml}</a></li>
         {/foreach}
         </ul>
-
     {else}
         <p>No packages for the project</p>
     {/if}
@@ -21,4 +18,3 @@
         <p>Error, unknow project</p>
     </div>
 {/if}
-</div>

@@ -16,6 +16,12 @@
                 <eq property="project_id" expr="$project" />
             </conditions>
         </method>
+        <method name="findByProject" type="select">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
         <method name="getByName" type="selectfirst">
             <parameter name="name"/>
             <parameter name="project" />

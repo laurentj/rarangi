@@ -1,25 +1,19 @@
-
-<div id="page">
-<h1>Source code documentation</h1>
+<div id="header">
+    {$BREADCRUMB}
+    <div id="help-links">
+        <a href="" title="">{@default.helplinks.help@}</a> |
+        <a href="" title="">{@default.helplinks.about@}</a>
+    </div>
+</div>
 
 <div id="menubar">
-<ul>
-	<li><a href="{jurl 'rarangi~default:index'}">List of projects</a></li>
-</ul>
-{$SUBMENUBAR}
+{$MENUBAR}
 </div>
-<div id="sidebar">
-	{$SIDEBAR}
-</div>
-<div id="content">
 
+<div id="main">
 {$MAIN}
-
 </div>
 
 <div id="footer">
-  Powered by Rarangi and Jelix.
+    <p>{@default.footer.poweredby@}</p>
 </div>
-
-</div>
-

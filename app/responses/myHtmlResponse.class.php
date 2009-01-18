@@ -24,8 +24,8 @@ class myHtmlResponse extends jResponseHtml {
     protected function doAfterActions() {
         // Include all process in common for all actions, like the settings of the
         // main template, the settings of the response etc..
-        $this->body->assignIfNone('SIDEBAR','');
-        $this->body->assignIfNone('SUBMENUBAR','');
+        $this->body->assignIfNone('BREADCRUMB','');
+        $this->body->assignIfNone('MENUBAR','');
         $this->body->assignIfNone('MAIN','<p>no content</p>');
         
         if($this->title != '')

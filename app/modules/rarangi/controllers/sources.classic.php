@@ -11,48 +11,48 @@
 class sourcesCtrl extends jController {
     
     /**
-    * display a file of sources
+    * Display a file of sources
     */
     function index() {
-        $rep = $this->getResponse('html');
-        $tpl = new jTpl();
+        $resp = $this->getResponse('html');
         
         $project = $GLOBALS['currentproject'];
         $path = $this->param('path');
-        if($path) {
-            $path = str_replace('..','',$path);
+        if ($path) {
+            $path = str_replace('..', '', $path);
         }
 
-        $rep->title = $path;
-
+        $resp->title = $path;
         
+        $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
+                    'mode' => 'projectbrowse',
+                    'projectname' => $project->name));
+        $resp->body->assignZone('MENUBAR', 'project_menubar');
+
+        $tpl = new jTpl();
         $tpl->assign('filename', $path);
         $tpl->assign('project', $project->name);
 
         $filedao = jDao::get('files');
         $file = $filedao->getByFullPath($path, $project->id);
-        if($file) {
-            $tpl->assign('file',$file);
+        if ($file) {
+            $tpl->assign('file', $file);
             
-            if($file->isdir) {
+            if ($file->isdir) {
                 $tpl->assign('directory', $filedao->getDirectoryContent($path, $project->id));
                 $tpl->assign('filecontent','');
-            }
-            else {
+            } else {
                 $tpl->assign('directory','');
                 $tpl->assign('filecontent', jDao::get('files_content')->findByFile($file->id));
             }
-            $rep->body->assign('MAIN', $tpl->fetch('file_content'));
+            $resp->body->assign('MAIN', $tpl->fetch('file_content'));
         }
         else {
-            $rep->setHttpStatus('404', 'Not Found');
-            $rep->body->assign('MAIN', "<p>unknow file $path</p>");
+            $resp->setHttpStatus('404', 'Not Found');
+            $resp->body->assign('MAIN', "<p>unknow file $path</p>");
         }
-
-
-        //$rep->body->assignZone('SIDEBAR', 'sources_sidebar', array('path'=>'',) );
-        $rep->body->assignZone('SUBMENUBAR', 'project_menubar');
-        return $rep;
+        
+        return $resp;
     }
 
 }

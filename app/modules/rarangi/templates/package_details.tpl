@@ -1,15 +1,17 @@
 <div class="monbloc">
 {if $package}
-    <h2>Project: {$project->name|eschtml}</h2>
-    <div class="blockcontent">
-
-    <h3>Informations on the package {$package->name|eschtml}</h3>
+    <h2>{jlocale 'default.packages.details.title', array($package->name, $project->name)}</h2>
+    
+    <div class="block">
+    <h3>{jlocale 'default.package.informations.title', array($package->name)}</h3>
     <ul>
         <li>{if $classes}{$classes->rowCount()}{else}0{/if} classes</li>
         <li>{if $functions}{$functions->rowCount()}{else}0{/if} functions</li>
     </ul>
+    </div>
 
-    <h3>List of classes</h3>
+    <div class="block">
+    <h3>{@default.classes.list@}</h3>
     {if $classes->rowCount()}
     <ul>
     {foreach $classes as $class}
@@ -17,10 +19,12 @@
     {/foreach}
     </ul>
     {else}
-        <p>No classes in that package</p>
+        <p>{@default.classes.list.empty@}/p>
     {/if}
+    </div>
     
-    <h3>List of functions</h3>
+    <div class="block">
+    <h3>{@default.functions.list@}</h3>
     {if $functions->rowCount()}
     <ul>
     {foreach $functions as $func}
@@ -28,10 +32,10 @@
     {/foreach}
     </ul>
     {else}
-        <p>No Functions in that package</p>
+        <p>{@default.functions.list.empty@}</p>
     {/if}
-
     </div>
+    
 {else}
     <h2>Project: {$projectname}</h2>
     <div class="blockcontent">

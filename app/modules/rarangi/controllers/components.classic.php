@@ -21,7 +21,7 @@ class componentsCtrl extends jController {
         $classname = $this->param('classname');
         $package = $this->param('package');
 
-        $resp->title = $classname;
+        $resp->title = jLocale::get('default.classes.details.title', array($classname));
 
         $tpl->assign('classname', $classname);
         $tpl->assign('project', $project);
@@ -30,10 +30,16 @@ class componentsCtrl extends jController {
         $dao = jDao::get('classedetails');
         $class = $dao->getByName($project->id,$classname);
         $tpl->assign('class',$class);
-        if(!$class) {
+        
+        if (!$class) {
             $resp->setHttpStatus('404', 'Not Found');
-        }
-        else {
+        } else {
+            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
+                    'mode' => 'projectbrowse',
+                    'projectname' => $project->name));
+            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
+                                                            'project'=>$project));
+                                                            
             if ($class->links)
                 $class->links = unserialize($class->links);
             
@@ -48,8 +54,6 @@ class componentsCtrl extends jController {
         }
         $resp->body->assign('MAIN', $tpl->fetch('class_details'));
 
-        //$rep->body->assignZone('SIDEBAR', 'sources_sidebar', array('path'=>'',) );
-        $resp->body->assignZone('SUBMENUBAR', 'project_menubar');
         return $resp;
     }
 
@@ -72,13 +76,19 @@ class componentsCtrl extends jController {
         $dao = jDao::get('functions');
         $func = $dao->getByName($project->id, $functionname);
         $tpl->assign('function',$func);
-        if(!$func) {
+        
+        if (!$func) {
             $resp->setHttpStatus('404', 'Not Found');
+        } else {
+            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
+                    'mode' => 'projectbrowse',
+                    'projectname' => $project->name));
+            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
+                                                            'project'=>$project));
         }
         $resp->body->assign('MAIN', $tpl->fetch('function_details'));
 
-        //$rep->body->assignZone('SIDEBAR', 'sources_sidebar', array('path'=>'',) );
-        $resp->body->assignZone('SUBMENUBAR', 'project_menubar');
+
         return $resp;
     }
 }

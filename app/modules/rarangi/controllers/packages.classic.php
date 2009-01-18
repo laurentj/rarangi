@@ -24,21 +24,25 @@ class packagesCtrl extends jController {
     }
     
     /**
-    * display the list of packages
+    * Display the list of packages
     */
     function index() {
-        $rep = $this->getResponse('html');
+        $resp = $this->getResponse('html');
         $tpl = $this->_prepareTpl();
         
         $project = $tpl->get('project');
         $projectname = $tpl->get('projectname');
-        $rep->title = 'Packages for project '. $projectname;
+        $resp->title = jLocale::get('default.packages.title', array($projectname));
         
         if (!$project) {
-            $rep->setHttpStatus('404','Not found');
+            $resp->setHttpStatus('404','Not found');
         } else {
-            $rep->body->assignZone('SUBMENUBAR', 'project_menubar', array(
-                                                            'project'=>$project));
+            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
+                    'mode' => 'projectbrowse',
+                    'projectname' => $projectname));
+            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
+                    'project'=>$project,
+                    'mode' => 'browse'));
         }
         
         // Get packages
@@ -46,32 +50,35 @@ class packagesCtrl extends jController {
         $packages = $dao->findByProject($project->id);
 
         if (!$packages) {
-            $rep->setHttpStatus('404', 'Not found');
+            $resp->setHttpStatus('404', 'Not found');
         }
         $tpl->assign('packages', $packages);
         
-        $rep->body->assign('MAIN', $tpl->fetch('packages_list'));
+        $resp->body->assign('MAIN', $tpl->fetch('packages_list'));
         
-        return $rep;
+        return $resp;
     }
     
     /**
     * display details of a package and the list of subpackages
     */
     function details() {
-        $rep = $this->getResponse('html');
+        $resp = $this->getResponse('html');
         $tpl = $this->_prepareTpl();
         
         $project = $tpl->get('project');
         $projectname = $tpl->get('projectname');
         $packagename = $this->param('package');
         $tpl->assign('packagename', $packagename);
-        $rep->title = 'Details for package '. $packagename .' in project '. $projectname;
+        $resp->title = jLocale::get('default.packages.details.title', array($packagename, $projectname));
         
         if (!$project) {
-            $rep->setHttpStatus('404','Not found');
+            $resp->setHttpStatus('404','Not found');
         } else {
-            $rep->body->assignZone('SUBMENUBAR', 'project_menubar', array(
+            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
+                    'mode' => 'projectbrowse',
+                    'projectname' => $projectname));
+            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
                                                             'project'=>$project));
         }
 
@@ -81,11 +88,10 @@ class packagesCtrl extends jController {
         $tpl->assign('package', $package);
 
         if (!$package) {
-            $rep->setHttpStatus('404', 'Not found');
+            $resp->setHttpStatus('404', 'Not found');
             $tpl->assign('classes', null);
             $tpl->assign('functions', null);
-        }
-        else {
+        } else {
             // Get classes
             $dao_classes = jDao::get('classes');
             $classes = $dao_classes->findByPackage($project->id, $package->id);
@@ -96,8 +102,9 @@ class packagesCtrl extends jController {
             $functions = $dao_functions->findByPackage($project->id, $package->id);
             $tpl->assign('functions', $functions);
         }
-        $rep->body->assign('MAIN', $tpl->fetch('package_details'));
-        return $rep;
+        $resp->body->assign('MAIN', $tpl->fetch('package_details'));
+        
+        return $resp;
     }
 
     /**
