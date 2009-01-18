@@ -17,6 +17,8 @@
         <property name="description" fieldname="description" datatype="text" default=""/>
         <property name="copyright" fieldname="copyright" datatype="string"/>
         <property name="internal" fieldname="internal" datatype="string"/>
+        <property name="return_datatype" fieldname="return_datatype" datatype="string"/>
+        <property name="return_description" fieldname="return_description" datatype="string"/>
         <property name="links" fieldname="links" datatype="string"/>
         <property name="see" fieldname="see" datatype="string"/>
         <property name="uses" fieldname="uses" datatype="string"/>

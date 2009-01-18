@@ -210,5 +210,44 @@ class ut_doccomment extends jUnitTestCase {
                         ));
         $this->assertTrue($this->checkLogEmpty());
     }
+    
+    function testMethodDescriptor(){
+        $desc = new raMethodDescriptor(1, 1, 1);
+        $c = '/**
+* lorem ipsum
+*
+* Praesent at ante. Maecenas condimentum congue sapien. In vehicula arcu dictum enim.
+* Quisque mi. Nunc mauris. Suspendisse vitae quam quis odio semper scelerisque.
+* @return void
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->shortDescription, 'lorem ipsum');
+        $this->assertEqual($desc->description, "Praesent at ante. Maecenas condimentum congue sapien. In vehicula arcu dictum enim.\nQuisque mi. Nunc mauris. Suspendisse vitae quam quis odio semper scelerisque.");
+        $this->assertEqual($desc->returnType, 'void');
+        $this->assertEqual($desc->returnDescription, '');
+        
+        $desc = new raMethodDescriptor(1, 1, 1);
+        $c = '/**
+* lorem ipsum
+*
+* Praesent at ante. Maecenas condimentum congue sapien. In vehicula arcu dictum enim.
+* @return string Praesent at ante. Maecenas condimentum
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->returnType, 'string');
+        $this->assertEqual($desc->returnDescription, 'Praesent at ante. Maecenas condimentum');
+
+        $desc = new raMethodDescriptor(1, 1, 1);
+        $c = '/**
+* lorem ipsum
+*
+* Praesent at ante. Maecenas condimentum congue sapien. In vehicula arcu dictum enim.
+* @return string Praesent at ante. Maecenas condimentum
+*   Quisque mi. Nunc mauris. Suspendisse vitae quam
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->returnType, 'string');
+        $this->assertEqual($desc->returnDescription, "Praesent at ante. Maecenas condimentum\nQuisque mi. Nunc mauris. Suspendisse vitae quam");
+    }
 }
 ?>

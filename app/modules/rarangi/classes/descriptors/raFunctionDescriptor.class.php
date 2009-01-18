@@ -17,15 +17,37 @@ class raFunctionDescriptor  extends raBaseDescriptor {
 
     public $parameters = array();
 
-    public $return;
+    public $returnType='';
+    
+    public $returnDescription='';
 
     //public $usedGlobalsVars;
     //public $staticVars;
 
     protected function parseSpecificTag($tag, $content) {
         if($tag == 'return') {
-            $this->return = $content;
+            if(preg_match("/^([^\s]+)(?:\s+(.+))?$/", $content, $m)) {
+                $this->returnType = $m[1];
+                $this->returnDescription = (isset($m[2])?$m[2]:'');
+            }
+            else {
+                $this->returnType = '';
+                $this->returnDescription = '';
+            }
+            return true;
         }
+        else if($tag == 'param') {
+
+        }
+        return false;
+    }
+
+    protected function addContentToSpecificTag($tag, $content) {
+        if($tag == 'return') {
+            $this->returnDescription .=  "\n".$content;
+            return true;
+        }
+        return false;
     }
     
     public function save() {
@@ -41,7 +63,9 @@ class raFunctionDescriptor  extends raBaseDescriptor {
         $record->line_end = $this->lineEnd;
         $record->short_description = $this->shortDescription;
         $record->description = $this->description;
-        
+        $record->return_datatype = $this->returnType;
+        $record->return_description = $this->returnDescription;
+
         $record->copyright = $this->copyright;
         $record->internal = $this->internal;
         $record->links = serialize($this->links);

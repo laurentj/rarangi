@@ -58,14 +58,20 @@ class raPHPFunctionParser extends raPHPParser_base {
 
         $this->toNextSpecificPhpToken('(');
         $tok = $this->toNextPhpToken();
+        $parameters = array();
+        $pname = '';
+        $pvalue = '';
+        $ptype = '';
         while($tok != ')') {
             if (is_array($tok)) {
                 if ($tok[0] == T_STRING) {
+                    $ptype = $tok[1];
                     $this->toNextSpecificPhpToken(T_VARIABLE);
                     list($pname, $pvalue) = $this->readVarnameAndValue(array(',',')'));
                     $tok = $this->iterator->current();
                 }
                 else if ($tok[0] == T_VARIABLE) {
+                    $ptype='';
                     list($pname, $pvalue) = $this->readVarnameAndValue(array(',',')'));
                     $tok = $this->iterator->current();
                 }
