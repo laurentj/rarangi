@@ -13,6 +13,10 @@
  */
 class raPropertyDescriptor extends raBaseDescriptor {
 
+    const TYPE_VAR = 0;
+    const TYPE_STATIC_VAR = 1;
+    const TYPE_CONST = 2;
+
     public $name;
     
     public $defaultValue = '';
@@ -21,7 +25,7 @@ class raPropertyDescriptor extends raBaseDescriptor {
     
     public $accessibility = T_PUBLIC;
     
-    public $isStatic = false;
+    public $typeProperty = 0;
     
     public $classId = null;
 
@@ -52,7 +56,7 @@ class raPropertyDescriptor extends raBaseDescriptor {
         $record->line_start = $this->line;
         $record->datatype = $this->datatype;
         $record->default_value = $this->defaultValue;
-        $record->is_static = $this->isStatic;
+        $record->type = $this->typeProperty;
         if($this->accessibility == T_PUBLIC)
             $record->accessibility = 'PUB';
         elseif($this->accessibility == T_PROTECTED)

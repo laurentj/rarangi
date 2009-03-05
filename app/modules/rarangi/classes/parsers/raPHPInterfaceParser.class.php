@@ -45,7 +45,7 @@ class raPHPInterfaceParser extends raPHPParser_base {
         $previousDocComment = '';
         $doExit = false;
         
-        $memberAccessibility = 0;
+        $memberAccessibility = T_PUBLIC;
         $memberStatic = false;
         $memberFinal = false;
         $memberType = 0;
@@ -57,7 +57,7 @@ class raPHPInterfaceParser extends raPHPParser_base {
                     $subparser = new raPHPFunctionParser($this, $previousDocComment, $memberAccessibility, $memberStatic, $memberFinal, $memberType == self::MEMBER_TYPE_FUNC_ABST);
                     $subparser->parse();
                     $this->info->members[]=$subparser->getInfo();
-                    $memberAccessibility = 0;
+                    $memberAccessibility = T_PUBLIC;
                     $memberStatic = false;
                     $memberFinal = false;
                     $memberType= 0;
@@ -66,12 +66,13 @@ class raPHPInterfaceParser extends raPHPParser_base {
                     $info = new raPropertyDescriptor($this->info->projectId, $this->info->fileId, $this->parserInfo->currentLine());
                     $info->initFromPhpDoc($previousDocComment);
                     $info->accessibility = $memberAccessibility;
-                    $info->isStatic = $memberStatic;
+                    if ($memberStatic)
+                      $info->typeProperty = raPropertyDescriptor::TYPE_STATIC_VAR;
                     list($pname, $pvalue) = $this->readVarnameAndValue(';');
                     $info->name = $pname;
                     $info->defaultValue = $pvalue;
                     $this->info->members[]=$info;
-                    $memberAccessibility = 0;
+                    $memberAccessibility = T_PUBLIC;
                     $memberStatic = false;
                     $memberFinal = false;
                     $memberType= 0;
@@ -104,6 +105,23 @@ class raPHPInterfaceParser extends raPHPParser_base {
                     $functionAbstract = true;
                     $memberType = self::MEMBER_TYPE_FUNC_ABST;
                     break;
+                case T_STRING:
+                    if ($memberType == self::MEMBER_TYPE_CONST) {
+                      $info = new raPropertyDescriptor($this->info->projectId, $this->info->fileId, $this->parserInfo->currentLine());
+                      $info->initFromPhpDoc($previousDocComment);
+                      $info->accessibility = $memberAccessibility;
+                      $info->typeProperty = raPropertyDescriptor::TYPE_CONST;
+                      list($pname, $pvalue) = $this->readConstAndValue(';');
+                      $info->name = $pname;
+                      $info->defaultValue = $pvalue;
+                      $this->info->members[]=$info;
+                      $memberAccessibility = T_PUBLIC;
+                      $memberStatic = false;
+                      $memberFinal = false;
+                      $memberType= 0;
+                    }
+                    else
+                       throw new Exception ("Interface/class parsing, invalid syntax, unexpected string '".$tok[1]."'");
                 }
             } else {
                 switch($tok){

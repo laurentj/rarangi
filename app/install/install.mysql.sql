@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS `class_properties` (
   `line_start` int(11) NOT NULL,
   `datatype` varchar(150) NOT NULL,
   `default_value` tinytext,
-  `is_static` tinyint(1) NOT NULL,
+  `type` tinyint(1) NOT NULL,
   `accessibility` char(3) NOT NULL,
   `short_description` tinytext,
   `description` text,

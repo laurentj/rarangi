@@ -224,7 +224,7 @@ class ut_class_parser extends jUnitTestCaseDb {
     }
 
     function testSimpleClass() {
-        $content = " <?php \nclass foo {\n public \$bar; \n protected static \$baz =\"lorem ipsum\"; \n}\n ?>";
+        $content = " <?php \nclass foo {\n public \$bar; \n protected static \$baz =\"lorem ipsum\"; const bla = 4;\n}\n ?>";
         $p = new ut_class_parser_test($content,1);
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 5);
@@ -245,7 +245,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             'project_id'=>1,
             'file_id'=>1,
             'line_start'=>2,
-            'line_end'=>5,
+            'line_end'=>6,
             'package_id'=>null,
             'mother_class'=>null,
             'is_abstract'=>0,
@@ -261,7 +261,7 @@ class ut_class_parser extends jUnitTestCaseDb {
                 'line_start'=>3,
                 'datatype'=>'',
                 'default_value'=>'',
-                'is_static'=>0,
+                'type'=>0,
                 'accessibility'=>'PUB',
                 'short_description'=>'',
                 'description'=>''
@@ -273,8 +273,20 @@ class ut_class_parser extends jUnitTestCaseDb {
                 'line_start'=>4,
                 'datatype'=>'',
                 'default_value'=>'"lorem ipsum"',
-                'is_static'=>1,
+                'type'=>1,
                 'accessibility'=>'PRO',
+                'short_description'=>'',
+                'description'=>''
+            ),
+            array(
+                'name'=>'bla',
+                'class_id'=>$p->getInfo()->classId,
+                'project_id'=>1,
+                'line_start'=>5,
+                'datatype'=>'',
+                'default_value'=>'4',
+                'type'=>2,
+                'accessibility'=>'PUB',
                 'short_description'=>'',
                 'description'=>''
             ),

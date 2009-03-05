@@ -5,7 +5,7 @@ header('Content-type:text/plain');
 $t= token_get_all('
 <?php
 
-function truc ( machin $p);
+class truc { const machin=1; }
 
 ?>');
 

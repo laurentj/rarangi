@@ -30,9 +30,78 @@
         </div>
 
         <div class="block">
+        <h3 id="properties">Short list</h3>
+        <div class="class-short-list">
+          
+            <table class="properties-list">
+              {foreach $properties as $p}
+              <tr>
+                <td><a href="#p-{$p->name}">{$p->name}</a></td>
+                <td>{if $p->type == 1}static{elseif $p->type == 2}const{/if}
+                   {if $p->accessibility == 'PRO'}protected{elseif $p->accessibility=='PRI'}private{else}public{/if}
+                   {$p->datatype}</td>
+                <td>{$p->short_description|eschtml}</td>
+              </tr>
+              {/foreach}
+            </table>
+        </div>
+        </div>
+
+
+
+        <div class="block">
         <h3 id="properties">List of properties</h3>
         <div class="class-properties-list">
-            TODO list of properties here
+              {foreach $properties as $p}
+              <div class="class-property">
+              <h4 id="p-{$p->name}"><a name="p-{$p->name}"></a>{$p->name}</h4>
+                {if $p->short_description}<div class="short-description">{$p->short_description|eschtml}</div>{/if}
+                {if $p->description}<div class="description">{$p->description|eschtml}</div>{/if}
+                {if $p->internal}<div class="internal">{$p->internal|eschtml}</div>{/if}
+                {if $p->since}<div class="since">Since {$p->since|eschtml}</div>{/if}
+                <p class="datatype">Datatype : {if $p->datatype}{$p->datatype}{else}undefined{/if}</p>
+                <p class="type-access">{if $p->type == 1}static{elseif $p->type == 2}const{/if}
+                   {if $p->accessibility == 'PRO'}protected{elseif $p->accessibility=='PRI'}private{else}public{/if}</p>
+
+                {if $p->copyright}
+                <div class="copyright">Copyright: {$p->copyright|eschtml}</div>
+                {/if}
+                {if $p->license_label || $p->license_text}
+                <div class="licence">This property has been added under the licence:
+                    {if $p->license_link}
+                        <a href="{$class->license_link|eschtml}">{$p->license_label|eschtml}</a>
+                    {else}
+                        {$p->license_label|eschtml}
+                    {/if}
+                    {if $p->license_text}
+                    <div class="license-description">
+                        {$p->license_text|eschtml}
+                    </div>
+                    {/if}
+                </div>
+                {/if}
+                {if $p->links}
+                <ul class="links">{foreach $p->links as $link}
+                    <li><a href="{$link[0]|eschtml}">{$link[1]|eschtml}</a></li>{/foreach}
+                </ul>
+                {/if}
+                {if $p->see}
+                <ul class="see">{foreach $p->see as $s}
+                    <li><a href="{$s[0]|eschtml}">{$s[1]|eschtml}</a></li>{/foreach}
+                </ul>
+                {/if}
+                {if $p->todo}
+                <div class="todo">{$p->todo|eschtml}</div>
+                {/if}
+                {if $p->changelog}
+                <div class="changelog">{foreach $p->changelog as $changelog}
+                    <div>{$changelog|eschtml}</div>
+                    {/foreach}
+                </div>
+                {/if}
+              </div>
+                
+              {/foreach}
         </div>
         </div>
         

@@ -10,7 +10,7 @@
         <property name="line_start" fieldname="line_start" datatype="int" required="true" default="0"/>
         <property name="datatype" fieldname="datatype" datatype="string" required="true" maxlength="150"/>
         <property name="default_value" fieldname="default_value" datatype="text"/>
-        <property name="is_static" fieldname="is_static" datatype="int" required="true"/>
+        <property name="type" fieldname="type" datatype="int" required="true"/>
         <property name="accessibility" fieldname="accessibility" datatype="string" maxlength="3" required="true"/>
         <property name="short_description" fieldname="short_description" datatype="string"/>
         <property name="description" fieldname="description" datatype="string"/>
@@ -27,6 +27,14 @@
         <property name="license_text" fieldname="license_text" datatype="string"/>
     </record>
     <factory>
+        <method name="findByClass" type="select">
+            <parameter name="project" />
+            <parameter name="class_id" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+                <eq property="class_id" expr="$class_id" />
+            </conditions>
+        </method>
         <method name="deleteByProject" type="delete">
             <parameter name="project" />
             <conditions>

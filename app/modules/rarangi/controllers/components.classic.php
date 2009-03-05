@@ -51,6 +51,24 @@ class componentsCtrl extends jController {
 
             if ($class->changelog)
                 $class->changelog = unserialize($class->changelog);
+            
+            $rs_properties = jDao::get('class_properties')->findByClass($project->id, $class->id);
+            $properties = array();
+            foreach ($rs_properties as $prop) {
+                if ($prop->links)
+                    $prop->links = unserialize($prop->links);
+  
+                if ($prop->see)
+                    $prop->see = unserialize($prop->see);
+    
+                if ($prop->uses)
+                    $prop->uses = unserialize($prop->uses);
+    
+                if ($prop->changelog)
+                    $prop->changelog = unserialize($prop->changelog);
+                $properties[] = $prop;
+            }
+            $tpl->assign('properties', $properties);
         }
         $resp->body->assign('MAIN', $tpl->fetch('class_details'));
 
