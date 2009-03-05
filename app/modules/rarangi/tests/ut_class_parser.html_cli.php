@@ -224,10 +224,10 @@ class ut_class_parser extends jUnitTestCaseDb {
     }
 
     function testSimpleClass() {
-        $content = " <?php \nclass foo {\n public \$bar; \n protected static \$baz =\"lorem ipsum\"; const bla = 4;\n}\n ?>";
+        $content = " <?php \nclass foo {\n public \$bar; \n protected static \$baz =\"lorem ipsum\"; \nconst bla = 4;\n}\n ?>";
         $p = new ut_class_parser_test($content,1);
         $p->parse();
-        $this->assertEqual($p->getParserInfo()->currentLine(), 5);
+        $this->assertEqual($p->getParserInfo()->currentLine(), 6);
         
         if($this->assertTrue($p->getIterator()->valid())) {
             $tok = $p->getIterator()->current();
