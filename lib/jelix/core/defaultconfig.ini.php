@@ -5,22 +5,28 @@ startModule = "jelix"
 startAction = "default:index"
 locale = "en_US"
 charset = "UTF-8"
+theme = default
 
 ; see http://www.php.net/manual/en/timezones.php for supported values
 ; if empty, jelix will try to get the default timezone
 timeZone =
 
+pluginsPath = app:plugins/
+modulesPath = lib:jelix-modules/,app:modules/
+
+; says if jelix should check trustedModules
 checkTrustedModules = off
 
-; list of modules : module,module,module
+; list of modules which can be accessed from the web
+;    module,module,module
 trustedModules =
 
-pluginsPath = lib:jelix-plugins/,app:plugins/
-modulesPath = lib:jelix-modules/,app:modules/
+; list of modules which are not used by the application
+; or not installed.
+unusedModules = 
 
 dbProfils = dbprofils.ini.php
 
-theme = default
 use_error_handler = on
 
 enableOldActionSelector =
@@ -215,6 +221,8 @@ sendmailPath = "/usr/sbin/sendmail"
 smtpHost = "localhost"
 ; default SMTP server port
 smtpPort = 25
+; secured connection or not. possible values: "", "ssl", "tls"
+smtpSecure = 
 ; SMTP HELO of the message (Default is hostname)
 smtpHelo =
 ; SMTP authentication
@@ -225,12 +233,13 @@ smtpPassword =
 smtpTimeout = 10
 
 [acl]
-driver = db
-enableAclDbEventListener = off
+; exemple of driver: "db".
+driver =
 
 [acl2]
-driver = db
-enableAcl2DbEventListener = off
+; exemple of driver: "db"
+driver =
+
 
 
 [sessions]
@@ -257,6 +266,9 @@ storage=
 ; storage = "dao"
 ; dao_selector = "jelix~jsession"
 ; dao_db_profile = ""
+
+; list of selectors of classes to load before the session_start
+loadClasses=
 
 [forms]
 ; define input type for datetime widgets : "textboxes" or "menulists"

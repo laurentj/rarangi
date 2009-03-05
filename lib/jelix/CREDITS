@@ -107,6 +107,7 @@ Christophe Thiriot (aka Doubleface)
  - Added enhanced service handling (dependency injection) in jClasses (#523, #602)
  - implementation of "live" exit in command line (#406)
  - automatic timezone setting (#600)
+ - bug in jFilter tests (#842)
 
 Contributors
 ------------
@@ -129,6 +130,10 @@ Dandelionmood
 
 Antoine Detante (aka antoinefr)
  - support of persistant authentification in jAuth and auth plugin (#229)
+
+dsdenes
+ - fix little thing in crud template (#844)
+ - added a native modifier in jtpl (#845)
 
 F. Fernandez (aka e-media)
  - little improvement in jLog.(#344)
@@ -193,6 +198,9 @@ Pulsation
 Rahal
  - improvement on locale selectors : possibility to overload locales (#358)
 
+Tahina Ramaroson
+ - ldap driver for jAuth (#787)
+
 Philippe Schelte (aka dubphil)
  - plugin tpl cycle (#149)
  - error in checkTrustedModules function (#715)
@@ -204,9 +212,11 @@ Thomas
  - fixed bugs in jDao (#576, #643)
  - jDaoFactoryBase::countBy : allowing to do count on distinct fields (#580)
  - JDaoConditions::addItemGroup : add clause group by (#579)
+ - jDbPDOConnection : fixed bug in query method with 3 arguments (#839)
 
 Baptiste Toinot (aka Surfoo)
  - double / in path for locale selector
+ - fixed little bugs in jForms (#789, #790)
  
 Christian Tritten
  - improvements on pagelinks plugin (#340)

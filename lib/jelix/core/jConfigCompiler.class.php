@@ -4,7 +4,7 @@
 * @subpackage   core
 * @author       Jouanneau Laurent
 * @contributor  Thibault PIRONT < nuKs >, Christophe Thiriot, Philippe Schelté
-* @copyright    2006-2008 Jouanneau laurent
+* @copyright    2006-2009 Jouanneau laurent
 * @copyright    2007 Thibault PIRONT, 2008 Christophe Thiriot, 2008 Philippe Schelté
 * @link         http://www.jelix.org
 * @licence      GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
@@ -81,10 +81,24 @@ class jConfigCompiler {
         }
 
         $config->_allBasePath = array();
-
-        $config->_modulesPathList = self::_loadPathList($config->modulesPath, $config->_allBasePath);
+        $unusedModules = split(' *, *',$config->unusedModules);
+        $config->_modulesPathList = self::_loadPathList($config->modulesPath, $unusedModules, $config->_allBasePath);
 
         self::_loadPluginsPathList($config);
+
+        $coordplugins = array();
+        foreach ($config->coordplugins as $name=>$conf) {
+            if (!isset($config->_pluginsPathList_coord[$name])) {
+                die("Jelix Error: Error in the main configuration. The coord plugin $name doesn't exist!");
+            }
+            if ($conf) {
+                if ($conf != '1' && !file_exists(JELIX_APP_CONFIG_PATH.$conf)) {
+                    die("Jelix Error: Error in the main configuration. Configuration file '$conf' for coord plugin $name doesn't exist!");
+                }
+                $coordplugins[$name] = $conf;
+            }
+        }
+        $config->coordplugins = $coordplugins;
 
         if($config->checkTrustedModules){
             $config->_trustedModules = explode(',',$config->trustedModules);
@@ -107,7 +121,7 @@ class jConfigCompiler {
             if($basepath{0} != '/') $basepath='/'.$basepath;
             if(substr($basepath,-1) != '/') $basepath.='/';
 
-            if(strpos($config->urlengine['urlScriptPath'], $basepath) !== 0){
+            if(PHP_SAPI != 'cli' && strpos($config->urlengine['urlScriptPath'], $basepath) !== 0){
                 throw new Exception('Jelix Error: basePath ('.$basepath.') in config file doesn\'t correspond to current base path. You should setup it to '.$config->urlengine['urlScriptPath']);
             }
 
@@ -143,6 +157,35 @@ class jConfigCompiler {
             $config->sessions['files_path'] = str_replace(array('lib:','app:'), array(LIB_PATH, JELIX_APP_PATH), $config->sessions['files_path']);
         }
 
+        $config->sessions['_class_to_load'] = array();
+        if ($config->sessions['loadClasses'] != '') {
+            $list = split(' *, *',$config->sessions['loadClasses']);
+            foreach($list as $sel) {
+                if(preg_match("/^([a-zA-Z0-9_\.]+)~([a-zA-Z0-9_\.\\/]+)$/", $sel, $m)){
+                    if (!isset($config->_modulesPathList[$m[1]])) {
+                        throw new Exception('Error in config files, loadClasses: '.$m[1].' is not a valid or activated module');
+                    }
+
+                    if( ($p=strrpos($m[2], '/')) !== false){
+                        $className = substr($m[2],$p+1);
+                        $subpath = substr($m[2],0,$p+1);
+                    }else{
+                        $className = $m[2];
+                        $subpath ='';
+                    }
+                    
+                    $path = $config->_modulesPathList[$m[1]].'classes/'.$subpath.$className.'.class.php';
+
+                    if (!file_exists($path) || strpos($subpath,'..') !== false ) {
+                        throw new Exception('Error in config files, loadClasses, bad class selector: '.$sel);
+                    }
+                    $config->sessions['_class_to_load'][] = $path;
+                }
+                else
+                    throw new Exception('Error in config files, loadClasses, bad class selector: '.$sel);
+            }
+        }
+
         /*if(preg_match("/^([a-zA-Z]{2})(?:_([a-zA-Z]{2}))?$/",$config->locale,$m)){
             if(!isset($m[2])){
                 $m[2] = $m[1];
@@ -160,7 +203,7 @@ class jConfigCompiler {
      * @param array $list list of "lib:*" and "app:*" path
      * @return array list of full path
      */
-    static protected function _loadPathList($list, &$allBasePath){
+    static protected function _loadPathList($list, $forbiddenList, &$allBasePath){
         $list = split(' *, *',$list);
         array_unshift($list, JELIX_LIB_PATH.'core-modules/');
         $result=array();
@@ -177,7 +220,7 @@ class jConfigCompiler {
                 $allBasePath[]=$p;
             if ($handle = opendir($p)) {
                 while (false !== ($f = readdir($handle))) {
-                    if ($f{0} != '.' && is_dir($p.$f)) {
+                    if ($f{0} != '.' && is_dir($p.$f) && !in_array($f, $forbiddenList)) {
                         $result[$f]=$p.$f.'/';
                     }
                 }

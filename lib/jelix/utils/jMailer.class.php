@@ -5,14 +5,11 @@
 * sendmail, PHP mail(), or SMTP.  Methods are
 * based upon the standard AspEmail(tm) classes.
 *
-* Original author : Brent R. Matzelle
-* Adaptation for PHP5 And Jelix : Laurent Jouanneau
-*
 * @package     jelix
 * @subpackage  utils
 * @author      Laurent Jouanneau
 * @contributor Kévin Lepeltier
-* @copyright   2006-2008 Laurent Jouanneau
+* @copyright   2006-2009 Laurent Jouanneau
 * @copyright   2008 Kévin Lepeltier
 * @link        http://jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
@@ -35,11 +32,12 @@ require(LIB_PATH.'phpMailer/class.phpmailer.php');
 class jMailer extends PHPMailer {
 
     /**
-     * Use tpl for sets the Body of the message.  This can be either an HTML or text body.
-     * If HTML then run IsHTML(true).
+     * the selector of the template used for the mail.
+     * Use the Tpl() method instead of this property 
+     * @deprecated
      * @var string
      */
-    public $bodyTpl;
+    public $bodyTpl = '';
 
     protected $lang;
 
@@ -57,6 +55,7 @@ class jMailer extends PHPMailer {
         $this->Port = $gJConfig->mailer['smtpPort'];
         $this->Helo = $gJConfig->mailer['smtpHelo'];
         $this->SMTPAuth = $gJConfig->mailer['smtpAuth'];
+        $this->SMTPSecure = $gJConfig->mailer['smtpSecure'];
         $this->Username = $gJConfig->mailer['smtpUsername'];
         $this->Password = $gJConfig->mailer['smtpPassword'];
         $this->Timeout = $gJConfig->mailer['smtpTimeout'];
@@ -78,18 +77,21 @@ class jMailer extends PHPMailer {
         return $tab;
     }
 
+    protected $tpl = null;
+
     /**
      * Adds a Tpl référence.
      * @param string $selector
-     * @return void
+     * @param boolean $isHtml  true if the content of the template is html.
+     *                 IsHTML() is called.
+     * @return jTpl the template object.
      */
-    function Tpl( $selector ) {
+    function Tpl( $selector, $isHtml = false ) {
         $this->bodyTpl = $selector;
+        $this->tpl = new jTpl();
+        $this->IsHTML($isHtml);
+        return $this->tpl;
     }
-
-    /////////////////////////////////////////////////
-    // MAIL SENDING METHODS
-    /////////////////////////////////////////////////
 
     /**
      * Creates message and assigns Mailer. If the message is
@@ -103,8 +105,9 @@ class jMailer extends PHPMailer {
         $result = true;
 
         if( isset($this->bodyTpl) && $this->bodyTpl != "") {
-
-            $mailtpl = new jTpl();
+            if ($this->tpl == null)
+                $this->tpl = new jTpl();
+            $mailtpl = $this->tpl;
             $metas = $mailtpl->meta( $this->bodyTpl );
 
             if( isset($metas['Subject']) )
@@ -146,7 +149,7 @@ class jMailer extends PHPMailer {
                     $this->ReplyTo[] = $this->getAddrName( $val );
             $mailtpl->assign('ReplyTo', $this->ReplyTo );
 
-            $this->Body = $mailtpl->fetch( $this->bodyTpl );
+            $this->Body = $mailtpl->fetch( $this->bodyTpl, ($this->ContentType == 'text/html'?'html':'text'));
         }
 
         return parent::Send();

@@ -5,14 +5,14 @@
 * @author    %%default_creator_name%%
 * @copyright %%default_copyright%%
 * @link      %%default_website%%
-* @licence   %%default_licence_url%% %%default_licence%%
+* @license   %%default_license_url%% %%default_license%%
 */
 
 class %%name%%Ctrl extends jControllerDaoCrud {
 
-    protected $dao = '%%module%%~%%name%%';
+    protected $dao = '%%module%%~%%table%%';
 
-    protected $form = '%%module%%~%%name%%';
+    protected $form = '%%module%%~%%table%%';
 
     /**
      * the jDb profile to use with the dao

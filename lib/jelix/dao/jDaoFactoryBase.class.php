@@ -6,9 +6,9 @@
  * @contributor Loic Mathaud
  * @contributor Julien Issler
  * @contributor Thomas, Yoan Blanc
- * @copyright   2005-2007 Laurent Jouanneau
+ * @copyright   2005-2009 Laurent Jouanneau
  * @copyright   2007 Loic Mathaud
- * @copyright   2007-2008 Julien Issler
+ * @copyright   2007-2009 Julien Issler
  * @copyright   2008 Thomas, 2008 Yoan Blanc
  * @link        http://www.jelix.org
  * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
@@ -111,13 +111,13 @@ abstract class jDaoFactoryBase  {
 
     /**
      * informations on all properties
-     * 
+     *
      * keys are property name, and values are an array like that :
      * <pre> array (
      *  'name' => 'name of property',
      *  'fieldName' => 'name of fieldname',
      *  'regExp' => NULL, // or the regular expression to test the value
-     *  'required' => true/false, 
+     *  'required' => true/false,
      *  'isPK' => true/false, //says if it is a primary key
      *  'isFK' => true/false, //says if it is a foreign key
      *  'datatype' => '', // type of data : string
@@ -234,8 +234,8 @@ abstract class jDaoFactoryBase  {
      * jDaoConditions object.
      * you can limit the number of results by given an offset and a count
      * @param jDaoConditions $searchcond
-     * @param int $limitOffset 
-     * @param int $limitCount 
+     * @param int $limitOffset
+     * @param int $limitCount
      * @return jDbResultSet
      */
     final public function findBy ($searchcond, $limitOffset=0, $limitCount=null){
@@ -340,9 +340,8 @@ abstract class jDaoFactoryBase  {
         $order = array ();
         $props =$this->getProperties();
         foreach ($daocond->order as $name => $way){
-            if (isset($props[$name])){
-                $order[] = $name.' '.$way;
-            }
+            if (isset($props[$name]))
+                $order[] = $this->_conn->encloseFieldName($name).' '.$way;
         }
 
         if(count ($order)){
@@ -358,9 +357,8 @@ abstract class jDaoFactoryBase  {
         $group = array ();
         $props = $this->getProperties();
         foreach ($daocond->group as $name) {
-            if (isset($props[$name])) {
-                $group[] = $name;
-            }
+            if (isset($props[$name]))
+                $group[] = $this->_conn->encloseFieldName($name);
         }
 
         if (count ($group)) {
@@ -387,7 +385,7 @@ abstract class jDaoFactoryBase  {
             if($forSelect)
                 $prefixNoCondition = $this->_tables[$prop['table']]['name'].'.'.$prop['fieldName'];
             else
-                $prefixNoCondition = $prop['fieldName'];
+                $prefixNoCondition = $this->_conn->encloseFieldName($prop['fieldName']);
 
             $op = strtoupper($cond['operator']);
             $prefix = $prefixNoCondition.' '.$op.' '; // ' ' for LIKE..
@@ -457,32 +455,33 @@ abstract class jDaoFactoryBase  {
     /**
      * prepare the value ready to be used in a dynamic evaluation
      */
-    final protected function _prepareValue($value, $fieldType){
+    final protected function _prepareValue($value, $fieldType, $notNull = false){
+        if (!$notNull && $value === null)
+            return 'NULL';
+        
         switch(strtolower($fieldType)){
             case 'int':
             case 'integer':
             case 'autoincrement':
-                $value = $value === null ? 'NULL' : intval($value);
+                $value = intval($value);
                 break;
             case 'double':
             case 'float':
-                $value = $value === null ? 'NULL' : doubleval($value);
+                $value = doubleval($value);
                 break;
             case 'numeric'://usefull for bigint and stuff
             case 'bigautoincrement':
                 if (is_numeric ($value)){
                     //was numeric, we can sends it as is
                     // no cast with intval else overflow
-                    return $value === null ? 'NULL' : $value;
+                    return $value;
                 }else{
                     //not a numeric, nevermind, casting it
-                    return $value === null ? 'NULL' : intval ($value);
+                    return intval ($value);
                 }
                 break;
             case 'boolean':
-                if($value === null)
-                   $value = 'NULL';
-                elseif ($value === true|| strtolower($value)=='true'|| $value =='1')
+                if ($value === true|| strtolower($value)=='true'|| $value =='1' || $value ==='t')
                     $value =  $this->trueValue;
                 else
                     $value =  $this->falseValue;

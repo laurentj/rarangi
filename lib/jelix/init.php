@@ -17,7 +17,7 @@
  * Version number of Jelix
  * @name  JELIX_VERSION
  */
-define ('JELIX_VERSION', '1.2b1pre.1220');
+define ('JELIX_VERSION', '1.2b1pre.1336');
 
 /**
  * base of namespace path used in xml files of jelix
@@ -95,9 +95,9 @@ $gLibPath=array('Db'=>JELIX_LIB_PATH.'db/', 'Dao'=>JELIX_LIB_PATH.'dao/',
  'Auth'=>JELIX_LIB_PATH.'auth/', 'Installer'=>JELIX_LIB_PATH.'installer/');
 
 /**
- * __autoload function used by php to try to load an unknown class
+ * function used by php to try to load an unknown class
  */
-function __autoload($class){
+function jelix_autoload($class) {
     if(preg_match('/^j(Dao|Tpl|Acl|Event|Db|Controller|Forms|Auth|Installer).*/i', $class, $m)){
         $f=$GLOBALS['gLibPath'][$m[1]].$class.'.class.php';
     }elseif(preg_match('/^cDao(?:Record)?_(.+)_Jx_(.+)_Jx_(.+)$/', $class, $m)){
@@ -124,7 +124,7 @@ function __autoload($class){
 
     if(file_exists($f)){
         require($f);
-    }else{
-        throw new Exception("Jelix fatal error : Unknown class $class");
     }
 }
+
+spl_autoload_register("jelix_autoload");
