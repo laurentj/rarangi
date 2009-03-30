@@ -84,13 +84,14 @@ Loic Mathaud (bballizlife):
  - documentation
  - many improvements (jClasses::inc(), jIniFile, jAppManager, jelix-scripts etc )
  - coord plugin for Zend Framework (#651)
+ - added title feature in the meta_html plugin (#810)
 
 Dominique Papin (aka bibo)
  - added j_themepath variable in jtpl (#346)
  - improved addCssLink usability for IE (#348)
  - added support of 'else' keyword for block plugin in jtpl (#349)
  - added support of <reset> in jforms (#258)
- - fixed some bugs (#362,#585,#718,#713)
+ - fixed some bugs (#362,#585,#718,#713,#822,#872)
  - jforms dao datasource : enhancements (#581,#582)
  - added ifctrl block plugin (#601)
  - added addContent method to jResponseHtmlFragment (#610)
@@ -142,10 +143,13 @@ F. Fernandez (aka e-media)
 FoxMaSk
   - bug fix in jFile::removeDir (#733)
   - little improvement in jtpl_function_html_diff(#720)
+  - remove deprecated "value" attribute in breadcrumb function (#800)
 
-Mickaël Fradin (aka mike)
+Mickaël Fradin (aka mike/kewix)
  - improvements in the jtpl plugin: formcontrols (#223)
  - added style feature in the meta_html plugin (#553)
+ - little other improvements (#835)
+ - fixed bugs (#884)
 
 Olivier Gambier (aka d-m-p)
  - code reviewer, bug fixes
@@ -213,10 +217,13 @@ Thomas
  - jDaoFactoryBase::countBy : allowing to do count on distinct fields (#580)
  - JDaoConditions::addItemGroup : add clause group by (#579)
  - jDbPDOConnection : fixed bug in query method with 3 arguments (#839)
+ - better display of date/datetime values with jforms (#866)
+ - jforms: attribute type on output control (#855)
 
 Baptiste Toinot (aka Surfoo)
  - double / in path for locale selector
  - fixed little bugs in jForms (#789, #790)
+ - little improvement in number_format modifier (#875)
  
 Christian Tritten
  - improvements on pagelinks plugin (#340)

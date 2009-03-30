@@ -13,10 +13,14 @@ checkTrustedModules = off
 ; list of modules : module,module,module
 trustedModules =
 
-pluginsPath = lib:jelix-plugins/,app:plugins/
+pluginsPath = app:plugins/
 modulesPath = lib:jelix-modules/,app:modules/
 
 theme = default
+
+; list of modules which are not used by the application
+; or not installed.
+unusedModules=jacldb
 
 [coordplugins]
 ;nom = nom_fichier_ini

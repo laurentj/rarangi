@@ -21,9 +21,9 @@
 *
 * @package  jelix
 * @subpackage core
-* @author   Jouanneau Laurent
+* @author   Laurent Jouanneau
 * @contributor Bastien Jaillot
-* @copyright 2007-2008 Jouanneau laurent, 2008 Bastien Jaillot
+* @copyright 2007-2009 Laurent Jouanneau, 2008 Bastien Jaillot
 * @link     http://www.jelix.org
 * @licence  GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 * @since 1.0b2
@@ -55,20 +55,20 @@ class jInstallMessageProvider {
 
     protected $messages = array(
         'fr'=>array(
-     'checker.title'=>'Vérification de votre serveur pour Jelix 1.2b1pre.1336',
+     'checker.title'=>'Vérification de votre serveur pour Jelix 1.2b1pre.1372',
             'number.errors'=>' erreurs.',
             'number.error'=>' erreur.',
             'number.warnings'=>' avertissements.',
             'number.warning'=>' avertissement.',
             'number.notices'=>' remarques.',
             'number.notice'=>' remarque.',
-           'conclusion.error'=>'Vous devez corriger l\'erreur pour faire fonctionner correctement une application Jelix 1.2b1pre.1336.',
-           'conclusion.errors'=>'Vous devez corriger les erreurs pour faire fonctionner correctement une application Jelix 1.2b1pre.1336.',
-           'conclusion.warning'=>'Une application Jelix 1.2b1pre.1336 peut à priori fonctionner, mais il est préférable de corriger l\'avertissement pour être sûr.',
-           'conclusion.warnings'=>'Une application Jelix 1.2b1pre.1336 peut à priori fonctionner, mais il est préférable de corriger les avertissements pour être sûr.',
-    'conclusion.notice'=>'Aucun problème pour installer une application pour Jelix  1.2b1pre.1336 malgré la remarque.',
-    'conclusion.notices'=>'Aucun problème pour installer une application pour Jelix  1.2b1pre.1336 malgré les remarques.',
-    'conclusion.ok'=>'Vous pouvez installer une application avec Jelix 1.2b1pre.1336',
+           'conclusion.error'=>'Vous devez corriger l\'erreur pour faire fonctionner correctement une application Jelix 1.2b1pre.1372.',
+           'conclusion.errors'=>'Vous devez corriger les erreurs pour faire fonctionner correctement une application Jelix 1.2b1pre.1372.',
+           'conclusion.warning'=>'Une application Jelix 1.2b1pre.1372 peut à priori fonctionner, mais il est préférable de corriger l\'avertissement pour être sûr.',
+           'conclusion.warnings'=>'Une application Jelix 1.2b1pre.1372 peut à priori fonctionner, mais il est préférable de corriger les avertissements pour être sûr.',
+    'conclusion.notice'=>'Aucun problème pour installer une application pour Jelix  1.2b1pre.1372 malgré la remarque.',
+    'conclusion.notices'=>'Aucun problème pour installer une application pour Jelix  1.2b1pre.1372 malgré les remarques.',
+    'conclusion.ok'=>'Vous pouvez installer une application avec Jelix 1.2b1pre.1372',
             'cannot.continue'=>'Les vérifications ne peuvent continuer : ',
             'extension.dom'=>'L\'extension DOM n\'est pas installée',
             'extension.spl'=>'L\'extension spl  n\'est pas installée',
@@ -108,20 +108,20 @@ class jInstallMessageProvider {
         ),
 
         'en'=>array(
-     'checker.title'=>'Check your configuration server for Jelix 1.2b1pre.1336',
+     'checker.title'=>'Check your configuration server for Jelix 1.2b1pre.1372',
             'number.errors'=>' errors.',
             'number.error'=>' error.',
             'number.warnings'=>' warnings.',
             'number.warning'=>' warning.',
             'number.notices'=>' notices.',
             'number.notice'=>' notice.',
-           'conclusion.error'=>'You must fix the error in order to run an application correctly with Jelix 1.2b1pre.1336.',
-           'conclusion.errors'=>'You must fix errors in order to run an application correctly with Jelix 1.2b1pre.1336.',
-           'conclusion.warning'=>'Your application for Jelix 1.2b1pre.1336 may run without problems, but it is recommanded to fix the warning.',
-           'conclusion.warnings'=>'Your application for Jelix 1.2b1pre.1336 may run without problems, but it is recommanded to fix warnings.',
-           'conclusion.notice'=>'You can install an application for Jelix 1.2b1pre.1336, although there is a notice.',
-           'conclusion.notices'=>'You can install an application for Jelix 1.2b1pre.1336, although there are notices.',
-           'conclusion.ok'=>'You can install an application for Jelix 1.2b1pre.1336.',
+           'conclusion.error'=>'You must fix the error in order to run an application correctly with Jelix 1.2b1pre.1372.',
+           'conclusion.errors'=>'You must fix errors in order to run an application correctly with Jelix 1.2b1pre.1372.',
+           'conclusion.warning'=>'Your application for Jelix 1.2b1pre.1372 may run without problems, but it is recommanded to fix the warning.',
+           'conclusion.warnings'=>'Your application for Jelix 1.2b1pre.1372 may run without problems, but it is recommanded to fix warnings.',
+           'conclusion.notice'=>'You can install an application for Jelix 1.2b1pre.1372, although there is a notice.',
+           'conclusion.notices'=>'You can install an application for Jelix 1.2b1pre.1372, although there are notices.',
+           'conclusion.ok'=>'You can install an application for Jelix 1.2b1pre.1372.',
             'cannot.continue'=>'Cannot continue the checking: ',
             'extension.dom'=>'DOM extension is not installed',
             'extension.spl'=>'SPL extension is not installed',
@@ -131,7 +131,7 @@ class jInstallMessageProvider {
             'extension.tokenizer'=>'tokenizer extension is not installed',
             'extension.iconv'=>'iconv extension is not installed',
             'extensions.required.ok'=>'All needed PHP extensions are installed',
-            'extension.filter'=>'This Jelix edition require the xmlrpc extension',
+            'extension.filter'=>'This Jelix edition require the filter extension',
             'extension.json'=>'This Jelix edition require the json extension',
             'extension.xmlrpc'=>'This Jelix edition require the xmlrpc extension',
             'extension.jelix'=>'This Jelix edition require the jelix extension',
