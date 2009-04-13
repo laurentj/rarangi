@@ -115,6 +115,22 @@ CREATE TABLE IF NOT EXISTS `class_methods` (
   PRIMARY KEY  (`name`,`class_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+
+
+DROP TABLE IF EXISTS `method_parameters`;
+CREATE TABLE `method_parameters` (
+`class_id` INT NOT NULL ,
+`method_name` VARCHAR( 150 ) NOT NULL ,
+`arg_number` MEDIUMINT NOT NULL ,
+`type` VARCHAR( 255 ) NULL ,
+`name` VARCHAR( 150 ) NOT NULL ,
+`defaultvalue` VARCHAR( 255 ) NULL ,
+`documentation` TEXT  NULL,
+PRIMARY KEY ( `class_id` , `method_name` , `arg_number` )
+) ENGINE = MYISAM  DEFAULT CHARSET=utf8;
+
+
+
 -- --------------------------------------------------------
 
 -- 
@@ -224,6 +240,7 @@ CREATE TABLE IF NOT EXISTS `functions` (
   `name` varchar(150) NOT NULL,
   `project_id` int(11) NOT NULL,
   `package_id` int(11) default NULL,
+  `file_id` INT NOT NULL,
   `line_start` int(11) NOT NULL,
   `line_end` int(11) NOT NULL default '0',
   `short_description` tinytext,
@@ -258,6 +275,18 @@ CREATE TABLE IF NOT EXISTS `functions_authors` (
   `as_contributor` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`function_id`,`author_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+
+DROP TABLE IF EXISTS `function_parameters`;
+CREATE TABLE `function_parameters` (
+`function_id` INT NOT NULL ,
+`arg_number` MEDIUMINT NOT NULL ,
+`type` VARCHAR( 255 ) NULL ,
+`name` VARCHAR( 150 ) NOT NULL ,
+`defaultvalue` VARCHAR( 255 ) NULL ,
+`documentation` TEXT  NULL,
+PRIMARY KEY ( `function_id`, `arg_number` )
+) ENGINE = MYISAM  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 

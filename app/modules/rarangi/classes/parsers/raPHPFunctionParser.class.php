@@ -58,22 +58,26 @@ class raPHPFunctionParser extends raPHPParser_base {
 
         $this->toNextSpecificPhpToken('(');
         $tok = $this->toNextPhpToken();
-        $parameters = array();
+        $this->info->parameters = array();
         $pname = '';
         $pvalue = '';
         $ptype = '';
-        while($tok != ')') {
+        // read parameters
+        while($tok != ')' && $tok !== false) {
             if (is_array($tok)) {
                 if ($tok[0] == T_STRING) {
                     $ptype = $tok[1];
                     $this->toNextSpecificPhpToken(T_VARIABLE);
                     list($pname, $pvalue) = $this->readVarnameAndValue(array(',',')'));
                     $tok = $this->iterator->current();
+                    
+                    $this->declareParameter($ptype, $pname, $pvalue);
                 }
                 else if ($tok[0] == T_VARIABLE) {
                     $ptype='';
                     list($pname, $pvalue) = $this->readVarnameAndValue(array(',',')'));
                     $tok = $this->iterator->current();
+                    $this->declareParameter($ptype, $pname, $pvalue);
                 }
                 else
                     $tok = $this->toNextPhpToken();
@@ -82,7 +86,10 @@ class raPHPFunctionParser extends raPHPParser_base {
                 $tok = $this->toNextPhpToken();
             }
         }
-
+        if ($tok === false) {
+            throw new Exception ("Function/method parsing, invalid syntax, no ended parenthesis or begin of bloc");
+        }
+        // stop here if it is an abstract method
         if ($this->isMethod && ($this->info->isAbstract || $this->isInInterface)) {
             $this->toNextSpecificPhpToken(';');
             return;
@@ -91,7 +98,7 @@ class raPHPFunctionParser extends raPHPParser_base {
         $this->toNextSpecificPhpToken('{');
         $bracketlevel = 1;
         $doExit = false;
-
+        // jump to the end of the function block
         while(!$doExit &&  ($tok = $this->toNextPhpToken()) !== false ) {
             if (is_array($tok)) {
                 /*switch($tok[0]){
@@ -113,6 +120,17 @@ class raPHPFunctionParser extends raPHPParser_base {
         }
         $this->info->lineEnd = $this->parserInfo->currentLine();
         if(!$this->isMethod) $this->info->save();
+    }
+
+    protected function declareParameter($type, $name, $defaultvalue) {
+        $doc = '';
+        if (isset($this->info->docParameters[$name])) {
+            $docparam = $this->info->docParameters[$name];
+            if ($type == '')
+                $type = $docparam[0];
+            $doc = $docparam[1];
+        }
+        $this->info->parameters[] = array($type, $name, $defaultvalue, $doc);
     }
 
 }

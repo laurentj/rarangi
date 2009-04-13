@@ -98,8 +98,12 @@ abstract class raPHPParser_base {
     protected function toNextSpecificPhpToken($tokentype) {
         $tok = $this->toNextPhpToken();
         if(is_string($tokentype)) {
-            if(is_string($tok))
-                return $tok;
+            if(is_string($tok)) {
+                if ($tok == $tokentype)
+                    return $tok;
+                else
+                    throw new Exception ("invalid syntax. token expected : string \"$tokentype\", got \"".$tok."\"");
+            }
             else
                 throw new Exception ("invalid syntax. token expected : string \"$tokentype\", got ".token_name($tok[0]));
         }

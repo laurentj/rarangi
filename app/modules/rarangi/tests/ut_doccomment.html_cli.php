@@ -8,7 +8,7 @@
 * @link        http://www.jelix.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
-
+require_once( dirname(__FILE__).'/../classes/raLogger.class.php');
 require_once( dirname(__FILE__).'/../classes/raDescriptor.lib.php');
 
 

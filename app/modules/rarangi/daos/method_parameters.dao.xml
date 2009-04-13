@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dao xmlns="http://jelix.org/ns/dao/1.0">
+    <datasources>
+        <primarytable name="method_parameters" realname="method_parameters" primarykey="class_id,method_name,arg_number" />
+    </datasources>
+    <record>
+        <property name="class_id" fieldname="class_id" datatype="int" required="true"/>
+        <property name="method_name" fieldname="method_name" datatype="varchar" required="true" maxlength="150"/>
+        <property name="arg_number" fieldname="arg_number" datatype="mediumint" required="true"/>
+        <property name="type" fieldname="type" datatype="varchar" default="" maxlength="255"/>
+        <property name="name" fieldname="name" datatype="varchar" required="true" maxlength="150"/>
+        <property name="defaultvalue" fieldname="defaultvalue" datatype="varchar" default="" maxlength="255"/>        
+        <property name="documentation" fieldname="documentation" datatype="text" default="" />        
+    </record>
+    <factory>
+        <!--<method name="findByStage" type="select/selectfirst/delete/update/php">
+            <parameter name="" />
+            <values>
+                <value property="" value="" />
+            </values>
+            <conditions logic="and/or">
+                <eq property="" value="" />
+            </conditions>
+            <order>
+                <orderitem property="" way="asc/desc" />
+            </order>
+            <limit offset="" count=""/>
+            <body><![CDATA[
+            ]]></body>
+        </method>-->
+    </factory>
+</dao>

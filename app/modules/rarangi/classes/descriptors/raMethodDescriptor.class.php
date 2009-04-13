@@ -25,6 +25,10 @@ class raMethodDescriptor  extends raBaseDescriptor {
 
     public $isAbstract = false;
 
+    public $docParameters = array();
+    
+    protected $currentParam = '';
+    
     public $parameters = array();
 
     public $returnType='';
@@ -56,7 +60,12 @@ class raMethodDescriptor  extends raBaseDescriptor {
             return true;
         }
         else if($tag == 'param') {
-
+            if(preg_match("/^([^\s]+)\s+\\$([a-zA-Z_0-9]+)(?:\s+(.+))?$/", $content, $m)) {
+                $this->docParameters[$m[2]] = array($m[1], $m[3]);
+                $this->currentParam = $m[2];
+            }
+            else
+                raLogger::warning('@param, invalid arguments :'.$content);
         }
         return false;
     }
@@ -65,6 +74,9 @@ class raMethodDescriptor  extends raBaseDescriptor {
         if($tag == 'return') {
             $this->returnDescription .=  "\n".$content;
             return true;
+        }
+        elseif ($tag == 'param') {
+            $this->docParameters[$this->currentParam][1].="\n".$content;
         }
         return false;
     }
@@ -123,6 +135,16 @@ class raMethodDescriptor  extends raBaseDescriptor {
         foreach ($contributors as $authorid) {
             $methauthor->author_id = $authorid;
             $methauthors->insert($methauthor);
+        }
+
+        $param = jDao::createRecord('rarangi~method_parameters');
+        $parameters = jDao::get('rarangi~method_parameters');
+        $param->class_id = $this->classId;
+        $param->method_name = $this->name;
+        foreach ($this->parameters as $k=>$p) {
+            $param->arg_number = $k+1;
+            list($param->type, $param->name, $param->defaultvalue, $param->documentation) = $p;
+            $parameters->insert($param);
         }
     }
 }

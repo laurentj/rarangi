@@ -77,8 +77,10 @@ class raDocGenerator {
             $db = jDb::getConnection();
             $db->exec("DELETE FROM classes_authors where class_id IN (SELECT id FROM classes WHERE project_id = ".$this->projectRec->id.')');
             $db->exec("DELETE FROM functions_authors where function_id IN (SELECT id FROM functions WHERE project_id = ".$this->projectRec->id.')');
+            $db->exec("DELETE FROM function_parameters where function_id IN (SELECT id FROM functions WHERE project_id = ".$this->projectRec->id.')');
             $db->exec("DELETE FROM files_authors where file_id IN (SELECT id FROM files WHERE project_id = ".$this->projectRec->id.')');
             $db->exec("DELETE FROM methods_authors where class_id IN (SELECT id FROM classes WHERE project_id = ".$this->projectRec->id.')');
+            $db->exec("DELETE FROM method_parameters where class_id IN (SELECT id FROM classes WHERE project_id = ".$this->projectRec->id.')');
             jDao::get('authors')->deleteByProject($this->projectRec->id);
             jDao::get('interface_class')->deleteByProject($this->projectRec->id);
             jDao::get('class_properties')->deleteByProject($this->projectRec->id);
