@@ -12,6 +12,16 @@
         <property name="documentation" fieldname="documentation" datatype="text" default="" />
     </record>
     <factory>
+        <method name="findByFunction" type="select">
+            <parameter name="id" />
+            <conditions>
+                <eq property="function_id" expr="$id" />
+            </conditions>
+            <order>
+                <orderitem property="arg_number" way="asc" />
+            </order>
+        </method>
+
         <!--<method name="findByStage" type="select/selectfirst/delete/update/php">
             <parameter name="" />
             <values>

@@ -61,7 +61,7 @@ class raMethodDescriptor  extends raBaseDescriptor {
         }
         else if($tag == 'param') {
             if(preg_match("/^([^\s]+)\s+\\$([a-zA-Z_0-9]+)(?:\s+(.+))?$/", $content, $m)) {
-                $this->docParameters[$m[2]] = array($m[1], $m[3]);
+                $this->docParameters[$m[2]] = array($m[1], (isset($m[3])?$m[3]:''));
                 $this->currentParam = $m[2];
             }
             else

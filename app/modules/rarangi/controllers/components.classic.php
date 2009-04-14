@@ -39,7 +39,7 @@ class componentsCtrl extends jController {
                     'projectname' => $project->name));
             $resp->body->assignZone('MENUBAR', 'project_menubar', array(
                                                             'project'=>$project));
-                                                            
+
             if ($class->links)
                 $class->links = unserialize($class->links);
             
@@ -69,6 +69,35 @@ class componentsCtrl extends jController {
                 $properties[] = $prop;
             }
             $tpl->assign('properties', $properties);
+
+            $rs_method_params = jDao::get('method_parameters')->findByClass($class->id);
+            $method_params = array();
+            foreach ($rs_method_params as $p) {
+                if(!isset($method_params[$p->method_name]))
+                    $method_params[$p->method_name] = array();
+                $method_params[$p->method_name][] = $p;
+            }
+
+            $rs_methods = jDao::get('class_methods')->findByClass($project->id, $class->id);
+            $methods = array();
+            foreach ($rs_methods as $meth) {
+                if ($meth->links)
+                    $meth->links = unserialize($meth->links);
+  
+                if ($meth->see)
+                    $meth->see = unserialize($meth->see);
+    
+                if ($meth->uses)
+                    $meth->uses = unserialize($meth->uses);
+    
+                if ($meth->changelog)
+                    $meth->changelog = unserialize($meth->changelog);
+                $methods[] = $meth;
+                if(!isset($method_params[$meth->name]))
+                    $method_params[$meth->name] = array();
+            }
+            $tpl->assign('method_parameters', $method_params);
+            $tpl->assign('methods', $methods);
         }
         $resp->body->assign('MAIN', $tpl->fetch('class_details'));
 
@@ -103,6 +132,25 @@ class componentsCtrl extends jController {
                     'projectname' => $project->name));
             $resp->body->assignZone('MENUBAR', 'project_menubar', array(
                                                             'project'=>$project));
+            
+            if ($func->links)
+                $func->links = unserialize($func->links);
+            
+            if ($func->see)
+                $func->see = unserialize($func->see);
+
+            if ($func->uses)
+                $func->uses = unserialize($func->uses);
+
+            if ($func->changelog)
+                $func->changelog = unserialize($func->changelog);
+
+            $rs_func_params = jDao::get('function_parameters')->findByFunction($func->id);
+            $func_params = array();
+            foreach ($rs_func_params as $p) {
+                $func_params[] = $p;
+            }
+            $tpl->assign('function_parameters', $func_params);
         }
         $resp->body->assign('MAIN', $tpl->fetch('function_details'));
 

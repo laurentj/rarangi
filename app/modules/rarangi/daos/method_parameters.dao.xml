@@ -13,6 +13,15 @@
         <property name="documentation" fieldname="documentation" datatype="text" default="" />        
     </record>
     <factory>
+        <method name="findByClass" type="select">
+            <parameter name="id" />
+            <conditions>
+                <eq property="class_id" expr="$id" />
+            </conditions>
+            <order>
+                <orderitem property="arg_number" way="asc" />
+            </order>
+        </method>
         <!--<method name="findByStage" type="select/selectfirst/delete/update/php">
             <parameter name="" />
             <values>
