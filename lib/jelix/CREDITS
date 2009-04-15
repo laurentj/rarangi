@@ -110,8 +110,22 @@ Christophe Thiriot (aka Doubleface)
  - automatic timezone setting (#600)
  - bug in jFilter tests (#842)
 
+Mickaël Fradin (aka mike/kewix)
+ - improvements in the jtpl plugin: formcontrols (#223)
+ - added style feature in the meta_html plugin (#553)
+ - little other improvements (#835)
+ - fixed bugs (#884)
+
+Baptiste Toinot (aka Surfoo)
+ - double / in path for locale selector
+ - fixed little bugs in jForms (#789, #790)
+ - little improvement in number_format modifier (#875)
+
 Contributors
 ------------
+
+Arnall
+ - bug in jReponseRedirectUrl (#894)
 
 Yoan Blanc (aka Greut)
  - bug fix in jDaoFactoryBase::findBy : it should not ignore limit=0 (#665)
@@ -145,14 +159,11 @@ FoxMaSk
   - little improvement in jtpl_function_html_diff(#720)
   - remove deprecated "value" attribute in breadcrumb function (#800)
 
-Mickaël Fradin (aka mike/kewix)
- - improvements in the jtpl plugin: formcontrols (#223)
- - added style feature in the meta_html plugin (#553)
- - little other improvements (#835)
- - fixed bugs (#884)
-
 Olivier Gambier (aka d-m-p)
  - code reviewer, bug fixes
+
+Geekbay
+ - fixed bug in jMailer about the support of html plugins into the template (#898)
 
 Gildas Givaja (aka Giviz)
  - testor, bug fixes
@@ -165,6 +176,9 @@ Frédéric Guillot (aka fg)
 Florian Hatat (aka flh)
  - improvements on jDateTime + RFC2822 support (#379)
  - Fix bugs on duration calculation + new jDuration class (#425, #453)
+
+Emmanuel Hesry (aka m@noo)
+ - improvement on jDateTime plugin for full date format (#796)
 
 Julien Jacottet
  - tpl plugin link_to_remote (#30)
@@ -204,6 +218,7 @@ Rahal
 
 Tahina Ramaroson
  - ldap driver for jAuth (#787)
+ - jCache (#540)
 
 Philippe Schelte (aka dubphil)
  - plugin tpl cycle (#149)
@@ -219,11 +234,7 @@ Thomas
  - jDbPDOConnection : fixed bug in query method with 3 arguments (#839)
  - better display of date/datetime values with jforms (#866)
  - jforms: attribute type on output control (#855)
-
-Baptiste Toinot (aka Surfoo)
- - double / in path for locale selector
- - fixed little bugs in jForms (#789, #790)
- - little improvement in number_format modifier (#875)
+ - Improvements on jResponseLatexPdf (#864)
  
 Christian Tritten
  - improvements on pagelinks plugin (#340)
@@ -239,6 +250,7 @@ Sylvain de Vathaire (aka sylvain261)
  - little bug fix in jZone (#508)
  - jResponseHtmlFragment for Ajax content response (#501)
  - little bug fix in mysql.dbconnection.php (#97bis)
+ - jCache (#540)
 
 Thanks for all users, especially those who reported bugs. :-)
 
