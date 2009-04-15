@@ -99,7 +99,7 @@ body#home #menubar {
     border: 1px solid #FF9000;
 }
 .block {
-    width: 60%;
+    min-width: 60%;
     padding: 8px 20px;
     margin-bottom: 10px;
     -moz-border-radius: 4px;

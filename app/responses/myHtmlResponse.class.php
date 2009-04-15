@@ -17,8 +17,8 @@ class myHtmlResponse extends jResponseHtml {
 
     function __construct() {
         parent::__construct();
-        $this->addCSSLink($GLOBALS['gJConfig']->urlengine['basePath']."design/styles.css");
-
+        global $gJConfig;
+        $this->addCSSLink($gJConfig->urlengine['basePath'].'themes/'.$gJConfig->theme.'/main.css');
     }
 
     protected function doAfterActions() {

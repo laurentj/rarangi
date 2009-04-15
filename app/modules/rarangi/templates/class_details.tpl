@@ -4,7 +4,8 @@
         <h3 id="description">{@default.description@}</h3>
         {if $class->mother_class}
         <div class="class-inheriting">
-            This {if $class->is_interface}interface{else}class{/if} extends <a href="{jurl 'rarangi~components:classdetails', array('project'=>$project->name,'package'=>$package,'classname'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
+            This {if $class->is_interface}interface{else}class{/if} extends
+            <a href="{jurl 'rarangi~components:classdetails', array('project'=>$project->name,'package'=>$package,'classname'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
         </div>
         {/if}
 
@@ -13,25 +14,14 @@
             {@default.class.isabstract@}
         </div>
         {/if}
-        {if $class->short_description || $class->description}
-        <div id="short-description">{$class->short_description|eschtml}</div>
-        <div id="text-description">{$class->description|eschtml}</div>
-        {else}
-        <div id="text-description">{@default.nodescription@}</div>
-        {/if}
-        <div id="internal-description">{$class->internal|eschtml}</div>
-        
-        {if $class->see}
-        <h4>{@default.seealso@}</h4>
-        <ul class="see-links">{foreach $class->see as $see}
-            <li>{$see|eschtml}</li>{/foreach}
-        </ul>
-        {/if}
+        {assign $comp = $class}
+        {include 'inc_comp_description'}
         </div>
+        
         {if count($properties) || count($methods)}
         <div class="block">
-        <h3 id="properties">Short list</h3>
-        <div class="class-short-list">
+        <h3 id="properties">Summary</h3>
+        <div class="class-summary">
           
             <table class="properties-list">
               {foreach $properties as $p}
@@ -68,53 +58,17 @@
         <h3 id="properties">List of properties</h3>
         <div class="class-properties-list">
             {if count($properties)}
-              {foreach $properties as $p}
+              {foreach $properties as $comp}
               <div class="class-property">
-              <h4 id="p-{$p->name}"><a name="p-{$p->name}"></a>{$p->name}</h4>
-                {if $p->short_description}<div class="short-description">{$p->short_description|eschtml}</div>{/if}
-                {if $p->description}<div class="description">{$p->description|eschtml}</div>{/if}
-                {if $p->internal}<div class="internal">{$p->internal|eschtml}</div>{/if}
-                {if $p->since}<div class="since">Since {$p->since|eschtml}</div>{/if}
-                <p class="datatype">Datatype : {if $p->datatype}{$p->datatype}{else}undefined{/if}</p>
-                <p class="type-access">{if $p->type == 1}static{elseif $p->type == 2}const{/if}
-                   {if $p->accessibility == 'PRO'}protected{elseif $p->accessibility=='PRI'}private{else}public{/if}</p>
+              <h4 id="p-{$comp->name}"><a name="p-{$comp->name}"></a>{$comp->name}</h4>
+                {include 'inc_comp_description'}
 
-                {if $p->copyright}
-                <div class="copyright">Copyright: {$p->copyright|eschtml}</div>
-                {/if}
-                {if $p->license_label || $p->license_text}
-                <div class="licence">This property has been added under the licence:
-                    {if $p->license_link}
-                        <a href="{$class->license_link|eschtml}">{$p->license_label|eschtml}</a>
-                    {else}
-                        {$p->license_label|eschtml}
-                    {/if}
-                    {if $p->license_text}
-                    <div class="license-description">
-                        {$p->license_text|eschtml}
-                    </div>
-                    {/if}
-                </div>
-                {/if}
-                {if $p->links}
-                <ul class="links">{foreach $p->links as $link}
-                    <li><a href="{$link[0]|eschtml}">{$link[1]|eschtml}</a></li>{/foreach}
-                </ul>
-                {/if}
-                {if $p->see}
-                <ul class="see">{foreach $p->see as $s}
-                    <li><a href="{$s[0]|eschtml}">{$s[1]|eschtml}</a></li>{/foreach}
-                </ul>
-                {/if}
-                {if $p->todo}
-                <div class="todo">{$p->todo|eschtml}</div>
-                {/if}
-                {if $p->changelog}
-                <div class="changelog">{foreach $p->changelog as $changelog}
-                    <div>{$changelog|eschtml}</div>
-                    {/foreach}
-                </div>
-                {/if}
+                <p class="datatype">Datatype : {if $comp->datatype}{$comp->datatype}{else}undefined{/if}</p>
+                <p class="type-access">{if $comp->type == 1}static{elseif $comp->type == 2}const{/if}
+                   {if $comp->accessibility == 'PRO'}protected{elseif $comp->accessibility=='PRI'}private{else}public{/if}</p>
+
+                {include 'inc_comp_info'}
+
               </div>
               {/foreach}
             {else}
@@ -127,60 +81,21 @@
         <h3 id="methods">List of methods</h3>
         <div class="class-methods-list">
             {if count($methods)}
-              {foreach $methods as $p}
+              {foreach $methods as $comp}
               <div class="method-details">
-              <h4 id="m-{$p->name}">{$p->name}</h4>
-                {if $p->short_description}<div class="short-description">{$p->short_description|eschtml}</div>{/if}
-                {if $p->description}<div class="description">{$p->description|eschtml}</div>{/if}
-                {if $p->internal}<div class="internal">{$p->internal|eschtml}</div>{/if}
-                {if $p->since}<div class="since">Since {$p->since|eschtml}</div>{/if}
-                <div class="datatype">Return : {if $p->return_datatype}{$p->return_datatype}{else}void{/if}
-                {if $p->return_description}<br/>{$p->return_description}{/if}</div>
-                <p class="type-access">{if $p->is_static == 1}static{/if} {if $p->is_final == 1}final{/if} {if $p->is_abstract == 1}abstract{/if}
-                   {if $p->accessibility == 'PRO'}protected{elseif $p->accessibility=='PRI'}private{else}public{/if}</p>
+              <h4 id="m-{$comp->name}">{$comp->name}</h4>
+                {include 'inc_comp_info'}
+                <div class="datatype">Return : {if $comp->return_datatype}{$comp->return_datatype}{else}void{/if}
+                {if $comp->return_description}<br/>{$comp->return_description}{/if}</div>
+                <p class="type-access">{if $comp->is_static == 1}static{/if} {if $comp->is_final == 1}final{/if}
+                {if $comp->is_abstract == 1}abstract{/if}
+                   {if $comp->accessibility == 'PRO'}protected{elseif $comp->accessibility=='PRI'}private{else}public{/if}</p>
                 <dl class="parameters">
-                    {foreach $method_parameters[$p->name] as $k=>$param}
+                    {foreach $method_parameters[$comp->name] as $k=>$param}
                     <dt>{$param->type} <strong>${$param->name}</strong> {if $param->defaultvalue}= {$param->defaultvalue}{/if}</dt>
                     <dd>{$param->documentation|eschtml}</dd>
                 {/foreach}</dl>
-
-                {if $p->copyright}
-                <div class="copyright">Copyright: {$p->copyright|eschtml}</div>
-                {/if}
-                {if $p->license_label || $p->license_text}
-                <div class="licence">This property has been added under the licence:
-                    {if $p->license_link}
-                        <a href="{$class->license_link|eschtml}">{$p->license_label|eschtml}</a>
-                    {else}
-                        {$p->license_label|eschtml}
-                    {/if}
-                    {if $p->license_text}
-                    <div class="license-description">
-                        {$p->license_text|eschtml}
-                    </div>
-                    {/if}
-                </div>
-                {/if}
-                {if $p->links}
-                <ul class="links">{foreach $p->links as $link}
-                    <li><a href="{$link[0]|eschtml}">{$link[1]|eschtml}</a></li>{/foreach}
-                </ul>
-                {/if}
-                {if $p->see}
-                <ul class="see">{foreach $p->see as $s}
-                    <li><a href="{$s[0]|eschtml}">{$s[1]|eschtml}</a></li>{/foreach}
-                </ul>
-                {/if}
-                {if $p->todo}
-                <div class="todo">{$p->todo|eschtml}</div>
-                {/if}
-                {if $p->changelog}
-                <div class="changelog">{foreach $p->changelog as $changelog}
-                    <div>{$changelog|eschtml}</div>
-                    {/foreach}
-                </div>
-                {/if}
-
+                {include 'inc_comp_info'}
               </div>
               {/foreach}
             {else}
@@ -212,38 +127,8 @@
                 This class isn't defined in any file of the project.
                 {/if}
             </div>
-            {if $class->copyright}
-            <div class="copyright">Copyright: {$class->copyright|eschtml}</div>
-            {/if}
-            {if $class->license_label || $class->license_text}
-            <div class="licence">This class is available under the licence:
-                {if $class->license_link}
-                    <a href="{$class->license_link|eschtml}">{$class->license_label|eschtml}</a>
-                {else}
-                    {$class->license_label|eschtml}
-                {/if}
-                {if $class->license_text}
-                <div class="license-description">
-                    {$class->license_text|eschtml}
-                </div>
-                {/if}
-            </div>
-            {/if}
-            {if $class->links}
-            <ul class="links">{foreach $class->links as $link}
-                <li><a href="{$link[0]|eschtml}">{$link[1]|eschtml}</a></li>{/foreach}
-            </ul>
-            {/if}
-
-            {if $class->todo}
-            <div class="todo">{$class->todo|eschtml}</div>
-            {/if}
-            {if $class->changelog}
-            <div class="changelog">{foreach $class->changelog as $changelog}
-                <div>{$changelog|eschtml}</div>
-                {/foreach}
-            </div>
-            {/if}
+            {assign $comp = $class}
+            {include 'inc_comp_info'}
         </div>
         </div>
 {else}

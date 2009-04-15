@@ -1,5 +1,5 @@
-{if $class}
-    <h2>Class: {$class->name|eschtml}</h2>
+{if $func}
+    <h2>Function: {$func->name|eschtml}</h2>
     <div class="block">
 
     </div>
