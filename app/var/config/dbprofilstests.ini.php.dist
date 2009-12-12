@@ -5,7 +5,7 @@ default = test
 
 [test]
 driver="mysql"
-database="jphpdoc_test"
+database="rarangi_tests"
 host= "localhost"
 user= "root"
 password=

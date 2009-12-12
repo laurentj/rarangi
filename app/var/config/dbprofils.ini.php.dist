@@ -5,7 +5,7 @@ default = app
 
 [app]
 driver="mysql"
-database="jphpdoc"
+database="rarangi"
 host= "localhost"
 user= "root"
 password=
