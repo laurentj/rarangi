@@ -89,12 +89,18 @@ class packagesCtrl extends jController {
 
         if (!$package) {
             $resp->setHttpStatus('404', 'Not found');
+            $tpl->assign('interfaces', null);
             $tpl->assign('classes', null);
             $tpl->assign('functions', null);
-        } else {
-            // Get classes
+        }
+        else {
+            // Get interfaces
             $dao_classes = jDao::get('classes');
-            $classes = $dao_classes->findByPackage($project->id, $package->id);
+            $interfaces = $dao_classes->findByPackage($project->id, $package->id, 1);
+            $tpl->assign('interfaces', $interfaces);
+            
+            // Get classes
+            $classes = $dao_classes->findByPackage($project->id, $package->id, 0);
             $tpl->assign('classes', $classes);
             
             // Get functions
@@ -114,7 +120,19 @@ class packagesCtrl extends jController {
     function classes() {
         $rep = $this->getResponse('html');
         $tpl = $this->_prepareTpl();
+        $tpl->assign('forInterfaces', false);
+        $rep->body->assign('MAIN', $tpl->fetch('classes_list'));
+        return $rep;
+    }
 
+    /**
+    * display the list of interfaces of a package
+    * TODO
+    */
+    function interfaces() {
+        $rep = $this->getResponse('html');
+        $tpl = $this->_prepareTpl();
+        $tpl->assign('forInterfaces', true);
         $rep->body->assign('MAIN', $tpl->fetch('classes_list'));
         return $rep;
     }

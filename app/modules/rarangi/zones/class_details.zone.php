@@ -22,11 +22,15 @@ class class_detailsZone extends jZone {
         }
 
         $classname = $this->param('classname');
-
+        $isInterface = $this->param('isInterface', false);
+        
         $dao = jDao::get('classedetails');
-        $class = $dao->getByName($project->id,$classname);
+        $class = $dao->getByName($project->id, $classname, ($isInterface?1:0));
         $this->_tpl->assign('class',$class);
-        $this->param('toReturn')->classRecord = $class;
+        if ($isInterface)
+            $this->param('toReturn')->interfaceRecord = $class;
+        else
+            $this->param('toReturn')->classRecord = $class;
         if ($class) {
             if ($class->links)
                 $class->links = unserialize($class->links);
@@ -40,21 +44,23 @@ class class_detailsZone extends jZone {
             if ($class->changelog)
                 $class->changelog = unserialize($class->changelog);
             
-            $rs_properties = jDao::get('class_properties')->findByClass($project->id, $class->id);
             $properties = array();
-            foreach ($rs_properties as $prop) {
-                if ($prop->links)
-                    $prop->links = unserialize($prop->links);
-  
-                if ($prop->see)
-                    $prop->see = unserialize($prop->see);
-    
-                if ($prop->uses)
-                    $prop->uses = unserialize($prop->uses);
-    
-                if ($prop->changelog)
-                    $prop->changelog = unserialize($prop->changelog);
-                $properties[] = $prop;
+            if (!$class->is_interface) {
+                $rs_properties = jDao::get('class_properties')->findByClass($project->id, $class->id);
+                foreach ($rs_properties as $prop) {
+                    if ($prop->links)
+                        $prop->links = unserialize($prop->links);
+      
+                    if ($prop->see)
+                        $prop->see = unserialize($prop->see);
+        
+                    if ($prop->uses)
+                        $prop->uses = unserialize($prop->uses);
+        
+                    if ($prop->changelog)
+                        $prop->changelog = unserialize($prop->changelog);
+                    $properties[] = $prop;
+                }
             }
             $this->_tpl->assign('properties', $properties);
 

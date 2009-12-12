@@ -5,7 +5,11 @@
         {if $class->mother_class}
         <div class="class-inheriting">
             This {if $class->is_interface}interface{else}class{/if} extends
+            {if $class->is_interface}
+            <a href="{jurl 'rarangi~components:interfacedetails', array('project'=>$project->name,'package'=>$package,'interfacename'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
+            {else}
             <a href="{jurl 'rarangi~components:classdetails', array('project'=>$project->name,'package'=>$package,'classname'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
+            {/if}
         </div>
         {/if}
 
@@ -20,9 +24,9 @@
         
         {if count($properties) || count($methods)}
         <div class="block">
-        <h3 id="properties">Summary</h3>
+        <h3 id="summary">Summary</h3>
         <div class="class-summary">
-          
+            {if !$class->is_interface}
             <table class="properties-list">
               {foreach $properties as $p}
               <tr>
@@ -34,6 +38,7 @@
               </tr>
               {/foreach}
             </table>
+            {/if}
 
             <table class="methods-list">
               {foreach $methods as $m}
@@ -53,7 +58,7 @@
         </div>
         {/if}
 
-
+        {if !$class->is_interface}
         <div class="block">
         <h3 id="properties">List of properties</h3>
         <div class="class-properties-list">
@@ -76,6 +81,7 @@
             {/if}
         </div>
         </div>
+        {/if}
         
         <div class="block">
         <h3 id="methods">List of methods</h3>

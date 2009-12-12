@@ -6,7 +6,7 @@
         </url>
         
         <url handler="project" module="rarangi" action="default:project"
-            actionoverride="sources:index,packages:index,packages:details,packages:subpackdetails,packages:classeslist,packages:functionslist,components:functiondetails,components:classdetails"/>
+            actionoverride="sources:index,packages:index,packages:details,packages:subpackdetails,packages:classeslist,packages:functionslist,components:functiondetails,components:classdetails,components:interfacedetails"/>
     </classicentrypoint>
 
 </urls>

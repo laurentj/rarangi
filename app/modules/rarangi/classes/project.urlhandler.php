@@ -42,15 +42,19 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
                 return $urlact;
             }
 
-            if(preg_match('!^packages/([^/]+)/(classes|functions)/?$!', $match[3], $m)) {
+            if(preg_match('!^packages/([^/]+)/(classes|interfaces|functions)/?$!', $match[3], $m)) {
                 $urlact->setParam('action', 'packages:'.$m[2]);
                 $urlact->setParam('package', $m[1]);
                 return $urlact;
             }
-            if(preg_match('!^packages/([^/]+)/(classes|functions)/(.+)$!', $match[3], $m)) {
+            if(preg_match('!^packages/([^/]+)/(classes|interfaces|functions)/(.+)$!', $match[3], $m)) {
                 if ($m[2] == 'classes') {
                     $urlact->setParam('action', 'components:classdetails');
                     $urlact->setParam('classname', $m[3]);
+                }
+                elseif ($m[2] == 'interfaces') {
+                    $urlact->setParam('action', 'components:interfacedetails');
+                    $urlact->setParam('interfacename', $m[3]);
                 }
                 else {
                     $urlact->setParam('action', 'components:functiondetails');
@@ -92,6 +96,10 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
                 $url->pathInfo .= 'packages/' . $url->getParam('package').'/classes/';
                 $url->delParam('package');
                 break;
+            case 'packages:interfaces':
+                $url->pathInfo .= 'packages/' . $url->getParam('package').'/interfaces/';
+                $url->delParam('package');
+                break;
             case 'packages:functions':
                 $url->pathInfo .= 'packages/' . $url->getParam('package').'/functions/';
                 $url->delParam('package');
@@ -100,6 +108,11 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
                 $url->pathInfo .= 'packages/' . $url->getParam('package').'/classes/'. $url->getParam('classname');
                 $url->delParam('package');
                 $url->delParam('classname');
+                break;
+            case 'components:interfacedetails':
+                $url->pathInfo .= 'packages/' . $url->getParam('package').'/interfaces/'. $url->getParam('interfacename');
+                $url->delParam('package');
+                $url->delParam('interfacename');
                 break;
             case 'components:functiondetails':
                 $url->pathInfo .= 'packages/' . $url->getParam('package').'/functions/'. $url->getParam('functionname');

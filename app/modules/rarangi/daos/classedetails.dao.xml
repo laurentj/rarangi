@@ -38,9 +38,11 @@
         <method name="getByName" type="selectfirst">
             <parameter name="project" />
             <parameter name="name" />
+            <parameter name="isInterface" />
             <conditions>
                 <eq property="project_id" expr="$project" />
                 <eq property="name" expr="$name" />
+                <eq property="is_interface" expr="$isInterface" />
             </conditions>
         </method>
     </factory>

@@ -62,9 +62,11 @@
         <method name="findByPackage" type="select">
             <parameter name="project" />
             <parameter name="package" />
+            <parameter name="isInterface" />
             <conditions>
                 <eq property="project_id" expr="$project" />
                 <eq property="package_id" expr="$package" />
+                <eq property="is_interface" expr="$isInterface" />
             </conditions>
             <order>
                <orderitem property="name" way="asc" />
