@@ -11,6 +11,6 @@
 /**
  *
  */
-class raConstantDescriptor  extends raBaseDescriptor {
+class raConstantDescriptor extends raBaseDescriptor {
     public $value;
 }

@@ -22,7 +22,7 @@ class raClassDescriptor extends raInterfaceDescriptor {
 
         $dao = jDao::get('rarangi~classes');
 
-        foreach($this->interfaces as $interface) {
+        foreach ($this->interfaces as $interface) {
             $iface = $dao->getByName($this->projectId, $interface);
             if (!$iface) {
                 $iface = jDao::createRecord('rarangi~classes');

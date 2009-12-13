@@ -18,7 +18,7 @@ class raFileDescriptor extends raBaseDescriptor  {
     
     protected $record;
     
-    function __construct($projectId, $fullSourcePath, $fullpath, $filename){
+    function __construct($projectId, $fullSourcePath, $fullpath, $filename) {
         
         $relativeFullPath = substr($fullpath, strlen($fullSourcePath)+1);
         $relativePath = substr(dirname($fullpath), strlen($fullSourcePath)+1);
