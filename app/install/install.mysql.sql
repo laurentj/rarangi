@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `authors` (
   `email` varchar(150) NOT NULL,
   PRIMARY KEY  (`id`),
   KEY `project_id` (`project_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS `classes_authors` (
   `author_id` int(11) NOT NULL,
   `as_contributor` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`class_id`,`author_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -210,7 +210,7 @@ CREATE TABLE IF NOT EXISTS `files_authors` (
   `author_id` int(11) NOT NULL,
   `as_contributor` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`file_id`,`author_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -274,7 +274,7 @@ CREATE TABLE IF NOT EXISTS `functions_authors` (
   `author_id` int(11) NOT NULL,
   `as_contributor` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`function_id`,`author_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
 DROP TABLE IF EXISTS `function_parameters`;
@@ -300,7 +300,7 @@ CREATE TABLE IF NOT EXISTS `interface_class` (
   `interface_id` int(11) NOT NULL,
   `project_id` int(11) NOT NULL,
   PRIMARY KEY  (`class_id`,`interface_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -315,7 +315,7 @@ CREATE TABLE IF NOT EXISTS `methods_authors` (
   `author_id` int(11) NOT NULL,
   `as_contributor` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`name`,`class_id`,`author_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 

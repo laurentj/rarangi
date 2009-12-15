@@ -209,26 +209,7 @@ class raBaseDescriptor {
                             break;
                         case 'author':
                         case 'contributor':
-                            $people = explode(",", $content);
-                            foreach ($people as $p) {
-                                if (trim($p) == '')
-                                    continue;
-                                if (preg_match('/^([^\<]+)(?:\<([^\>]*)\>)?$/', $p, $m)) {
-                                    $n = trim($m[1]);
-                                    $e = (isset($m[2])?trim($m[2]):'');
-                                    if ($tag == 'author')
-                                        $this->authors[] = array($n,$e);
-                                    else
-                                        $this->contributors[] = array($n,$e);
-                                }
-                                else {
-                                    $this->project->logger()->warning($tag." name malformed :".$p);
-                                    if ($tag == 'author')
-                                        $this->authors[]=array(trim($p),'');
-                                    else
-                                        $this->contributors[]=array(trim($p),'');
-                                }
-                            }
+                            $this->parseAuthor($tag, $content);
                             break;
                         case 'copyright':
                             $this->copyright .= $content;
@@ -387,6 +368,44 @@ class raBaseDescriptor {
      */
     public function save() {}
     
+    
+    /**
+     * parse the value of a tag author
+     * @param string $tag the tag
+     * @param string $content the value to parse
+     */
+    protected function parseAuthor($tag, $content) {
+        $people = explode(",", $content);
+        foreach ($people as $p) {
+            if (trim($p) == '') {
+                continue;
+            }
+            if (preg_match('/^([^\<\(]+)?(?:\<([^\>]*)\>)?(.*)$/', $p, $m)) {
+                $n = trim($m[1]);
+                $e = (isset($m[2])?trim($m[2]):'');
+                if ($n == '') {
+                    $n = $e;
+                }
+                if (isset($m[3]) && $m[3] != '') {
+                    if ($m[3][0] == '<')
+                        $this->project->logger()->warning("@$tag: invalid value '$p'");
+                    else
+                        $this->project->logger()->notice("@$tag: a part of the tag is ignored (".$m[3].")");
+                }
+            }
+            else {
+                $this->project->logger()->warning("@$tag:invalid value '$p'");
+                $n = $p;
+                $e = '';
+            }
+            if ($tag == 'author')
+                $this->authors[] = array($n,$e);
+            else
+                $this->contributors[] = array($n,$e);
+        }
+    }
+    
+    
     /**
      * save authors and contributors into the database, and returns their ids
      * @param jDaoRecordBase $record the record to use to insert authors and
@@ -436,18 +455,29 @@ class raBaseDescriptor {
         $pId = $this->project->id();
         foreach ($developers as $author) {
             list($name, $email) = $author;
-            $dev = null;
-            if ($email !='') {
-                $dev = $dao->getByEmail($email, $pId);
-                if ($dev && $dev->name == '' && $name !='') {
-                    $dev->name = $name;
+
+            // first try if we found the name
+            $dev = $dao->getByName($name, $pId);
+            if ($dev) {
+                // name found
+                if ($dev->email == '' && $email != '') {
+                    $dev->email = $email;
                     $dao->update($dev);
                 }
             }
             else {
-                // find by name
-                $dev = $dao->getByName($name, $pId);
+                // name not found
+                $dev = $dao->getByEmail($email, $pId);
+                if ($dev && $name != '') {
+                    if ($dev->name == $dev->email) {
+                        $dev->name = $name;
+                        $dao->update($dev);
+                    }
+                    else
+                        $dev = null;
+                }
             }
+
             if (!$dev) {
                 $dev = jDao::createRecord('rarangi~authors');
                 $dev->name = $name;

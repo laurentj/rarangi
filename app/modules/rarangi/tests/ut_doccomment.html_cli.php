@@ -28,9 +28,11 @@ class ut_doccomment extends jUnitTestCase {
 
     function checkLogEmpty() {
         $log = $this->logger->getLog();
-        $a = $this->assertEqual(count($log['error']),0);
-        $b = $this->assertEqual(count($log['warning']),0);
-        $c = $this->assertEqual(count($log['notice']),0);
+        $a = count($log['error']) == 0;
+        $b = count($log['warning']) == 0;
+        $c = count($log['notice']) == 0;
+        if (!($a && $b && $c))
+            $this->dump($log);
         return $a && $b && $c;
     }
 
@@ -137,6 +139,17 @@ class ut_doccomment extends jUnitTestCase {
 
     function testAuthor(){
         $desc = new raBaseDescriptor($this->project, 1, 1);
+
+        $this->logger->clear();
+        $desc->authors = array();
+        $c = '/**
+* @author 
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual(count($desc->authors),0);
+        $this->assertTrue($this->checkLogEmpty());
+
+        $this->logger->clear();
         $c = '/**
 * @author laurent
 */';
@@ -168,7 +181,7 @@ class ut_doccomment extends jUnitTestCase {
         $desc->initFromPhpDoc($c);
         $this->assertEqual($desc->authors,array(
                         array('laurent','toto3@truc.local'),
-                        array('','loic@bidule.local')));
+                        array('loic@bidule.local','loic@bidule.local')));
         $this->assertTrue($this->checkLogEmpty());
 
         $desc->authors = array();
@@ -194,8 +207,8 @@ class ut_doccomment extends jUnitTestCase {
                         array('julien','julien@ohoh.local'),
                         ));
         $this->assertTrue($this->checkLogEmpty());
-        $desc->authors = array();
 
+        $desc->authors = array();
         $c = '/**
 * @author laurent <toto4@truc.local>, ,   ,,  loic <loic2@bidule.local>
 * @contributor bastien, julien<julien@ohoh.local>
@@ -210,6 +223,45 @@ class ut_doccomment extends jUnitTestCase {
                         array('julien','julien@ohoh.local'),
                         ));
         $this->assertTrue($this->checkLogEmpty());
+
+        $this->logger->clear();
+        $desc->authors = array();
+        $c = '/**
+* @author laurent <toto4@truc.local> blalba
+* @author julien <toto1@truc.local> (blalba)
+* @author bastien (bug fixed)
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->authors,array(
+                        array('laurent','toto4@truc.local'),
+                        array('julien','toto1@truc.local'),
+                        array('bastien','')
+                        ));
+        $log = $this->logger->getLog();
+        if(!$this->assertEqual(count($log['error']),0))
+            $this->dump($log['error'],'raLogger::error');
+        if(!$this->assertEqual(count($log['warning']),0))
+            $this->dump($log['warning'],'raLogger::warning');
+        if(!$this->assertEqual(count($log['notice']),3))
+            $this->dump($log['notice'],'raLogger::notice');
+
+        $this->logger->clear();
+        $desc->authors = array();
+        $c = '/**
+* @author laurent <toto4@truc.local
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->authors,array(
+                        array('laurent','')
+                        ));
+        $log = $this->logger->getLog();
+        if(!$this->assertEqual(count($log['error']),0))
+            $this->dump($log['error'],'raLogger::error');
+        if(!$this->assertEqual(count($log['warning']),1))
+            $this->dump($log['warning'],'raLogger::warning');
+        if(!$this->assertEqual(count($log['notice']),0))
+            $this->dump($log['notice'],'raLogger::notice');
+
     }
     
     function testMethodDescriptor(){
