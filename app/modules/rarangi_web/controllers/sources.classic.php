@@ -33,7 +33,7 @@ class sourcesCtrl extends jController {
         $tpl->assign('filename', $path);
         $tpl->assign('project', $project->name);
 
-        $filedao = jDao::get('files');
+        $filedao = jDao::get('rarangi~files');
         $file = $filedao->getByFullPath($path, $project->id);
         if ($file) {
             $tpl->assign('file', $file);
@@ -43,7 +43,7 @@ class sourcesCtrl extends jController {
                 $tpl->assign('filecontent','');
             } else {
                 $tpl->assign('directory','');
-                $tpl->assign('filecontent', jDao::get('files_content')->findByFile($file->id));
+                $tpl->assign('filecontent', jDao::get('rarangi~files_content')->findByFile($file->id));
             }
             $resp->body->assign('MAIN', $tpl->fetch('file_content'));
         }

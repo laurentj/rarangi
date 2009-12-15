@@ -1,9 +1,9 @@
 {if $project}
-    <h2>{@default.project.details@}</h2>
+    <h2>{@rarangi_web~default.project.details@}</h2>
     
     {if $authors->rowCount() > 0}
     <div class="block">
-    <h3>{@default.authors@}</h3>
+    <h3>{@rarangi_web~default.authors@}</h3>
     <ul id="authors">
     {foreach $authors as $author}
         <li>{$author->name|eschtml} {if $author->email!=''}&lt;{$author->email|eschtml}&gt;{/if}</li>

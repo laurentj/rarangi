@@ -13,21 +13,19 @@ class function_detailsZone extends jZone {
     protected $_tplname = 'function_details';
 
     protected function _prepareTpl() {
-        
-                
+
         $project = $this->param('project');
-        
+
         if (!$project) {
             $this->_tpl->assign('project', $GLOBALS['currentproject']);
             $project = $GLOBALS['currentproject'];
         }
-        
-        $functionname = $this->param('functionname');
-        
-    
-        $tpl->assign('project', $project->name);
 
-        $dao = jDao::get('functions');
+        $functionname = $this->param('functionname');
+
+        $this->_tpl->assign('project', $project->name);
+
+        $dao = jDao::get('rarangi~functions');
         $func = $dao->getByName($project->id, $functionname);
         $this->_tpl->assign('function',$func);
         $this->param('toReturn')->functionRecord = $func;
@@ -45,7 +43,7 @@ class function_detailsZone extends jZone {
             if ($func->changelog)
                 $func->changelog = unserialize($func->changelog);
 
-            $rs_func_params = jDao::get('function_parameters')->findByFunction($func->id);
+            $rs_func_params = jDao::get('rarangi~function_parameters')->findByFunction($func->id);
             $func_params = array();
             foreach ($rs_func_params as $p) {
                 $func_params[] = $p;

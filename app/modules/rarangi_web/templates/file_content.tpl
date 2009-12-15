@@ -4,16 +4,16 @@
 
 <ul>
 {if $file->fullpath != '' }
-<li><a href="{jurl 'rarangi~sources:index', array('project'=>$project, 'path'=>$file->dirname)}">..</a></li>
+<li><a href="{jurl 'rarangi_web~sources:index', array('project'=>$project, 'path'=>$file->dirname)}">..</a></li>
 {/if}
 {foreach $directory as $f}
-<li><a href="{jurl 'rarangi~sources:index', array('project'=>$project, 'path'=>$f->fullpath)}">{$f->filename}</a></li>
+<li><a href="{jurl 'rarangi_web~sources:index', array('project'=>$project, 'path'=>$f->fullpath)}">{$f->filename}</a></li>
 {/foreach}
 </ul>
 
 {else}
 {if $file->dirname != ''}
-<p><a href="{jurl 'rarangi~sources:index', array('project'=>$project, 'path'=>$file->dirname)}">Up to {$file->dirname|eschtml}</a></p>
+<p><a href="{jurl 'rarangi_web~sources:index', array('project'=>$project, 'path'=>$file->dirname)}">Up to {$file->dirname|eschtml}</a></p>
 {/if}
 
 <h3>File content</h3>

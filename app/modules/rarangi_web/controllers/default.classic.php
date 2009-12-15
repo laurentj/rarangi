@@ -21,7 +21,7 @@ class defaultCtrl extends jController {
         $resp->body->assign('MENUBAR', '<h1>'. jLocale::get('default.app.title') .'</h1>');
 
         $tpl = new jTpl();
-        $tpl->assign('projectslist', jDao::get('projects')->findAll());
+        $tpl->assign('projectslist', jDao::get('rarangi~projects')->findAll());
         $resp->body->assign('MAIN', $tpl->fetch('projects_list'));
         
         return $resp;
@@ -37,7 +37,7 @@ class defaultCtrl extends jController {
         $resp->title = jLocale::get('default.page.project.home.title', array($projectname));
 
         // Get project
-        $dao = jDao::get('projects');
+        $dao = jDao::get('rarangi~projects');
         $project = $dao->getByName($projectname);
 
         $tpl = new jTpl();
@@ -55,7 +55,7 @@ class defaultCtrl extends jController {
                     'mode' => 'browse'));
 
             // Get authors of the project
-            $dao_authors = jDao::get('authors');
+            $dao_authors = jDao::get('rarangi~authors');
             $authors = $dao_authors->findByProject($project->id);
             $tpl->assign('authors', $authors);
         }

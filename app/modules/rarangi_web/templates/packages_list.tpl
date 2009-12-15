@@ -1,11 +1,11 @@
 {if $project}
-    <h2>{jlocale 'default.packages.title', array($project->name)}</h2>
+    <h2>{jlocale 'rarangi_web~default.packages.title', array($project->name)}</h2>
 
     <div class="block">
     {if $packages}
         <ul>
         {foreach $packages as $package}
-            <li><a href="{jurl 'packages:details', array('project'=>$project->name, 'package'=>$package->name)}">{$package->name|eschtml}</a></li>
+            <li><a href="{jurl 'rarangi_web~packages:details', array('project'=>$project->name, 'package'=>$package->name)}">{$package->name|eschtml}</a></li>
         {/foreach}
         </ul>
     {else}

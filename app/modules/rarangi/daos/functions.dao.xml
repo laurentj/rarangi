@@ -45,5 +45,13 @@
                <orderitem property="name" way="asc" />
             </order>
         </method>
+        <method name="getByName" type="select">
+            <parameter name="project" />
+            <parameter name="name" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+                <eq property="name" expr="$name" />
+            </conditions>
+        </method>
     </factory>
 </dao>

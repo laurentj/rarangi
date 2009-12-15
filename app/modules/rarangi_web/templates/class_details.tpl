@@ -1,21 +1,21 @@
 {if $class}
     <h2>{if $class->is_interface}Interface{else}Class{/if}: {$class->name|eschtml}</h2>
         <div class="block">
-        <h3 id="description">{@default.description@}</h3>
+        <h3 id="description">{@rarangi_web~default.description@}</h3>
         {if $class->mother_class}
         <div class="class-inheriting">
             This {if $class->is_interface}interface{else}class{/if} extends
             {if $class->is_interface}
-            <a href="{jurl 'rarangi~components:interfacedetails', array('project'=>$project->name,'package'=>$package,'interfacename'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
+            <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$package,'interfacename'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
             {else}
-            <a href="{jurl 'rarangi~components:classdetails', array('project'=>$project->name,'package'=>$package,'classname'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
+            <a href="{jurl 'rarangi_web~components:classdetails', array('project'=>$project->name,'package'=>$package,'classname'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
             {/if}
         </div>
         {/if}
 
         {if $class->is_abstract}
         <div class="class-abstract">
-            {@default.class.isabstract@}
+            {@rarangi_web~default.class.isabstract@}
         </div>
         {/if}
         {assign $comp = $class}
@@ -124,7 +124,7 @@
         <div class="development-info">
             <div class="file-info">
                 {if $class->fullpath}
-                Defined in the file <a href="{jurl 'sources:index',
+                Defined in the file <a href="{jurl 'rarangi_web~sources:index',
                                     array('project'=>$project->name,'path'=>$class->fullpath)}#{$class->line_start}">{$class->fullpath}</a>
                 {if $class->since}
                 since {$class->since|eschtml}

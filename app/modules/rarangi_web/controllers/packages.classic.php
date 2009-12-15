@@ -14,7 +14,7 @@ class packagesCtrl extends jController {
     protected function _prepareTpl() {
         $tpl = new jTpl();
         $projectname = $this->param('project');
-        $dao = jDao::get('projects');
+        $dao = jDao::get('rarangi~projects');
         $project = $dao->getByName($projectname);
         
         $tpl->assign('project',$project);
@@ -46,7 +46,7 @@ class packagesCtrl extends jController {
         }
         
         // Get packages
-        $dao = jDao::get('packages');
+        $dao = jDao::get('rarangi~packages');
         $packages = $dao->findByProject($project->id);
 
         if (!$packages) {
@@ -83,7 +83,7 @@ class packagesCtrl extends jController {
         }
 
         // Get package
-        $dao = jDao::get('packages');
+        $dao = jDao::get('rarangi~packages');
         $package = $dao->getByName($project->id, $packagename, 0);
         $tpl->assign('package', $package);
 
@@ -95,7 +95,7 @@ class packagesCtrl extends jController {
         }
         else {
             // Get interfaces
-            $dao_classes = jDao::get('classes');
+            $dao_classes = jDao::get('rarangi~classes');
             $interfaces = $dao_classes->findByPackage($project->id, $package->id, 1);
             $tpl->assign('interfaces', $interfaces);
             
@@ -104,7 +104,7 @@ class packagesCtrl extends jController {
             $tpl->assign('classes', $classes);
             
             // Get functions
-            $dao_functions = jDao::get('functions');
+            $dao_functions = jDao::get('rarangi~functions');
             $functions = $dao_functions->findByPackage($project->id, $package->id);
             $tpl->assign('functions', $functions);
         }

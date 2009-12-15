@@ -24,7 +24,7 @@ class class_detailsZone extends jZone {
         $classname = $this->param('classname');
         $isInterface = $this->param('isInterface', false);
         
-        $dao = jDao::get('classedetails');
+        $dao = jDao::get('rarangi~classedetails');
         $class = $dao->getByName($project->id, $classname, ($isInterface?1:0));
         $this->_tpl->assign('class',$class);
         if ($isInterface)
@@ -46,7 +46,7 @@ class class_detailsZone extends jZone {
             
             $properties = array();
             if (!$class->is_interface) {
-                $rs_properties = jDao::get('class_properties')->findByClass($project->id, $class->id);
+                $rs_properties = jDao::get('rarangi~class_properties')->findByClass($project->id, $class->id);
                 foreach ($rs_properties as $prop) {
                     if ($prop->links)
                         $prop->links = unserialize($prop->links);
@@ -64,7 +64,7 @@ class class_detailsZone extends jZone {
             }
             $this->_tpl->assign('properties', $properties);
 
-            $rs_method_params = jDao::get('method_parameters')->findByClass($class->id);
+            $rs_method_params = jDao::get('rarangi~method_parameters')->findByClass($class->id);
             $method_params = array();
             foreach ($rs_method_params as $p) {
                 if(!isset($method_params[$p->method_name]))
@@ -72,7 +72,7 @@ class class_detailsZone extends jZone {
                 $method_params[$p->method_name][] = $p;
             }
 
-            $rs_methods = jDao::get('class_methods')->findByClass($project->id, $class->id);
+            $rs_methods = jDao::get('rarangi~class_methods')->findByClass($project->id, $class->id);
             $methods = array();
             foreach ($rs_methods as $meth) {
                 if ($meth->links)
