@@ -31,7 +31,7 @@ class raFunctionDescriptor  extends raBaseDescriptor {
     //public $staticVars;
 
     protected function parseSpecificTag($tag, $content) {
-        if($tag == 'return') {
+        if ($tag == 'return') {
             if(preg_match("/^([^\s]+)(?:\s+(.+))?$/", $content, $m)) {
                 $this->returnType = $m[1];
                 $this->returnDescription = (isset($m[2])?$m[2]:'');
@@ -42,13 +42,15 @@ class raFunctionDescriptor  extends raBaseDescriptor {
             }
             return true;
         }
-        else if($tag == 'param') {
+        else if ($tag == 'param') {
             if(preg_match("/^([^\s]+)\s+\\$([a-zA-Z_0-9]+)(?:\s+(.+))?$/", $content, $m)) {
-                $this->docParameters[$m[2]] = array($m[1], $m[3]);
+                $this->docParameters[$m[2]] = array($m[1], isset($m[3])?$m[3]:'');
                 $this->currentParam = $m[2];
             }
-            else
-                $this->project->logger()->warning('@param, invalid arguments :'.$content);
+            else {
+                $this->currentParam = '';
+                $this->project->logger()->warning('@param, invalid arguments: '.$content);
+            }
         }
         return false;
     }
@@ -58,7 +60,7 @@ class raFunctionDescriptor  extends raBaseDescriptor {
             $this->returnDescription .=  "\n".$content;
             return true;
         }
-        elseif ($tag == 'param') {
+        elseif ($tag == 'param' && $this->currentParam) {
             $this->docParameters[$this->currentParam][1].="\n".$content;
         }
         return false;
@@ -100,20 +102,9 @@ class raFunctionDescriptor  extends raBaseDescriptor {
         
         $this->functionId = $record->id;
         
-        list($authors, $contributors) = $this->saveAuthorsContributors();
-        $funcauthors = jDao::get("rarangi~functions_authors");
         $funcauthor = jDao::createRecord("rarangi~functions_authors");
         $funcauthor->function_id = $record->id;
-        $funcauthor->as_contributor = 0;
-        foreach ($authors as $authorid) {
-            $funcauthor->author_id = $authorid;
-            $funcauthors->insert($funcauthor);
-        }
-        $funcauthor->as_contributor = 1;
-        foreach ($contributors as $authorid) {
-            $funcauthor->author_id = $authorid;
-            $funcauthors->insert($funcauthor);
-        }
+        $this->saveAuthorsContributors($funcauthor, "rarangi~functions_authors");
         
         $param = jDao::createRecord('rarangi~function_parameters');
         $parameters = jDao::get('rarangi~function_parameters');

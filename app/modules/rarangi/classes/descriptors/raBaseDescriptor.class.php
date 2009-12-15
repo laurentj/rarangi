@@ -389,12 +389,36 @@ class raBaseDescriptor {
     
     /**
      * save authors and contributors into the database, and returns their ids
-     * @return array  contains two array of ids, first contains the id of authors,
-     *                second contains the id of contributors
+     * @param jDaoRecordBase $record the record to use to insert authors and
+     *                               contributors into database
+     * @param string $daoName the name of the dao to use for the insertion
      */
-    protected function saveAuthorsContributors(){
-        return array ($this->_registerAuthors($this->authors),
-                      $this->_registerAuthors($this->contributors));
+    protected function saveAuthorsContributors($record, $daoName) {
+
+        $authors = $this->_registerAuthors($this->authors);
+        $contributors = $this->_registerAuthors($this->contributors);
+        // we store saved authors into it, to avoid to insert duplicated
+        // associations
+        $saved = array();
+
+        $daoauthors = jDao::get($daoName);
+        $record->as_contributor = 0;
+        foreach ($authors as $authorid) {
+            if (!isset($saved[$authorid])) {
+                $record->author_id = $authorid;
+                $daoauthors->insert($record);
+                $saved[$authorid] = true;
+            }
+        }
+
+        $record->as_contributor = 1;
+        foreach ($contributors as $authorid) {
+            if (!isset($saved[$authorid])) {
+                $record->author_id = $authorid;
+                $daoauthors->insert($record);
+                $saved[$authorid] = true;
+            }
+        }
     }
 
     /**
@@ -424,7 +448,7 @@ class raBaseDescriptor {
                 // find by name
                 $dev = $dao->getByName($name, $pId);
             }
-            if(!$dev) {
+            if (!$dev) {
                 $dev = jDao::createRecord('rarangi~authors');
                 $dev->name = $name;
                 $dev->email = $email;

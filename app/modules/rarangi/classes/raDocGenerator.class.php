@@ -55,7 +55,7 @@ class raDocGenerator {
     protected $logger;
     
     /**
-     * @param raLogger
+     * @return raLogger
      */
     function getLogger() {
         return $this->logger;

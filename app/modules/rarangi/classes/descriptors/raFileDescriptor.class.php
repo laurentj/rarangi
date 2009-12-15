@@ -61,19 +61,8 @@ class raFileDescriptor extends raBaseDescriptor  {
         $this->record->license_text = $this->licenseText;
         jDao::get('rarangi~files')->update($this->record);
         
-        list($authors, $contributors) = $this->saveAuthorsContributors();
-        $fileauthors = jDao::get("rarangi~files_authors");
         $fileauthor = jDao::createRecord("rarangi~files_authors");
         $fileauthor->file_id = $this->fileId;
-        $fileauthor->as_contributor = 0;
-        foreach ($authors as $authorid) {
-            $fileauthor->author_id = $authorid;
-            $fileauthors->insert($fileauthor);
-        }
-        $fileauthor->as_contributor = 1;
-        foreach ($contributors as $authorid) {
-            $fileauthor->author_id = $authorid;
-            $fileauthors->insert($fileauthor);
-        }
+        $this->saveAuthorsContributors($fileauthor,"rarangi~files_authors" );
     }
 }
