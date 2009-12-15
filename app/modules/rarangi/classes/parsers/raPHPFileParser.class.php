@@ -50,7 +50,7 @@ class raPHPFileParser extends raPHPParser_base {
         $this->parserInfo = $parserInfo;
     }
 
-    public function parse(){
+    public function parse() {
         $this->toNextPhpSection();
         $tok = $this->toNextPhpToken();
         if ($tok === false) {

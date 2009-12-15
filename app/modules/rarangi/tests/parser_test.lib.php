@@ -15,7 +15,7 @@ require_once( dirname(__FILE__).'/../classes/raDocGenerator.class.php');
 require_once( dirname(__FILE__).'/../classes/raDescriptor.lib.php');
 
 class ut_project_test extends raProject {
-    
+
     function __construct($logger) {
         $this->_logger = $logger;
         $this->init('test');

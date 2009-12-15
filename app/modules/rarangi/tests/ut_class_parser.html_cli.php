@@ -269,7 +269,173 @@ class ut_class_parser extends jUnitTestCaseDb {
                 'description'=>''
             ),
         );
+
         $this->assertTableContainsRecords('class_properties', $records);
     }
+
+
+    function testCombinedProperties() {
+        $content = " <?php
+class foo {
+public \$bar, \$bar2;
+protected \$baz =\"lorem ipsum\", \$baz2;
+private \$priv1 = null, \$priv2= 3.141,
+  \$priv4, \$priv5='bachibouzouk';
+const bla = 4, zoop = 'toto';
+}
+?>";
+        $p = new ut_class_parser_test($content,1,$this->parserInfo);
+        $p->parse();
+        //$this->assertEqual($p->getParserInfo()->currentLine(), 6);
+        
+        /*if($this->assertTrue($p->getIterator()->valid())) {
+            $tok = $p->getIterator()->current();
+            $this->assertEqual($tok, '}');
+        }*/
+        $log = $this->logger->getLog();
+        $this->assertEqual(count($log['error']),0);
+        $this->assertEqual(count($log['warning']),0);
+        $this->assertEqual(count($log['notice']),0);
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
+        
+        $records = array(array(
+            'id'=>$p->getDescriptor()->classId,
+            'name'=>'foo',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            'file_id'=>1,
+            'line_start'=>2,
+            'line_end'=>8,
+            'package_id'=>null,
+            'mother_class'=>null,
+            'is_abstract'=>0,
+            'is_interface'=>0,
+            ));
+        $this->assertTableContainsRecords('classes', $records);
+        
+        $records = array(
+            array(
+                'name'=>'bar',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>3,
+                'datatype'=>'',
+                'default_value'=>'',
+                'type'=>0,
+                'accessibility'=>'PUB',
+                'short_description'=>'',
+                'description'=>''
+            ),
+            array(
+                'name'=>'bar2',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>3,
+                'datatype'=>'',
+                'default_value'=>'',
+                'type'=>0,
+                'accessibility'=>'PUB',
+                'short_description'=>'',
+                'description'=>''
+            ),
+            array(
+                'name'=>'baz',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>4,
+                'datatype'=>'',
+                'default_value'=>'"lorem ipsum"',
+                'type'=>0,
+                'accessibility'=>'PRO',
+                'short_description'=>'',
+                'description'=>''
+            ),
+            array(
+                'name'=>'baz2',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>4,
+                'datatype'=>'',
+                'default_value'=>'',
+                'type'=>0,
+                'accessibility'=>'PRO',
+                'short_description'=>'',
+                'description'=>''
+            ),
+            array(
+                'name'=>'priv1',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>5,
+                'datatype'=>'',
+                'default_value'=>'null',
+                'type'=>0,
+                'accessibility'=>'PRI',
+                'short_description'=>'',
+                'description'=>''
+            ),
+            array(
+                'name'=>'priv2',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>5,
+                'datatype'=>'',
+                'default_value'=>'3.141',
+                'type'=>0,
+                'accessibility'=>'PRI',
+                'short_description'=>'',
+                'description'=>''
+            ),
+            array(
+                'name'=>'priv4',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>6,
+                'datatype'=>'',
+                'default_value'=>'',
+                'type'=>0,
+                'accessibility'=>'PRI',
+                'short_description'=>'',
+                'description'=>''
+            ),
+            array(
+                'name'=>'priv5',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>6,
+                'datatype'=>'',
+                'default_value'=>'\'bachibouzouk\'',
+                'type'=>0,
+                'accessibility'=>'PRI',
+                'short_description'=>'',
+                'description'=>''
+            ),
+            array(
+                'name'=>'bla',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>7,
+                'datatype'=>'',
+                'default_value'=>'4',
+                'type'=>2,
+                'accessibility'=>'PUB',
+                'short_description'=>'',
+                'description'=>''
+            ),
+            array(
+                'name'=>'zoop',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>7,
+                'datatype'=>'',
+                'default_value'=>'\'toto\'',
+                'type'=>2,
+                'accessibility'=>'PUB',
+                'short_description'=>'',
+                'description'=>''
+            ),
+        );
+        $this->assertTableContainsRecords('class_properties', $records);
+    }
+
 
 }

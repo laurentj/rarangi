@@ -219,26 +219,30 @@ abstract class raPHPParser_base {
         }
     }
 
-    protected function readConstAndValue() {
+    protected function readConstAndValue($endToken = ';') {
+        
         $tok = $this->iterator->current();
         if (is_array($tok) && $tok[0] != T_STRING)
             throw new Exception('not a const declaration');
+    
         $name = $tok[1];
         $tok = $this->toNextPhpToken();
+
         if (!$tok || !is_string($tok))
             throw new Exception('invalid const declaration');
+
         if ($tok != '=')
             throw new Exception('invalid const declaration: undefined value');
 
         $value = '';
         $tok = $this->toNextPhpToken();
-        $exit = $this->isEndToken($tok, ';');
+        $exit = $this->isEndToken($tok, $endToken);
         $insideArray = false;
         $parenthesisLevel = 0;
             
         while ( $tok && !$exit) {
             if (is_array($tok)) {
-                $value.= $tok[1];
+                $value .= $tok[1];
                 if ($tok[0] == T_ARRAY)
                     $insideArray = true;
             }
@@ -258,7 +262,7 @@ abstract class raPHPParser_base {
             $tok = $this->toNextPhpToken();
             
             if (!$insideArray) {
-                $exit =  $this->isEndToken($tok, ';');
+                $exit =  $this->isEndToken($tok, $endToken);
             }
         }
         if (!$tok) {

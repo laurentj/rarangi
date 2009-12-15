@@ -12,7 +12,8 @@
 require_once( dirname(__FILE__).'/parser_test.lib.php');
 
 class ut_tag_ignore extends jUnitTestCaseDb {
-    protected $logger, $parserInfo;
+    protected $logger,
+    $parserInfo;
     
     function setUp() {
         $logger = new raLogger();

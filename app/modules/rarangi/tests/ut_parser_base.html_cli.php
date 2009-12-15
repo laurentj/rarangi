@@ -38,6 +38,10 @@ class dummyParser extends raPHPParser_base {
     public function readVarnameAndValue2($endToken) {
         return $this->readVarnameAndValue($endToken);
     }
+
+    public function readConstAndValue2($endToken) {
+        return $this->readConstAndValue($endToken);
+    }
     
 }
 
@@ -201,6 +205,9 @@ class ut_parser_base extends jUnitTestCase {
         $parser->toNextPhpToken2(); // (
         $parser->toNextPhpToken2(); // $a
         $this->assertEqual($parser->readVarnameAndValue2(array(',',')')), array('a','array(array(4),"pop")'));
+        $parser->toNextPhpToken2();
+        $this->assertEqual($parser->readVarnameAndValue2(array(',',')')), array('b',''));
+
 
 
         $content = '<?php protected $allowed_options = array( '."\n\t".'\'index\' => array(\'-v\'=>false)); ?>';
@@ -212,8 +219,34 @@ class ut_parser_base extends jUnitTestCase {
         $parser->toNextPhpToken2(); //$allowed_options
         $this->assertEqual($parser->readVarnameAndValue2(';'), array('allowed_options','array(\'index\'=>array(\'-v\'=>false))'));
 
+        $content = '<?php public $a=array(array(4) ,  "pop"), $b = 5,
+$c; ?>';
+        $tokens = new ArrayObject(token_get_all($content));
+        $tokeniser = $tokens->getIterator();
+        $parser = new dummyParser($tokeniser);
+        $parser->toNextPhpSection2();
+        $parser->toNextPhpToken2(); // public
+        $parser->toNextPhpToken2(); // $a
+        $this->assertEqual($parser->readVarnameAndValue2(array(',',';')), array('a','array(array(4),"pop")'));
+        $parser->toNextPhpToken2();
+        $this->assertEqual($parser->readVarnameAndValue2(array(',',';')), array('b','5'));
+        $parser->toNextPhpToken2();
+        $this->assertEqual($parser->readVarnameAndValue2(array(',',';')), array('c',''));
 
+        $content = '<?php public const a=array(array(4) ,  "pop"), b = 5,
+c="toto"; ?>';
+        $tokens = new ArrayObject(token_get_all($content));
+        $tokeniser = $tokens->getIterator();
+        $parser = new dummyParser($tokeniser);
+        $parser->toNextPhpSection2();
+        $parser->toNextPhpToken2(); // public
+        $parser->toNextPhpToken2(); // const
+        $parser->toNextPhpToken2(); // $a
+        $this->assertEqual($parser->readConstAndValue2(array(',',';')), array('a','array(array(4),"pop")'));
+        $parser->toNextPhpToken2();
+        $this->assertEqual($parser->readConstAndValue2(array(',',';')), array('b','5'));
+        $parser->toNextPhpToken2();
+        $this->assertEqual($parser->readConstAndValue2(array(',',';')), array('c','"toto"'));
     }
-
 }
 ?>
