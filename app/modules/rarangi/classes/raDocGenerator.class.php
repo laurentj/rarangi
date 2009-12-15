@@ -9,90 +9,88 @@
 */
 
 $dirnamefile = dirname(__FILE__).'/';
-require($dirnamefile.'raDescriptor.lib.php');
-require($dirnamefile.'raParserInfo.class.php');
-require($dirnamefile.'parsers/raPHPFileParser.class.php');
+require_once($dirnamefile.'raDescriptor.lib.php');
+require_once($dirnamefile.'raParserInfo.class.php');
+require_once($dirnamefile.'raProject.class.php');
+require_once($dirnamefile.'parsers/raPHPFileParser.class.php');
 
 /**
  * main class : it launches the parsing of files
  */
 class raDocGenerator {
 
-    protected function __construct(){ }
-
     /**
-     * only one instance of jDoc is allowed; this method returns the instance
+     * read the configuration file (ini) which contains parameters for the
+     * parser.
+     * @param string $configfile the name of the ini file
+     * @param raLogger $logger the logger for the parsing
      */
-    static public function getInstance(){
-        static $doc=null;
-        if($doc === null){
-            $doc = new raDocGenerator();
-        }
-        return $doc;
+    function __construct($configfile = '', $logger = null) {
+        $this->logger = $logger;
+        if ($configfile)
+            $this->setConfig($configfile);
     }
 
     /**
-     * @var jParserInfo
+     * @var raParserInfo
      */
     protected $parserInfo;
 
-    function getParserInfo() { return $this->parserInfo; }
+    function getParserInfo() {
+        return $this->parserInfo;
+    }
 
     /**
-     * @var jDaoRecord
+     * @var raProject
      */
-    protected $projectRec;
+    protected $project;
 
+    function getProject() {
+        return $this->project;
+    }
+
+    /**
+     * @var raLogger
+     */
+    protected $logger;
+    
+    /**
+     * @param raLogger
+     */
+    function getLogger() {
+        return $this->logger;
+    }
+
+    /**
+     *  @var stdobj
+     */
     protected $config;
 
     /**
-     * @param jDocConfig $conf
+     * read the configuration file (ini) which contains parameters for the
+     * parser.
+     * @param string $configfile the name of the ini file
      */
-    public function setConfig($configfile){
+    public function setConfig($configfile) {
         
-        $this->config = parse_ini_file($configfile,true);
+        $this->config = parse_ini_file($configfile, true);
         
         $this->config['excludedFilesReg'] = array();
 
-        if(isset($this->config['excludedFiles'])) {
-            $this->setExcludedFiles(explode(',',$this->config['excludedFiles']));
+        if (isset($this->config['excludedFiles'])) {
+            $this->setExcludedFiles(explode(',', $this->config['excludedFiles']));
         }
         else
-            $this->config['excludedFiles'] = array('.svn','CVS', '.hg');
+            $this->config['excludedFiles'] = array('.svn', 'CVS', '.hg');
             
-        if(!isset($this->config['sourceDirectories']['path']))
+        if (!isset($this->config['sourceDirectories']['path']))
             throw new Exception ("no source directory defined in the config");
-        if(!isset($this->config['projectName']))
+        if (!isset($this->config['projectName']))
             throw new Exception ("no project defined in the config");
 
         $this->config = (object) $this->config;
-        
-        $projectdao = jDao::get('rarangi~projects');
-        if(! $this->projectRec = $projectdao->getByName($this->config->projectName)) {
-            $this->projectRec = jDao::createRecord('rarangi~projects');
-            $this->projectRec->name = $this->config->projectName;
-            $projectdao->insert($this->projectRec);
-        }
-        else {
-            $db = jDb::getConnection();
-            $db->exec("DELETE FROM classes_authors where class_id IN (SELECT id FROM classes WHERE project_id = ".$this->projectRec->id.')');
-            $db->exec("DELETE FROM functions_authors where function_id IN (SELECT id FROM functions WHERE project_id = ".$this->projectRec->id.')');
-            $db->exec("DELETE FROM function_parameters where function_id IN (SELECT id FROM functions WHERE project_id = ".$this->projectRec->id.')');
-            $db->exec("DELETE FROM files_authors where file_id IN (SELECT id FROM files WHERE project_id = ".$this->projectRec->id.')');
-            $db->exec("DELETE FROM methods_authors where class_id IN (SELECT id FROM classes WHERE project_id = ".$this->projectRec->id.')');
-            $db->exec("DELETE FROM method_parameters where class_id IN (SELECT id FROM classes WHERE project_id = ".$this->projectRec->id.')');
-            jDao::get('authors')->deleteByProject($this->projectRec->id);
-            jDao::get('interface_class')->deleteByProject($this->projectRec->id);
-            jDao::get('class_properties')->deleteByProject($this->projectRec->id);
-            jDao::get('class_methods')->deleteByProject($this->projectRec->id);
-            jDao::get('classes')->deleteByProject($this->projectRec->id);
-            jDao::get('functions')->deleteByProject($this->projectRec->id);
-            jDao::get('files_content')->deleteByProject($this->projectRec->id);
-            jDao::get('files')->deleteByProject($this->projectRec->id);
-            jDao::get('packages')->deleteByProject($this->projectRec->id);
-        }
+        $this->project = new raProject($this->config->projectName, $this->logger);
     }
-
 
     public function setExcludedFiles($files) {
         $this->config['excludedFiles'] = array();
@@ -101,11 +99,13 @@ class raDocGenerator {
                 $s = preg_quote(substr($f,1),'/');
                 $s = '/.*'.$s.'$/';
                 $this->config['excludedFilesReg'][] = $s;
-            }elseif(substr($f,-1,1) == '*'){
+            }
+            elseif (substr($f,-1,1) == '*') {
                 $s = preg_quote(substr($f,0,-1),'/');
                 $s = '/^'.$s.'.*/';
                 $this->config['excludedFilesReg'][] = $s;
-            }else{
+            }
+            else {
                 $this->config['excludedFiles'][] = $f;
             }
         }
@@ -115,10 +115,10 @@ class raDocGenerator {
      * Test if a filename is allowed or not
      * @return boolean true if the file shouldn't be parsed
      */
-    public function isExcludedFile($name){
-        if(in_array($name, $this->config->excludedFiles)) return true;
-        foreach($this->config->excludedFilesReg as $reg){
-            if(preg_match($reg, $name)) return true;
+    public function isExcludedFile($name) {
+        if (in_array($name, $this->config->excludedFiles)) return true;
+        foreach ($this->config->excludedFilesReg as $reg) {
+            if (preg_match($reg, $name)) return true;
         }
         return false;
     }
@@ -131,21 +131,22 @@ class raDocGenerator {
     /**
      * main method. launches the parsing
      */
-    public function run(){
+    public function run() {
         $this->filesDao = jDao::create('rarangi~files');
 
         $fileRec = jDao::createRecord('rarangi~files');
-        $fileRec->project_id = $this->projectRec->id;
+        $fileRec->project_id = $this->project->id();
         $fileRec->isdir = 1;
         $fileRec->fullpath = "";
         $fileRec->filename = "";
         $fileRec->dirname = "";
         $this->filesDao->insert($fileRec);
 
-        foreach($this->config->sourceDirectories['path'] as $sourcepath) {
+        foreach ($this->config->sourceDirectories['path'] as $sourcepath) {
             $sourcepath = realpath($sourcepath);
+
             $this->fullSourcePath = $sourcepath;
-            if($sourcepath !='')
+            if ($sourcepath !='')
                 $this->readFiles(new RecursiveDirectoryIterator($sourcepath));
             else
                 throw new Exception("unknow path: $sourcepath");            
@@ -162,27 +163,37 @@ class raDocGenerator {
         
         for ($rdi->rewind();$rdi->valid();$rdi->next()) {
             
-            if ($rdi->isDot()){
+            if ($rdi->isDot()) {
                 continue;
             }
             
             if ($rdi->isDir() || $rdi->isFile()) {
-                if($this->isExcludedFile($rdi->getFilename())) continue;
-                if ($rdi->hasChildren()){
+                if ($this->isExcludedFile($rdi->getFilename()))
+                    continue;
+                if ($rdi->hasChildren()) {
                     $fileRec = jDao::createRecord('rarangi~files');
-                    $fileRec->project_id = $this->projectRec->id;
+                    $fileRec->project_id = $this->project->id();
                     $fileRec->isdir = 1;
                     $fileRec->fullpath = substr($rdi->current(), strlen($this->fullSourcePath)+1);
                     $fileRec->filename = $rdi->getFilename();
                     $fileRec->dirname = substr(dirname($rdi->current()), strlen($this->fullSourcePath)+1);
                     $this->filesDao->insert($fileRec);
                     $this->readFiles($rdi->getChildren());
-                }else{
-                    $this->parserInfo = new raParserInfo($this->projectRec->id, $this->fullSourcePath, $rdi->current(), $rdi->getFilename());
-                    if(preg_match('/\\.php5?$/',$rdi->getFilename())){
+                }
+                else {
+                    $this->parserInfo = new raParserInfo($this->project,
+                                                         $this->fullSourcePath,
+                                                         $rdi->current(),
+                                                         $rdi->getFilename());
+
+                    if (preg_match('/\\.php5?$/',$rdi->getFilename())) {
+                        if ($this->logger)
+                            $this->logger->setCurrentParserInfo($this->parserInfo);
                         $fileparser = new raPHPFileParser($this->parserInfo);
                         $fileparser->parse();
-                    }
+                        if ($this->logger)
+                            $this->logger->setCurrentParserInfo(null);
+                    }   
                 }
             }
         }

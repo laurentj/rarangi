@@ -26,18 +26,19 @@ class raPHPFileParser extends raPHPParser_base {
      */
     function __construct($parserInfo){
         
-        $this->info = new raFileDescriptor($parserInfo->getProjectId(),
+        $this->descriptor = new raFileDescriptor($parserInfo->project(),
                                           $parserInfo->getFullSourcePath(),
                                           $parserInfo->currentFile(),
                                           $parserInfo->currentFileName());
-        raLogger::message("Parsing file ".$this->info->filepath);
-        $content = file_get_contents($this->info->fullpath);
 
+        $parserInfo->project()->logger()->message("Parsing file ".$this->descriptor->filepath);
+        
+        $content = file_get_contents($this->descriptor->fullpath);
         $lines = explode("\n", $content);
         $filecontentdao = jDao::get("rarangi~files_content");
         $line = jDao::createRecord("rarangi~files_content");
         foreach ($lines as $n=>$l) {
-            $line->file_id = $this->info->fileId;
+            $line->file_id = $this->descriptor->fileId;
             $line->project_id = $parserInfo->getProjectId();
             $line->linenumber = $n+1;
             $line->content = $l;
@@ -52,17 +53,19 @@ class raPHPFileParser extends raPHPParser_base {
     public function parse(){
         $this->toNextPhpSection();
         $tok = $this->toNextPhpToken();
-        if($tok === false){
-            raLogger::notice("file is empty");
+        if ($tok === false) {
+            $this->parserInfo->project()->logger()->notice("file is empty");
             return;
         }
 
-        if(!is_array($tok)){
-            raLogger::warning("The file is not beginning by a doc comment !");
-        }elseif($tok[0] != T_DOC_COMMENT){
-            raLogger::warning("The file is not beginning by a doc comment (2) !");
-        }else{
-            $this->info->initFromPhpDoc($tok[1]);
+        if (!is_array($tok)) {
+            $this->parserInfo->project()->logger()->warning("The file is not beginning by a doc comment !");
+        }
+        elseif ($tok[0] != T_DOC_COMMENT) {
+            $this->parserInfo->project()->logger()->warning("The file is not beginning by a doc comment (2) !");
+        }
+        else {
+            $this->descriptor->initFromPhpDoc($tok[1]);
         }
 
         try {
@@ -107,8 +110,9 @@ class raPHPFileParser extends raPHPParser_base {
                     $previousDocComment = $tok[1];
                     break;
                 }
-            } else {
-                switch($tok){
+            }
+            else {
+                switch ($tok) {
                 /*case 'define':
                     $subparser = new jDefineParser($this, $previousDocComment);
                     $subparser->parse();
@@ -118,17 +122,16 @@ class raPHPFileParser extends raPHPParser_base {
                 }
             }
         }
-        } catch(jException $e) {
+        }
+        catch(jException $e) {
             $GLOBALS['gJCoord']->handleError($GLOBALS['gJConfig']->error_handling['exception'], 'exception',
             $e->getCode(), $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace());
             return;       
-        } catch(Exception $e) {
-            jLogger::error($e->getMessage());
+        }
+        catch(Exception $e) {
+            $this->parserInfo->project()->logger()->error($e->getMessage());
             return;
         }
-        $this->info->save();
+        $this->descriptor->save();
     }
 }
-
-
-?>

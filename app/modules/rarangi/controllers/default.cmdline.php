@@ -39,16 +39,13 @@ This script parses PHP files according to setting indicated in the given ini fil
     */
     function index() {
         $rep = $this->getResponse();
-        
+
+        $logger = jClasses::create("raLogger");
+        $logger->addLogger(new raInMemoryLogger());
+        $logger->addLogger(new raConsoleLogger($rep, isset($this->_options['-v'])));
+
         jClasses::inc("raDocGenerator");
-        jClasses::inc("raLogger");
-
-        raLogger::addLogger(new raInMemoryLogger());
-        raLogger::addLogger(new raConsoleLogger($rep, isset($this->_options['-v'])));
-
-        $docparser = raDocGenerator::getInstance();
-        $docparser->setConfig($this->param('config'));
-
+        $docparser = new raDocGenerator($this->param('config'), $logger);
         $docparser->run();
 
         return $rep;

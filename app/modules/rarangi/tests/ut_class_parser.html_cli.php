@@ -9,45 +9,21 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
-require_once( dirname(__FILE__).'/../classes/raLogger.class.php');
-require_once( dirname(__FILE__).'/../classes/raDocGenerator.class.php');
-
-class ut_class_parser_test extends raPHPClassParser {
-    
-    public $tokAfterInit = null;
-    
-    function __construct( $content, $numberOfToken, $doccomment="/**\n*/", $isAbstract=false){
-        $tokens = new ArrayObject(token_get_all($content));
-        $this->iterator = $tokens->getIterator();
-        $this->parserInfo = new raParserInfo(1, '', '', '');
-        
-        $this->toNextPhpSection();
-        for($i=0; $i< $numberOfToken;$i++)
-            $this->tokAfterInit = $this->toNextPhpToken();
-
-        $fatherInfo =  new raFileDescriptor($this->parserInfo->getProjectId(),
-                                          $this->parserInfo->getFullSourcePath(),
-                                          $this->parserInfo->currentFile(),
-                                          $this->parserInfo->currentFileName());
-
-        $this->info = new raClassDescriptor(1, 1, $this->parserInfo->currentLine());
-        $this->info->inheritsFrom($fatherInfo);
-        $this->info->initFromPhpDoc($doccomment);
-        $this->info->isAbstract = $isAbstract;
-    }
-
-    function getIterator() { return $this->iterator;}
-
-}
-
+require_once( dirname(__FILE__).'/parser_test.lib.php');
 
 class ut_class_parser extends jUnitTestCaseDb {
     protected $logger;
+    protected $parserInfo;
     
     function setUp() {
-        raLogger::removeLoggers();
+        $logger = new raLogger();
         $this->logger = new raInMemoryLogger();
-        raLogger::addLogger($this->logger);
+        $logger->addLogger($this->logger);
+
+        $project = new ut_project_test($logger);
+
+        $this->parserInfo = new raParserInfo($project, 'project/test.php','project','test.php');
+
         $this->emptyTable('classes_authors');
         $this->emptyTable('methods_authors');
         $this->emptyTable('class_properties');
@@ -57,12 +33,12 @@ class ut_class_parser extends jUnitTestCaseDb {
     }
 
     function tearDown() {
-        raLogger::removeLoggers();
+
     }
     
     function testClassNoName() {
         $content = ' <?php class { } ?>';
-        $p = new ut_class_parser_test($content,1);
+        $p = new ut_class_parser_test($content,1,$this->parserInfo);
         if($this->assertTrue(is_array($p->tokAfterInit)))
             $this->assertEqual($p->tokAfterInit[0] , T_CLASS);
         try {
@@ -76,7 +52,7 @@ class ut_class_parser extends jUnitTestCaseDb {
     
     function testEmptyClass() {
         $content = " <?php \nclass foo {\n }\n ?>";
-        $p = new ut_class_parser_test($content,1);
+        $p = new ut_class_parser_test($content,1,$this->parserInfo);
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 3);
         
@@ -88,12 +64,12 @@ class ut_class_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
-        $this->assertEqual($p->getInfo()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
         
         $records = array(array(
-            'id'=>$p->getInfo()->classId,
+            'id'=>$p->getDescriptor()->classId,
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'file_id'=>1,
             'line_start'=>2,
             'line_end'=>3,
@@ -107,7 +83,7 @@ class ut_class_parser extends jUnitTestCaseDb {
 
     function testEmptyInheritingClass() {
         $content = " <?php class foo extends bar {\n }\n ?>";
-        $p = new ut_class_parser_test($content,1);
+        $p = new ut_class_parser_test($content,1,$this->parserInfo);
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 2);
         
@@ -120,9 +96,9 @@ class ut_class_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
         
-        $this->assertEqual($p->getInfo()->name , 'foo');
-        $this->assertEqual($p->getInfo()->inheritsFrom , 'bar');
-        $this->assertEqual($p->getInfo()->interfaces , array());
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->mother , 'bar');
+        $this->assertEqual($p->getDescriptor()->interfaces , array());
 
         $db = jDb::getConnection();
         $rs = $db->query("SELECT id FROM classes WHERE name='bar'");
@@ -134,9 +110,9 @@ class ut_class_parser extends jUnitTestCaseDb {
 
 
         $records = array(array(
-            'id'=>$p->getInfo()->classId,
+            'id'=>$p->getDescriptor()->classId,
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'file_id'=>1,
             'line_start'=>1,
             'line_end'=>2,
@@ -148,7 +124,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             array(
             'id'=>$barId,
             'name'=>'bar',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'file_id'=>null,
             'line_start'=>0,
             'line_end'=>0,
@@ -163,7 +139,7 @@ class ut_class_parser extends jUnitTestCaseDb {
 
     function testEmptyImplementingClass() {
         $content = " <?php class foo implements bar {\n }\n ?>";
-        $p = new ut_class_parser_test($content,1);
+        $p = new ut_class_parser_test($content,1,$this->parserInfo);
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 2);
         
@@ -176,9 +152,9 @@ class ut_class_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
         
-        $this->assertEqual($p->getInfo()->name , 'foo');
-        $this->assertEqual($p->getInfo()->inheritsFrom , '');
-        $this->assertEqual($p->getInfo()->interfaces , array('bar'));
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->mother , '');
+        $this->assertEqual($p->getDescriptor()->interfaces , array('bar'));
 
         $db = jDb::getConnection();
         $rs = $db->query("SELECT id FROM classes WHERE name='bar'");
@@ -190,9 +166,9 @@ class ut_class_parser extends jUnitTestCaseDb {
 
 
         $records = array(array(
-            'id'=>$p->getInfo()->classId,
+            'id'=>$p->getDescriptor()->classId,
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'file_id'=>1,
             'line_start'=>1,
             'line_end'=>2,
@@ -204,7 +180,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             array(
             'id'=>$barId,
             'name'=>'bar',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'file_id'=>null,
             'line_start'=>0,
             'line_end'=>0,
@@ -217,7 +193,9 @@ class ut_class_parser extends jUnitTestCaseDb {
         $this->assertTableContainsRecords('classes', $records);
         
         $records = array(
-            array('class_id'=>$p->getInfo()->classId, 'interface_id'=>$barId, 'project_id'=>1)
+            array('class_id'=>$p->getDescriptor()->classId,
+                  'interface_id'=>$barId,
+                  'project_id'=>$this->parserInfo->getProjectId())
         );
         $this->assertTableContainsRecords('interface_class', $records);
         
@@ -225,7 +203,7 @@ class ut_class_parser extends jUnitTestCaseDb {
 
     function testSimpleClass() {
         $content = " <?php \nclass foo {\n public \$bar; \n protected static \$baz =\"lorem ipsum\"; \nconst bla = 4;\n}\n ?>";
-        $p = new ut_class_parser_test($content,1);
+        $p = new ut_class_parser_test($content,1,$this->parserInfo);
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 6);
         
@@ -237,12 +215,12 @@ class ut_class_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
-        $this->assertEqual($p->getInfo()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
         
         $records = array(array(
-            'id'=>$p->getInfo()->classId,
+            'id'=>$p->getDescriptor()->classId,
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'file_id'=>1,
             'line_start'=>2,
             'line_end'=>6,
@@ -256,8 +234,8 @@ class ut_class_parser extends jUnitTestCaseDb {
         $records = array(
             array(
                 'name'=>'bar',
-                'class_id'=>$p->getInfo()->classId,
-                'project_id'=>1,
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
                 'line_start'=>3,
                 'datatype'=>'',
                 'default_value'=>'',
@@ -268,8 +246,8 @@ class ut_class_parser extends jUnitTestCaseDb {
             ),
             array(
                 'name'=>'baz',
-                'class_id'=>$p->getInfo()->classId,
-                'project_id'=>1,
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
                 'line_start'=>4,
                 'datatype'=>'',
                 'default_value'=>'"lorem ipsum"',
@@ -280,8 +258,8 @@ class ut_class_parser extends jUnitTestCaseDb {
             ),
             array(
                 'name'=>'bla',
-                'class_id'=>$p->getInfo()->classId,
-                'project_id'=>1,
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
                 'line_start'=>5,
                 'datatype'=>'',
                 'default_value'=>'4',

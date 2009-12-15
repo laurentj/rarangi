@@ -9,61 +9,34 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
-require_once( dirname(__FILE__).'/../classes/raLogger.class.php');
-require_once( dirname(__FILE__).'/../classes/raDocGenerator.class.php');
-
-
-class ut_method_parser_test extends raPHPFunctionParser {
-    
-    public $tokAfterInit = null;
-    
-    function __construct( $content, $numberOfToken, $doccomment="/**\n*/",
-                         $accessibility=0, $isStatic=false, $isFinal=false, $isAbstract=false, $isInterface=false){
-        $tokens = new ArrayObject(token_get_all($content));
-        $this->iterator = $tokens->getIterator();
-        $this->parserInfo = new raParserInfo(1, '', '', '');
-        
-        $this->toNextPhpSection();
-        for($i=0; $i< $numberOfToken;$i++)
-            $this->tokAfterInit = $this->toNextPhpToken();
-
-        $fatherInfo =  new raClassDescriptor($this->parserInfo->getProjectId(), 1, 1);
-        
-        $this->isMethod = true;
-        $this->info = new raMethodDescriptor(1,1,$this->parserInfo->currentLine());
-        $this->info->inheritsFrom($fatherInfo);
-        $this->info->initFromPhpDoc($doccomment);
-        $this->info->accessibility = $accessibility;
-        $this->info->isStatic = $isStatic;
-        $this->info->isFinal = $isFinal;
-        $this->info->isAbstract = $isAbstract;
-        $this->info->classId = 1;
-        $this->isInInterface = $isInterface;
-    }
-
-    function getIterator() { return $this->iterator;}
-}
+require_once( dirname(__FILE__).'/parser_test.lib.php');
 
 
 class ut_method_parser extends jUnitTestCaseDb {
     protected $logger;
+    protected $parserInfo;
     
     function setUp() {
-        raLogger::removeLoggers();
+        $logger = new raLogger();
         $this->logger = new raInMemoryLogger();
-        raLogger::addLogger($this->logger);
+        $logger->addLogger($this->logger);
+
+        $project = new ut_project_test($logger);
+
+        $this->parserInfo = new raParserInfo($project, 'project/test.php','project','test.php');
+
         $this->emptyTable('class_methods');
         $this->emptyTable('methods_authors');
         $this->emptyTable('method_parameters');
     }
 
     function tearDown() {
-        raLogger::removeLoggers();
+
     }
 
     function testMethodNoName() {
         $content = ' <?php function { } ?>';
-        $p = new ut_method_parser_test($content,1);
+        $p = new ut_method_parser_test($content,1, $this->parserInfo);
         if($this->assertTrue(is_array($p->tokAfterInit)))
             $this->assertEqual($p->tokAfterInit[0] , T_FUNCTION);
         try {
@@ -77,7 +50,7 @@ class ut_method_parser extends jUnitTestCaseDb {
 
     function testMethodNoParenthesis() {
         $content = ' <?php function foo { } ?>';
-        $p = new ut_method_parser_test($content,1);
+        $p = new ut_method_parser_test($content,1, $this->parserInfo);
         if($this->assertTrue(is_array($p->tokAfterInit)))
             $this->assertEqual($p->tokAfterInit[0] , T_FUNCTION);
         try {
@@ -91,7 +64,7 @@ class ut_method_parser extends jUnitTestCaseDb {
 
     function testMethodNoParenthesis2() {
         $content = ' <?php function foo ( { } ?>';
-        $p = new ut_method_parser_test($content,1);
+        $p = new ut_method_parser_test($content,1, $this->parserInfo);
         if($this->assertTrue(is_array($p->tokAfterInit)))
             $this->assertEqual($p->tokAfterInit[0] , T_FUNCTION);
         try {
@@ -106,7 +79,7 @@ class ut_method_parser extends jUnitTestCaseDb {
 
     function testEmptyMethod() {
         $content = " <?php \nfunction foo () {\n }\n ?>";
-        $p = new ut_method_parser_test($content,1);
+        $p = new ut_method_parser_test($content,1, $this->parserInfo);
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 3);
         
@@ -118,13 +91,13 @@ class ut_method_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
-        $this->assertEqual($p->getInfo()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
         
-        $p->getInfo()->save();
+        $p->getDescriptor()->save();
 
         $records = array(array(
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'class_id'=>1,
             'line_start'=>2,
             'line_end'=>3,
@@ -155,9 +128,9 @@ class ut_method_parser extends jUnitTestCaseDb {
 
    function testOneMethodParameter() {
         $content = " <?php \nfunction foo (".'$aaa'.") {\n }\n ?>";
-        $p = new ut_method_parser_test($content,1);
+        $p = new ut_method_parser_test($content,1, $this->parserInfo);
         $p->parse();
-        $p->getInfo()->save();
+        $p->getDescriptor()->save();
         $this->assertEqual($p->getParserInfo()->currentLine(), 3);
         
         if($this->assertTrue($p->getIterator()->valid())) {
@@ -168,14 +141,14 @@ class ut_method_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
-        $this->assertEqual($p->getInfo()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
         
-        $this->assertEqual($p->getInfo()->parameters,
+        $this->assertEqual($p->getDescriptor()->parameters,
                            array(array('','aaa','','')));
         
         $records = array(array(
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'class_id'=>1,
             'line_start'=>2,
             'line_end'=>3,
@@ -216,9 +189,9 @@ class ut_method_parser extends jUnitTestCaseDb {
 
     function testOneMethodParameterWithDoc() {
         $content = " <?php \nfunction foo (".'$aaa'.") {\n }\n ?>";
-        $p = new ut_method_parser_test($content,1, "/**\n* @param string ".'$aaa'." this is a parameter\n*/");
+        $p = new ut_method_parser_test($content,1, $this->parserInfo, "/**\n* @param string ".'$aaa'." this is a parameter\n*/");
         $p->parse();
-        $p->getInfo()->save();
+        $p->getDescriptor()->save();
         $this->assertEqual($p->getParserInfo()->currentLine(), 3);
         
         if($this->assertTrue($p->getIterator()->valid())) {
@@ -229,14 +202,14 @@ class ut_method_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
-        $this->assertEqual($p->getInfo()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
         
-        $this->assertEqual($p->getInfo()->parameters,
+        $this->assertEqual($p->getDescriptor()->parameters,
                            array(array('string','aaa','','this is a parameter')));
         
         $records = array(array(
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'class_id'=>1,
             'line_start'=>2,
             'line_end'=>3,
@@ -278,9 +251,9 @@ class ut_method_parser extends jUnitTestCaseDb {
 
     function testMethodParameters() {
         $content = " <?php \nfunction foo (".'$aaa'.", Iterator ".'$bbb'.", ".'$ccc'." = 'pipo', Plop ".'$ddd'." = null) {\n }\n ?>";
-        $p = new ut_method_parser_test($content,1);
+        $p = new ut_method_parser_test($content,1, $this->parserInfo);
         $p->parse();
-        $p->getInfo()->save();
+        $p->getDescriptor()->save();
         $this->assertEqual($p->getParserInfo()->currentLine(), 3);
         
         if($this->assertTrue($p->getIterator()->valid())) {
@@ -291,9 +264,9 @@ class ut_method_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
-        $this->assertEqual($p->getInfo()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
         
-        $this->assertEqual($p->getInfo()->parameters,
+        $this->assertEqual($p->getDescriptor()->parameters,
                            array(array('','aaa','',''),
                                  array('Iterator','bbb','', ''),
                                  array('','ccc',"'pipo'", ''),
@@ -301,7 +274,7 @@ class ut_method_parser extends jUnitTestCaseDb {
         
         $records = array(array(
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'class_id'=>1,
             'line_start'=>2,
             'line_end'=>3,
@@ -380,9 +353,9 @@ class ut_method_parser extends jUnitTestCaseDb {
 *  @return string the result
   */';
         $content = " <?php \nfunction foo (".'$aaa'.", Iterator ".'$bbb'.", ".'$ccc'." = 'pipo', Plop ".'$ddd'." = null) {\n }\n ?>";
-        $p = new ut_method_parser_test($content,1, $doc);
+        $p = new ut_method_parser_test($content,1, $this->parserInfo, $doc);
         $p->parse();
-        $p->getInfo()->save();
+        $p->getDescriptor()->save();
         $this->assertEqual($p->getParserInfo()->currentLine(), 3);
         
         if($this->assertTrue($p->getIterator()->valid())) {
@@ -393,9 +366,9 @@ class ut_method_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
-        $this->assertEqual($p->getInfo()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
         
-        $this->assertEqual($p->getInfo()->parameters,
+        $this->assertEqual($p->getDescriptor()->parameters,
                            array(array('integer','aaa','','first parameter'),
                                  array('Iterator','bbb','', "second parameter\nwith a long documentation\nand a bad type"),
                                  array('string','ccc',"'pipo'", 'third parameter'),
@@ -403,7 +376,7 @@ class ut_method_parser extends jUnitTestCaseDb {
         
         $records = array(array(
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'class_id'=>1,
             'line_start'=>2,
             'line_end'=>3,

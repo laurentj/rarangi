@@ -20,20 +20,20 @@ class raPHPClassParser extends raPHPInterfaceParser {
      */
     function __construct($fatherParser, $doccomment, $isAbstract = false){
         raPHPParser_base::__construct($fatherParser);
-        $this->info = new raClassDescriptor($this->parserInfo->getProjectId(),
-                                           $fatherParser->getInfo()->fileId,
+        $this->descriptor = new raClassDescriptor($this->parserInfo->project(),
+                                           $fatherParser->getDescriptor()->fileId,
                                            $this->parserInfo->currentLine());
-        $this->info->inheritsFrom($fatherParser->getInfo());
-        $this->info->initFromPhpDoc($doccomment);
-        $this->info->isAbstract = $isAbstract;
+        $this->descriptor->inheritsFrom($fatherParser->getDescriptor());
+        $this->descriptor->initFromPhpDoc($doccomment);
+        $this->descriptor->isAbstract = $isAbstract;
     }
 
    
     protected function parseDeclaration(){
          // read the content between the name and the next '{'
         $tok = $this->toNextPhpToken();
-        while(is_array($tok)) {
-            if($tok[0] != T_IMPLEMENTS && $tok[0] != T_EXTENDS) {
+        while (is_array($tok)) {
+            if ($tok[0] != T_IMPLEMENTS && $tok[0] != T_EXTENDS) {
                 if($tok[0] == T_COMMENT) {
                     $tok = $this->toNextPhpToken();
                     continue;
@@ -42,9 +42,9 @@ class raPHPClassParser extends raPHPInterfaceParser {
             }
             $type = $tok[0];
             if($type == T_IMPLEMENTS)
-                $this->info->interfaces[] = $this->toNextSpecificPhpToken(T_STRING);
+                $this->descriptor->interfaces[] = $this->toNextSpecificPhpToken(T_STRING);
             else
-                $this->info->inheritsFrom = $this->toNextSpecificPhpToken(T_STRING);
+                $this->descriptor->mother = $this->toNextSpecificPhpToken(T_STRING);
             $tok = $this->toNextPhpToken();
             if(is_string($tok)&& $tok ==',')
                 $tok = $this->toNextPhpToken();

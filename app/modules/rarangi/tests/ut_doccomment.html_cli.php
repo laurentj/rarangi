@@ -8,21 +8,22 @@
 * @link        http://www.jelix.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
-require_once( dirname(__FILE__).'/../classes/raLogger.class.php');
-require_once( dirname(__FILE__).'/../classes/raDescriptor.lib.php');
 
+require_once( dirname(__FILE__).'/parser_test.lib.php');
 
 class ut_doccomment extends jUnitTestCase {
     protected $logger;
 
     function setUp() {
-        raLogger::removeLoggers();
+
+        $logger = new raLogger();
         $this->logger = new raInMemoryLogger();
-        raLogger::addLogger($this->logger);
+        $logger->addLogger($this->logger);
+
+        $this->project = new ut_project_test($logger);
     }
 
     function tearDown() {
-        raLogger::removeLoggers();
     }
 
     function checkLogEmpty() {
@@ -34,7 +35,7 @@ class ut_doccomment extends jUnitTestCase {
     }
 
     function testDescription() {
-        $desc = new raBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor($this->project, 1, 1);
         $c = '/**
 */';
         $desc->initFromPhpDoc($c);
@@ -43,7 +44,7 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->description,'');
         $this->assertTrue($this->checkLogEmpty());
         
-        $desc = new raBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor($this->project, 1, 1);
         $c =
         '/**
           * lorem ipsum
@@ -53,7 +54,7 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->description,'');
         $this->assertTrue($this->checkLogEmpty());
 
-        $desc = new raBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor($this->project, 1, 1);
         $c =
         '/**
           * lorem ipsum
@@ -64,7 +65,7 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->description,'');
         $this->assertTrue($this->checkLogEmpty());
         
-        $desc = new raBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor($this->project, 1, 1);
         $c =
         '/**
           * lorem ipsum
@@ -76,7 +77,7 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->description,'qsdosdpqosi');
         $this->assertTrue($this->checkLogEmpty());
 
-        $desc = new raBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor($this->project, 1, 1);
         $c =
         '/**
           * lorem ipsum2
@@ -91,7 +92,7 @@ class ut_doccomment extends jUnitTestCase {
     }
 
     function testPackage(){
-        $desc = new raBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor($this->project, 1, 1);
         $c = '/**
 * @package jDoc
 */';
@@ -135,7 +136,7 @@ class ut_doccomment extends jUnitTestCase {
 
 
     function testAuthor(){
-        $desc = new raBaseDescriptor(1, 1, 1);
+        $desc = new raBaseDescriptor($this->project, 1, 1);
         $c = '/**
 * @author laurent
 */';
@@ -212,7 +213,7 @@ class ut_doccomment extends jUnitTestCase {
     }
     
     function testMethodDescriptor(){
-        $desc = new raMethodDescriptor(1, 1, 1);
+        $desc = new raMethodDescriptor($this->project, 1, 1);
         $c = '/**
 * lorem ipsum
 *
@@ -226,7 +227,7 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->returnType, 'void');
         $this->assertEqual($desc->returnDescription, '');
         
-        $desc = new raMethodDescriptor(1, 1, 1);
+        $desc = new raMethodDescriptor($this->project, 1, 1);
         $c = '/**
 * lorem ipsum
 *
@@ -237,7 +238,7 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->returnType, 'string');
         $this->assertEqual($desc->returnDescription, 'Praesent at ante. Maecenas condimentum');
 
-        $desc = new raMethodDescriptor(1, 1, 1);
+        $desc = new raMethodDescriptor($this->project, 1, 1);
         $c = '/**
 * lorem ipsum
 *

@@ -12,46 +12,67 @@
 abstract class raPHPParser_base {
 
     /**
-     * @var jDescriptor
+     * @var raBaseDescriptor properties to store into the database
      */
-    protected $info;
-    
+    protected $descriptor;
+
+    /**
+     * @var ArrayIterator iterator on all php tokens
+     */
     protected $iterator;
 
     /**
-     * @var jParserInfo
+     * @var raParserInfo
      */
     public $parserInfo;
 
-    function __construct( $fatherParser){
+    /**
+     * @param raPHPParser_base $fatherParser  the parser which instantiate this parser
+     */
+    function __construct ($fatherParser) {
         $this->iterator = $fatherParser->iterator;
         $this->parserInfo = $fatherParser->parserInfo;
     }
 
+    /**
+     * parse the part of the file on which the parser is responsible.
+     * 'sub-parsers' should be called into this method, and data
+     * should be saved.
+     */
     abstract public function parse();
-    
-    public function getInfo() { return $this->info; }
-    
+
+    /**
+     * @return raBaseDescriptor
+     */
+    public function getDescriptor() { return $this->descriptor; }
+
+    /**
+     * @return  raParserInfo
+     */
     public function getParserInfo() { return $this->parserInfo; }
-    
+
+    /**
+     * @return ArrayIterator
+     */
     public function getIterator() { return $this->iterator; }
 
     /**
      * set the cursor after the next "<?php" token
      */
     protected function toNextPhpSection(){
-        while($this->iterator->valid()) {
+        while ($this->iterator->valid()) {
             $tok = $this->iterator->current();
 
-            if(is_array($tok)){
+            if (is_array($tok)) {
                 if($tok[0] == T_OPEN_TAG){
                     $this->parserInfo->incLineS($tok[1]); //the token include next \n some time
                     return;
                 }
-                if(in_array($tok[0], array(T_COMMENT, T_DOC_COMMENT,T_ENCAPSED_AND_WHITESPACE, 
+                if (in_array($tok[0], array(T_COMMENT, T_DOC_COMMENT,T_ENCAPSED_AND_WHITESPACE, 
                             T_INLINE_HTML, T_STRING, T_WHITESPACE)))
                     $this->parserInfo->incLineS($tok[1]);
-            }else{
+            }
+            else {
                 $this->parserInfo->incLineS($tok);
             }
             $this->iterator->next();
@@ -62,32 +83,38 @@ abstract class raPHPParser_base {
      * set the cursor on the next non whitespace token
      * @return boolean|array|string  return the next token found, or false if there isn't anymore token
      */
-    protected function toNextPhpToken(){
-        if(!$this->iterator->valid())
+    protected function toNextPhpToken() {
+        if (!$this->iterator->valid())
             return false;
         $this->iterator->next();
 
-        while($this->iterator->valid()) {
+        while ($this->iterator->valid()) {
             $tok = $this->iterator->current();
 
-            if(is_array($tok)){
-                if($tok[0] == T_WHITESPACE || $tok[0] == T_ENCAPSED_AND_WHITESPACE || $tok[0] == T_INLINE_HTML){
+            if (is_array($tok)) {
+                if ($tok[0] == T_WHITESPACE ||
+                    $tok[0] == T_ENCAPSED_AND_WHITESPACE ||
+                    $tok[0] == T_INLINE_HTML) {
                     $this->parserInfo->incLineS($tok[1]);
-                } elseif ($tok[0] == T_CLOSE_TAG) {
+                }
+                elseif ($tok[0] == T_CLOSE_TAG) {
                     $this->iterator->next();
                     $this->toNextPhpSection();
-                    if(!$this->iterator->valid())
+                    if (!$this->iterator->valid())
                         return false;
-                } else {
+                }
+                else {
                     if ($tok[0] == T_COMMENT || $tok[0] == T_DOC_COMMENT) {
                         $this->parserInfo->incLineS($tok[1]);
                     }
                     return $tok;
                 }
-            }elseif(!preg_match('/^\s*$/',$tok)){
+            }
+            elseif (!preg_match('/^\s*$/',$tok)) {
                 $this->parserInfo->incLineS($tok);
                 return $tok;
-            }else{
+            }
+            else {
                 $this->parserInfo->incLineS($tok);
             }
             $this->iterator->next();
@@ -97,8 +124,8 @@ abstract class raPHPParser_base {
     
     protected function toNextSpecificPhpToken($tokentype) {
         $tok = $this->toNextPhpToken();
-        if(is_string($tokentype)) {
-            if(is_string($tok)) {
+        if (is_string($tokentype)) {
+            if (is_string($tok)) {
                 if ($tok == $tokentype)
                     return $tok;
                 else
@@ -108,9 +135,9 @@ abstract class raPHPParser_base {
                 throw new Exception ("invalid syntax. token expected : string \"$tokentype\", got ".token_name($tok[0]));
         }
         else {
-            if(!is_array($tok))
+            if (!is_array($tok))
                 throw new Exception ("invalid syntax. token expected : ".token_name($tokentype).", got a string :\"$tok\"" );
-            if($tok[0] != $tokentype)
+            if ($tok[0] != $tokentype)
                 throw new Exception ("invalid syntax token expected : ".token_name($tokentype).", got another token : ".token_name($tok[0]));
             return $tok[1];
         }
@@ -119,44 +146,48 @@ abstract class raPHPParser_base {
     /**
      * skip a PHP bloc
      */
-    protected function skipPhpBlock(){
-        if(!$this->iterator->valid())
+    protected function skipPhpBlock () {
+        if (!$this->iterator->valid())
             return;
         $this->iterator->next();
-        if(!$this->iterator->valid())
+        if (!$this->iterator->valid())
             return;
     }
 
     protected function readVarnameAndValue($endToken = ';') {
         $tok = $this->iterator->current();
-        if(is_array($tok) && $tok[0] != T_VARIABLE)
+
+        if (is_array($tok) && $tok[0] != T_VARIABLE)
             throw new Exception('not a variable declaration');
-        $name = substr($tok[1],1);
+
+        $name = substr($tok[1], 1);
         $tok = $this->toNextPhpToken();
-        if(!$tok || !is_string($tok))
+
+        if (!$tok || !is_string($tok))
             throw new Exception('variable declaration invalid');
-        if($tok == '=') {
+
+        if ($tok == '=') {
             $value = '';
             $tok = $this->toNextPhpToken();
             $exit = $this->isEndToken($tok, $endToken);
             $insideArray = false;
             $parenthesisLevel = 0;
             
-            while ( $tok && !$exit) {
-                if(is_array($tok)) {
-                    $value.= $tok[1];
-                    if($tok[0] == T_ARRAY)
+            while ($tok && !$exit) {
+                if (is_array($tok)) {
+                    $value .= $tok[1];
+                    if ($tok[0] == T_ARRAY)
                         $insideArray = true;
                 }
                 else {
                     $value .= $tok;
                     if ($insideArray) {
-                        if($tok == '(') {
+                        if ($tok == '(') {
                             $parenthesisLevel++;
                         }
-                        elseif($tok == ')') {
+                        elseif ($tok == ')') {
                             $parenthesisLevel--;
-                            if($parenthesisLevel == 0)
+                            if ($parenthesisLevel == 0)
                                 $insideArray = false;
                         }
                     }
@@ -167,20 +198,20 @@ abstract class raPHPParser_base {
                     $exit =  $this->isEndToken($tok, $endToken);
                 }
             }
-            if(!$tok) {
+            if (!$tok) {
                 throw  new Exception('value of variable invalid ('.$name.','.$value.')');
             }
             return array($name, $value);
         }
-        else if($this->isEndToken($tok, $endToken)) {
+        else if ($this->isEndToken($tok, $endToken)) {
             return array($name, null);
         }
         else
-            throw  new Exception('bad end of variable declaration');
+            throw new Exception('bad end of variable declaration');
     }
     
     protected function isEndToken($tok, $endToken){
-        if(is_array($endToken)) {
+        if (is_array($endToken)) {
             return in_array($tok, $endToken);
         }
         else {
@@ -190,13 +221,13 @@ abstract class raPHPParser_base {
 
     protected function readConstAndValue() {
         $tok = $this->iterator->current();
-        if(is_array($tok) && $tok[0] != T_STRING)
+        if (is_array($tok) && $tok[0] != T_STRING)
             throw new Exception('not a const declaration');
         $name = $tok[1];
         $tok = $this->toNextPhpToken();
-        if(!$tok || !is_string($tok))
+        if (!$tok || !is_string($tok))
             throw new Exception('invalid const declaration');
-        if($tok != '=')
+        if ($tok != '=')
             throw new Exception('invalid const declaration: undefined value');
 
         $value = '';
@@ -206,20 +237,20 @@ abstract class raPHPParser_base {
         $parenthesisLevel = 0;
             
         while ( $tok && !$exit) {
-            if(is_array($tok)) {
+            if (is_array($tok)) {
                 $value.= $tok[1];
-                if($tok[0] == T_ARRAY)
+                if ($tok[0] == T_ARRAY)
                     $insideArray = true;
             }
             else {
                 $value .= $tok;
                 if ($insideArray) {
-                    if($tok == '(') {
+                    if ($tok == '(') {
                         $parenthesisLevel++;
                     }
-                    elseif($tok == ')') {
+                    elseif ($tok == ')') {
                         $parenthesisLevel--;
-                        if($parenthesisLevel == 0)
+                        if ($parenthesisLevel == 0)
                             $insideArray = false;
                     }
                 }
@@ -230,12 +261,9 @@ abstract class raPHPParser_base {
                 $exit =  $this->isEndToken($tok, ';');
             }
         }
-        if(!$tok) {
-            throw  new Exception('invalid value for const  ('.$name.','.$value.')');
+        if (!$tok) {
+            throw new Exception('invalid value for const  ('.$name.','.$value.')');
         }
         return array($name, $value);
     }
-
-
 }
-

@@ -9,55 +9,33 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
-require_once( dirname(__FILE__).'/../classes/raLogger.class.php');
-require_once( dirname(__FILE__).'/../classes/raDocGenerator.class.php');
+require_once( dirname(__FILE__).'/parser_test.lib.php');
 
-class ut_function_parser_test extends raPHPFunctionParser {
-    
-    public $tokAfterInit = null;
-    
-    function __construct( $content, $numberOfToken, $doccomment="/**\n*/"){
-        $tokens = new ArrayObject(token_get_all($content));
-        $this->iterator = $tokens->getIterator();
-        $this->parserInfo = new raParserInfo(1, '', '', '');
-        
-        $this->toNextPhpSection();
-        for($i=0; $i< $numberOfToken;$i++)
-            $this->tokAfterInit = $this->toNextPhpToken();
-
-        $fatherInfo =  new raFileDescriptor($this->parserInfo->getProjectId(),
-                                          $this->parserInfo->getFullSourcePath(),
-                                          $this->parserInfo->currentFile(),
-                                          $this->parserInfo->currentFileName());
-        
-        $this->isMethod = false;
-        $this->info = new raFunctionDescriptor(1,1,$this->parserInfo->currentLine());
-        $this->info->inheritsFrom($fatherInfo);
-        $this->info->initFromPhpDoc($doccomment);
-    }
-
-    function getIterator() { return $this->iterator;}
-}
 
 class ut_function_parser extends jUnitTestCaseDb {
     protected $logger;
+    protected $parserInfo;
     
     function setUp() {
-        raLogger::removeLoggers();
+        $logger = new raLogger();
         $this->logger = new raInMemoryLogger();
-        raLogger::addLogger($this->logger);
+        $logger->addLogger($this->logger);
+
+        $project = new ut_project_test($logger);
+
+        $this->parserInfo = new raParserInfo($project, 'project/test.php','project','test.php');
+
         $this->emptyTable('functions');
         $this->emptyTable('functions_authors');
         $this->emptyTable('function_parameters');
     }
 
     function tearDown() {
-        raLogger::removeLoggers();
     }
     
     function testFunctionNoName() {
         $content = ' <?php function { } ?>';
-        $p = new ut_function_parser_test($content,1);
+        $p = new ut_function_parser_test($content,1, $this->parserInfo);
         if($this->assertTrue(is_array($p->tokAfterInit)))
             $this->assertEqual($p->tokAfterInit[0] , T_FUNCTION);
         try {
@@ -71,7 +49,7 @@ class ut_function_parser extends jUnitTestCaseDb {
 
     function testFunctionNoParenthesis() {
         $content = ' <?php function foo { } ?>';
-        $p = new ut_function_parser_test($content,1);
+        $p = new ut_function_parser_test($content,1, $this->parserInfo);
         if($this->assertTrue(is_array($p->tokAfterInit)))
             $this->assertEqual($p->tokAfterInit[0] , T_FUNCTION);
         try {
@@ -85,7 +63,7 @@ class ut_function_parser extends jUnitTestCaseDb {
 
     function testFunctionNoParenthesis2() {
         $content = ' <?php function foo ( { } ?>';
-        $p = new ut_function_parser_test($content,1);
+        $p = new ut_function_parser_test($content,1, $this->parserInfo);
         if($this->assertTrue(is_array($p->tokAfterInit)))
             $this->assertEqual($p->tokAfterInit[0] , T_FUNCTION);
         try {
@@ -100,7 +78,7 @@ class ut_function_parser extends jUnitTestCaseDb {
 
     function testEmptyFunction() {
         $content = " <?php \nfunction foo () {\n }\n ?>";
-        $p = new ut_function_parser_test($content,1);
+        $p = new ut_function_parser_test($content,1, $this->parserInfo);
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 3);
         
@@ -112,12 +90,12 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
-        $this->assertEqual($p->getInfo()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
         
         $records = array(array(
-            'id'=>$p->getInfo()->functionId,
+            'id'=>$p->getDescriptor()->functionId,
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'package_id'=>null,
             'file_id'=>1,
             'line_start'=>2,
@@ -145,7 +123,7 @@ class ut_function_parser extends jUnitTestCaseDb {
 
     function testOneFunctionParameter() {
         $content = " <?php \nfunction foo (".'$aaa'.") {\n }\n ?>";
-        $p = new ut_function_parser_test($content,1);
+        $p = new ut_function_parser_test($content,1, $this->parserInfo);
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 3);
         
@@ -157,15 +135,15 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
-        $this->assertEqual($p->getInfo()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
         
-        $this->assertEqual($p->getInfo()->parameters,
+        $this->assertEqual($p->getDescriptor()->parameters,
                            array(array('','aaa','','')));
         
         $records = array(array(
-            'id'=>$p->getInfo()->functionId,
+            'id'=>$p->getDescriptor()->functionId,
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'package_id'=>null,
             'file_id'=>1,
             'line_start'=>2,
@@ -190,7 +168,7 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertTableIsEmpty('functions_authors');
         
         $records = array(array(
-            'function_id'=>$p->getInfo()->functionId,
+            'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>1,
             'type'=>null,
             'name'=>'aaa',
@@ -202,7 +180,7 @@ class ut_function_parser extends jUnitTestCaseDb {
 
     function testOneFunctionParameterWithDoc() {
         $content = " <?php \nfunction foo (".'$aaa'.") {\n }\n ?>";
-        $p = new ut_function_parser_test($content,1, "/**\n* @param string ".'$aaa'." this is a parameter\n*/");
+        $p = new ut_function_parser_test($content,1, $this->parserInfo, "/**\n* @param string ".'$aaa'." this is a parameter\n*/");
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 3);
         
@@ -214,15 +192,15 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
-        $this->assertEqual($p->getInfo()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
         
-        $this->assertEqual($p->getInfo()->parameters,
+        $this->assertEqual($p->getDescriptor()->parameters,
                            array(array('string','aaa','','this is a parameter')));
         
         $records = array(array(
-            'id'=>$p->getInfo()->functionId,
+            'id'=>$p->getDescriptor()->functionId,
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'package_id'=>null,
             'file_id'=>1,
             'line_start'=>2,
@@ -247,7 +225,7 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertTableIsEmpty('functions_authors');
         
         $records = array(array(
-            'function_id'=>$p->getInfo()->functionId,
+            'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>1,
             'type'=>'string',
             'name'=>'aaa',
@@ -260,7 +238,7 @@ class ut_function_parser extends jUnitTestCaseDb {
 
     function testFunctionParameters() {
         $content = " <?php \nfunction foo (".'$aaa'.", Iterator ".'$bbb'.", ".'$ccc'." = 'pipo', Plop ".'$ddd'." = null) {\n }\n ?>";
-        $p = new ut_function_parser_test($content,1);
+        $p = new ut_function_parser_test($content,1, $this->parserInfo);
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 3);
         
@@ -272,18 +250,18 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
-        $this->assertEqual($p->getInfo()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
         
-        $this->assertEqual($p->getInfo()->parameters,
+        $this->assertEqual($p->getDescriptor()->parameters,
                            array(array('','aaa','',''),
                                  array('Iterator','bbb','', ''),
                                  array('','ccc',"'pipo'", ''),
                                  array('Plop','ddd','null', ''),));
         
         $records = array(array(
-            'id'=>$p->getInfo()->functionId,
+            'id'=>$p->getDescriptor()->functionId,
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'package_id'=>null,
             'file_id'=>1,
             'line_start'=>2,
@@ -308,7 +286,7 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertTableIsEmpty('functions_authors');
         
         $records = array(array(
-            'function_id'=>$p->getInfo()->functionId,
+            'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>1,
             'type'=>null,
             'name'=>'aaa',
@@ -316,7 +294,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             'documentation'=>'',
         ),
             array(
-            'function_id'=>$p->getInfo()->functionId,
+            'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>2,
             'type'=>'Iterator',
             'name'=>'bbb',
@@ -324,7 +302,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             'documentation'=>'',
         ),
             array(
-            'function_id'=>$p->getInfo()->functionId,
+            'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>3,
             'type'=>null,
             'name'=>'ccc',
@@ -332,7 +310,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             'documentation'=>'',
         ),
             array(
-            'function_id'=>$p->getInfo()->functionId,
+            'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>4,
             'type'=>'Plop',
             'name'=>'ddd',
@@ -355,7 +333,7 @@ class ut_function_parser extends jUnitTestCaseDb {
 *  @return string the result
   */';
         $content = " <?php \nfunction foo (".'$aaa'.", Iterator ".'$bbb'.", ".'$ccc'." = 'pipo', Plop ".'$ddd'." = null) {\n }\n ?>";
-        $p = new ut_function_parser_test($content,1, $doc);
+        $p = new ut_function_parser_test($content,1, $this->parserInfo, $doc);
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 3);
         
@@ -367,18 +345,18 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
-        $this->assertEqual($p->getInfo()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
         
-        $this->assertEqual($p->getInfo()->parameters,
+        $this->assertEqual($p->getDescriptor()->parameters,
                            array(array('integer','aaa','','first parameter'),
                                  array('Iterator','bbb','', "second parameter\nwith a long documentation\nand a bad type"),
                                  array('string','ccc',"'pipo'", 'third parameter'),
                                  array('Plop','ddd','null', 'what?'),));
         
         $records = array(array(
-            'id'=>$p->getInfo()->functionId,
+            'id'=>$p->getDescriptor()->functionId,
             'name'=>'foo',
-            'project_id'=>1,
+            'project_id'=>$this->parserInfo->getProjectId(),
             'package_id'=>null,
             'file_id'=>1,
             'line_start'=>2,
@@ -403,7 +381,7 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertTableIsEmpty('functions_authors');
         
         $records = array(array(
-            'function_id'=>$p->getInfo()->functionId,
+            'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>1,
             'type'=>'integer',
             'name'=>'aaa',
@@ -411,7 +389,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             'documentation'=>'first parameter',
         ),
             array(
-            'function_id'=>$p->getInfo()->functionId,
+            'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>2,
             'type'=>'Iterator',
             'name'=>'bbb',
@@ -419,7 +397,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             'documentation'=>"second parameter\nwith a long documentation\nand a bad type",
         ),
             array(
-            'function_id'=>$p->getInfo()->functionId,
+            'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>3,
             'type'=>'string',
             'name'=>'ccc',
@@ -427,7 +405,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             'documentation'=>'third parameter',
         ),
             array(
-            'function_id'=>$p->getInfo()->functionId,
+            'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>4,
             'type'=>'Plop',
             'name'=>'ddd',

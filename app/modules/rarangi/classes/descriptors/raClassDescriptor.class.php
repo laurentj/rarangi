@@ -18,23 +18,26 @@ class raClassDescriptor extends raInterfaceDescriptor {
     protected $isInterface = false;
 
     public function save() {
+        if ($this->ignore)
+            return;
+
         parent::save();
 
         $dao = jDao::get('rarangi~classes');
 
         foreach ($this->interfaces as $interface) {
-            $iface = $dao->getByName($this->projectId, $interface);
+            $iface = $dao->getByName($this->project->id(), $interface);
             if (!$iface) {
                 $iface = jDao::createRecord('rarangi~classes');
                 $iface->name = $interface;
-                $iface->project_id = $this->projectId;
+                $iface->project_id = $this->project->id();
                 $iface->is_interface = true;
                 $dao->insert($iface);
             }
             $class_iface = jDao::createRecord('rarangi~interface_class');
             $class_iface->class_id = $this->classId;
             $class_iface->interface_id = $iface->id;
-            $class_iface->project_id = $this->projectId;
+            $class_iface->project_id = $this->project->id();
             jDao::get('rarangi~interface_class')->insert($class_iface);
         }
     }

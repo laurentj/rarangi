@@ -135,9 +135,9 @@ class raBaseDescriptor {
     public $licenseText = '';
 
     /**
-     * @var integer the id of the project owner
+     * @var raProject the owner project
      */
-    public $projectId = null;
+    public $project = null;
     
     /**
      * @var integer the id of the file where the component is declared
@@ -153,12 +153,11 @@ class raBaseDescriptor {
      * @var integer the last line where the component is declared
      */
     public $lineEnd = 0;
-    
-    
+
     protected $acceptPackage = true;
     
-    function __construct ($projectId, $fileId, $line) {
-        $this->projectId = $projectId;
+    function __construct (raProject $project, $fileId, $line) {
+        $this->project = $project;
         $this->fileId = $fileId;
         $this->line = $line;
     }
@@ -168,7 +167,6 @@ class raBaseDescriptor {
      * @param raBaseDescriptor $desc a descriptor
      */
     public function inheritsFrom ($desc) {
-        $this->projectId = $desc->projectId;
         $this->package = $desc->package;
         $this->authors = $desc->authors;
         $this->contributors = $desc->contributors;
@@ -199,7 +197,7 @@ class raBaseDescriptor {
                             if ($this->acceptPackage)
                                 $this->package = $content;
                             else
-                                raLogger::error('Package tag is not allowed here');
+                                $this->project->logger()->error('Package tag is not allowed here');
                             break;
                         case 'subpackage':
                             if ($this->acceptPackage) {
@@ -207,7 +205,7 @@ class raBaseDescriptor {
                                     $this->package .= '.'.$content;
                             }
                             else
-                                raLogger::error('subpackage tag is not allowed here');
+                                $this->project->logger()->error('subpackage tag is not allowed here');
                             break;
                         case 'author':
                         case 'contributor':
@@ -224,7 +222,7 @@ class raBaseDescriptor {
                                         $this->contributors[] = array($n,$e);
                                 }
                                 else {
-                                    raLogger::warning($tag." name malformed :".$p);
+                                    $this->project->logger()->warning($tag." name malformed :".$p);
                                     if ($tag == 'author')
                                         $this->authors[]=array(trim($p),'');
                                     else
@@ -353,7 +351,7 @@ class raBaseDescriptor {
                     
                 }
             }
-            else{ // invalid line
+            else { // invalid line
                 //throw new Exception("bad syntax in a doc comment");
                //jLogger::warning('bad syntax in a doc comment');
             }
@@ -388,33 +386,6 @@ class raBaseDescriptor {
      * save the parsed informations into the database.
      */
     public function save() {}
-
-    /**
-     * @var array  list of id of packages. used by getPackageId as a cache
-     */
-    protected static $_packages = array();
-
-    /**
-     * return the package id corresponding to the given name. If the package
-     * is not registered into the database, a new record is created
-     * @param string $packageName the name of the package
-     * @return integer the id of the package
-     */
-    protected function getPackageId ($packageName) {
-        if ($packageName == '')
-            return null;
-        if (isset(self::$_packages[$packageName]))
-            return self::$_packages[$packageName];
-        $package = jDao::get('rarangi~packages')->getByName($this->projectId, $packageName);
-        if (!$package) {
-            $package = jDao::createRecord('rarangi~packages');
-            $package->project_id = $this->projectId;
-            $package->name = $packageName;
-            jDao::get('rarangi~packages')->insert($package);
-        }
-        self::$_packages[$packageName] = $package->id;
-        return $package->id;
-    }
     
     /**
      * save authors and contributors into the database, and returns their ids
@@ -438,11 +409,12 @@ class raBaseDescriptor {
     private function _registerAuthors(& $developers){
         $authorId = array();
         $dao = jDao::get('rarangi~authors');
+        $pId = $this->project->id();
         foreach ($developers as $author) {
             list($name, $email) = $author;
             $dev = null;
             if ($email !='') {
-                $dev = $dao->getByEmail($email, $this->projectId);
+                $dev = $dao->getByEmail($email, $pId);
                 if ($dev && $dev->name == '' && $name !='') {
                     $dev->name = $name;
                     $dao->update($dev);
@@ -450,13 +422,13 @@ class raBaseDescriptor {
             }
             else {
                 // find by name
-                $dev = $dao->getByName($name, $this->projectId);
+                $dev = $dao->getByName($name, $pId);
             }
             if(!$dev) {
                 $dev = jDao::createRecord('rarangi~authors');
                 $dev->name = $name;
                 $dev->email = $email;
-                $dev->project_id = $this->projectId;
+                $dev->project_id = $pId;
                 $dao->insert($dev);
             }
             $authorId[] = $dev->id;

@@ -13,18 +13,10 @@ require_once( dirname(__FILE__).'/../classes/raDocGenerator.class.php');
 
 class docConfigTest extends raDocGenerator {
 
-    static public function getInstance(){
-        static $doc=null;
-        if($doc === null){
-            $doc = new docConfigTest();
-        }
-        return $doc;
-    }
-
     function resetConfig() {
         $this->config = array(
-        'excludedFiles' => array(),
-        'excludedFilesReg' => array()
+            'excludedFiles' => array(),
+            'excludedFilesReg' => array()
         );
     }
 
@@ -40,7 +32,7 @@ class docConfigTest extends raDocGenerator {
 class ut_config extends jUnitTestCase {
 
     function testEmptyConfig() {
-        $doc = docConfigTest::getInstance();
+        $doc = new docConfigTest();
         $doc->resetConfig();
         $doc->setExcludedFiles(array());
         $this->assertIdentical($doc->getExcludedFiles (), array());
@@ -48,7 +40,7 @@ class ut_config extends jUnitTestCase {
     }
 
     function testExcludedSimpleFile() {
-        $doc = docConfigTest::getInstance();
+        $doc = new docConfigTest();
         $doc->resetConfig();
         $doc->setExcludedFiles(array('CVS','.svn'));
         $this->assertIdentical($doc->getExcludedFiles (), array('CVS','.svn'));
@@ -56,7 +48,7 @@ class ut_config extends jUnitTestCase {
     }
 
     function testExcludedRegFile() {
-        $doc = docConfigTest::getInstance();
+        $doc = new docConfigTest();
         $doc->resetConfig();
         $doc->setExcludedFiles(array('*foo', '*.foo','bar.*', 'CVS', 'sv*n'));
         $this->assertIdentical($doc->getExcludedFiles (), array('CVS','sv*n'));
@@ -64,7 +56,7 @@ class ut_config extends jUnitTestCase {
     }
 
     function testRightExcludedFile(){
-        $doc = docConfigTest::getInstance();
+        $doc = new docConfigTest();
         $doc->resetConfig();
         $doc->setExcludedFiles(array('*foo', '*.foo','bar.*', 'CVS', 'sv*n'));
         $doc->convertConfig();
@@ -78,7 +70,7 @@ class ut_config extends jUnitTestCase {
     }
 
     function testWrongExcludedFile(){
-        $doc = docConfigTest::getInstance();
+        $doc = new docConfigTest();
         $doc->resetConfig();
         $doc->setExcludedFiles(array('*foo', '*.foo','bar.*', 'CVS', 'sv*n'));
         $doc->convertConfig();

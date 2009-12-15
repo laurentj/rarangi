@@ -32,7 +32,6 @@ class raPropertyDescriptor extends raBaseDescriptor {
     protected $acceptPackage= false;
 
     public function inheritsFrom($desc) {
-        $this->projectId = $desc->projectId;
         $this->deprecated = $desc->deprecated;
         $this->ignore = $desc->ignore;
         $this->since = $desc->since;
@@ -45,28 +44,31 @@ class raPropertyDescriptor extends raBaseDescriptor {
     }
     
     public function save() {
-        if($this->name == '')
+        if ($this->ignore)
+            return;
+
+        if ($this->name == '')
             throw new Exception('property name undefined');
 
         $dao = jDao::get('rarangi~class_properties');
         $record = jDao::createRecord('rarangi~class_properties');
         $record->name = $this->name;
         $record->class_id = $this->classId;
-        $record->project_id = $this->projectId;
+        $record->project_id = $this->project->id();
         $record->line_start = $this->line;
         $record->datatype = $this->datatype;
         $record->default_value = $this->defaultValue;
         $record->type = $this->typeProperty;
-        if($this->accessibility == T_PUBLIC)
+        if ($this->accessibility == T_PUBLIC)
             $record->accessibility = 'PUB';
-        elseif($this->accessibility == T_PROTECTED)
+        elseif ($this->accessibility == T_PROTECTED)
             $record->accessibility = 'PRO';        
-        elseif($this->accessibility == T_PRIVATE)
+        elseif ($this->accessibility == T_PRIVATE)
             $record->accessibility = 'PRI';
-        
+
         $record->short_description = $this->shortDescription;
         $record->description = $this->description;
-        
+
         $record->copyright = $this->copyright;
         $record->internal = $this->internal;
         $record->links = serialize($this->links);
@@ -82,5 +84,4 @@ class raPropertyDescriptor extends raBaseDescriptor {
         $dao->insert($record);
     }
 
-    
 }

@@ -27,7 +27,7 @@ class raInterfaceDescriptor extends raBaseDescriptor {
     /**
      * @var string name of the mother of the interface/class
      */
-    public $inheritsFrom = '';
+    public $mother = '';
 
     /**
      * @var array list of members of the interface/class
@@ -37,6 +37,8 @@ class raInterfaceDescriptor extends raBaseDescriptor {
     public $classId = null;
 
     public function save() {
+        if ($this->ignore)
+            return;
 
         if ($this->name == '')
             throw new Exception('class name undefined');
@@ -44,12 +46,12 @@ class raInterfaceDescriptor extends raBaseDescriptor {
         $dao = jDao::get('rarangi~classes');
         
         $mother_id = null;
-        if($this->inheritsFrom != '') {
-            $mother = $dao->getByName($this->projectId, $this->inheritsFrom);
+        if ($this->mother != '') {
+            $mother = $dao->getByName($this->project->id(), $this->mother);
             if (!$mother) {
                 $mother = jDao::createRecord('rarangi~classes');
-                $mother->name = $this->inheritsFrom;
-                $mother->project_id = $this->projectId;
+                $mother->name = $this->mother;
+                $mother->project_id = $this->project->id();
                 if ($this->isInterface)
                     $mother->is_interface = true;
                 $dao->insert($mother);
@@ -57,7 +59,7 @@ class raInterfaceDescriptor extends raBaseDescriptor {
             $mother_id = $mother->id;
         }
 
-        $record = $dao->getByNameAndFile($this->projectId, $this->name, $this->fileId);
+        $record = $dao->getByNameAndFile($this->project->id(), $this->name, $this->fileId);
         $toInsert=false;
         if (!$record) {
             $toInsert=true;
@@ -65,7 +67,7 @@ class raInterfaceDescriptor extends raBaseDescriptor {
         }
 
         $record->name = $this->name;
-        $record->project_id = $this->projectId;
+        $record->project_id = $this->project->id();
         $record->file_id = $this->fileId;
         $record->line_start = $this->line;
         $record->line_end = $this->lineEnd;
@@ -74,7 +76,7 @@ class raInterfaceDescriptor extends raBaseDescriptor {
             $record->is_abstract = $this->isAbstract;
         else
             $record->is_abstract = 0;
-        $record->package_id = $this->getPackageId($this->package);
+        $record->package_id = $this->project->getPackageId($this->package);
         $record->is_interface = $this->isInterface;
         $record->short_description = $this->shortDescription;
         $record->description = $this->description;

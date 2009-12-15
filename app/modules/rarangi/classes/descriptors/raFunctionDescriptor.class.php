@@ -48,13 +48,13 @@ class raFunctionDescriptor  extends raBaseDescriptor {
                 $this->currentParam = $m[2];
             }
             else
-                raLogger::warning('@param, invalid arguments :'.$content);
+                $this->project->logger()->warning('@param, invalid arguments :'.$content);
         }
         return false;
     }
 
     protected function addContentToSpecificTag($tag, $content) {
-        if($tag == 'return') {
+        if ($tag == 'return') {
             $this->returnDescription .=  "\n".$content;
             return true;
         }
@@ -65,14 +65,17 @@ class raFunctionDescriptor  extends raBaseDescriptor {
     }
     
     public function save() {
-        if($this->name == '')
+        if ($this->ignore)
+            return;
+
+        if ($this->name == '')
             throw new Exception('function name undefined');
 
         $dao = jDao::get('rarangi~functions');
         $record = jDao::createRecord('rarangi~functions');
         $record->name = $this->name;
-        $record->project_id = $this->projectId;
-        $record->package_id = $this->getPackageId($this->package);
+        $record->project_id = $this->project->id();
+        $record->package_id = $this->project->getPackageId($this->package);
         $record->file_id = $this->fileId;
         $record->line_start = $this->line;
         $record->line_end = $this->lineEnd;
@@ -120,6 +123,5 @@ class raFunctionDescriptor  extends raBaseDescriptor {
             list($param->type, $param->name, $param->defaultvalue, $param->documentation) = $p;
             $parameters->insert($param);
         }
-        
     }
 }

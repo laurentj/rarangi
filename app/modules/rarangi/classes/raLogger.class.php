@@ -24,23 +24,37 @@ class raLogger {
      * list of active driver
      * @var array  array of raILoggerDriver objects
      */
-    protected static $loggers = array();
+    protected $loggers = array();
+    
+    /**
+     * @var raParserInfo
+     */
+    protected $parserInfo;
 
-    private function __construct(){}
+    function __construct() {
+
+    }
+
+    /**
+     * @param raParserInfo $parserInfo
+     */
+    function setCurrentParserInfo($parserInfo) {
+        $this->parserInfo = $parserInfo;
+    }
 
     /**
      * register a new logger driver
      * @param jILoggerDriver $logger
      */
-    static public function addLogger($logger){
-        self::$loggers[] = $logger;
+    public function addLogger($logger) {
+        $this->loggers[] = $logger;
     }
 
     /**
      * remove all registered logger driver
      */
-    static public function removeLoggers(){
-        self::$loggers = array();
+    public function removeLoggers() {
+        $this->loggers = array();
     }
 
     /**
@@ -48,33 +62,41 @@ class raLogger {
      * @param int $number
      * @return jILoggerDriver $logger
      */
-    static public function getLogger($key){
-        return self::$loggers[$key];
+    public function getLogger($key) {
+        return $this->loggers[$key];
     }
 
     /**
      * generate a simple message
      * @param string $str the message
      */
-    static public function message($str){ self::call($str,'message');}
+    public function message($str) {
+        $this->call($str,'message');
+    }
 
     /**
      * generate a notice
      * @param string $str the message
      */
-    static public function notice($str){ self::call($str,'notice');}
+    public function notice($str) {
+        $this->call($str,'notice');
+    }
 
     /**
      * generate a warning
      * @param string $str the message
      */
-    static public function warning($str){ self::call($str,'warning');}
+    public function warning($str) {
+        $this->call($str,'warning');
+    }
 
     /**
      * generate an error
      * @param string $str the message
      */
-    static public function error($str){ self::call($str,'error');}
+    public function error($str) {
+        $this->call($str,'error');
+    }
 
     /**
      * call all registered drivers with the current message
@@ -82,17 +104,18 @@ class raLogger {
      * @param string $meth the type of message : it should be the name of a method 
      *                     of raILoggerDriver interface
      */
-    protected static function call($str, $meth){
-        $pi = raDocGenerator::getInstance()->getParserInfo();
-        if($pi) {
-            $f = $pi->currentFile();
-            $l = $pi->currentLine();
+    protected function call ($str, $meth) {
+
+        if ($this->parserInfo) {
+            $f = $this->parserInfo->currentFile();
+            $l = $this->parserInfo->currentLine();
         }
         else {
             $f = '';
             $l = 0;
         }
-        foreach(self::$loggers as $log){
+
+        foreach ($this->loggers as $log) {
             $log->$meth($str, $f, $l);
         }
     }
@@ -101,13 +124,12 @@ class raLogger {
      * for debug only
      * @todo remove it at the end of developpement
      */
-    static public function dumpTok($tok){
+    public function dumpTok($tok){
        /* if(is_array($tok)){
             self::message('-----token '.token_name($tok[0]).' value="'.$tok[1].'"');
         }else{
             self::message('-----token value="'.$tok.'"');
         }*/
-
     }
 
 }

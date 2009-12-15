@@ -23,8 +23,8 @@ class raPHPDefineParser extends raPHPParser_base {
      * @param string $doccomment the documented comment associated to the define
      */
     function __construct( $it, $doccomment){
-        //$this->info = new raDefineDescriptor();
-        //$this->info->initFromPhpDoc($doccomment);
+        //$this->descriptor = new raDefineDescriptor();
+        //$this->descriptor->initFromPhpDoc($doccomment);
         parent::__construct( $it);
     }
 

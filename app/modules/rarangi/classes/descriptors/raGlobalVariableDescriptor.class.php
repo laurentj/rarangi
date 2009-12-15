@@ -13,5 +13,12 @@
  */
 class raGlobalVariableDescriptor  extends raBaseDescriptor {
     public $datatype;
+
+    public function save() {
+        if ($this->ignore)
+            return;
+
+        parent::save();
+    }
 }
 

@@ -25,7 +25,8 @@ class raPHPFunctionParser extends raPHPParser_base {
      * @param boolean $isAbstract  indicates if the function is an abstract function in the class
 
      */
-    function __construct( $fatherParser, $doccomment, $accessibility=0, $isStatic=false, $isFinal=false, $isAbstract=false){
+    function __construct ($fatherParser, $doccomment, $accessibility=0,
+                         $isStatic=false, $isFinal=false, $isAbstract=false) {
         
         parent::__construct($fatherParser);
         
@@ -33,32 +34,32 @@ class raPHPFunctionParser extends raPHPParser_base {
             if (!($fatherParser instanceof raPHPClassParser))
                 $this->isInInterface = true;
             $this->isMethod = true;
-            $this->info = new raMethodDescriptor($this->parserInfo->getProjectId(),
-                                               $fatherParser->getInfo()->fileId,
+            $this->descriptor = new raMethodDescriptor($this->parserInfo->project(),
+                                               $fatherParser->getDescriptor()->fileId,
                                                $this->parserInfo->currentLine());
-            $this->info->inheritsFrom($fatherParser->getInfo());
-            $this->info->initFromPhpDoc($doccomment);
-            $this->info->accessibility = $accessibility;
-            $this->info->isStatic = $isStatic;
-            $this->info->isFinal = $isFinal;
-            $this->info->isAbstract = $isAbstract;
+            $this->descriptor->inheritsFrom($fatherParser->getDescriptor());
+            $this->descriptor->initFromPhpDoc($doccomment);
+            $this->descriptor->accessibility = $accessibility;
+            $this->descriptor->isStatic = $isStatic;
+            $this->descriptor->isFinal = $isFinal;
+            $this->descriptor->isAbstract = $isAbstract;
         }
         else {
             $this->isMethod = false;
-            $this->info = new raFunctionDescriptor($this->parserInfo->getProjectId(),
-                                               $fatherParser->getInfo()->fileId,
+            $this->descriptor = new raFunctionDescriptor($this->parserInfo->project(),
+                                               $fatherParser->getDescriptor()->fileId,
                                                $this->parserInfo->currentLine());
-            $this->info->inheritsFrom($fatherParser->getInfo());
-            $this->info->initFromPhpDoc($doccomment);
+            $this->descriptor->inheritsFrom($fatherParser->getDescriptor());
+            $this->descriptor->initFromPhpDoc($doccomment);
         }
     }
 
-    public function parse(){
-        $this->info->name = $this->toNextSpecificPhpToken(T_STRING);
+    public function parse() {
+        $this->descriptor->name = $this->toNextSpecificPhpToken(T_STRING);
 
         $this->toNextSpecificPhpToken('(');
         $tok = $this->toNextPhpToken();
-        $this->info->parameters = array();
+        $this->descriptor->parameters = array();
         $pname = '';
         $pvalue = '';
         $ptype = '';
@@ -90,7 +91,7 @@ class raPHPFunctionParser extends raPHPParser_base {
             throw new Exception ("Function/method parsing, invalid syntax, no ended parenthesis or begin of bloc");
         }
         // stop here if it is an abstract method
-        if ($this->isMethod && ($this->info->isAbstract || $this->isInInterface)) {
+        if ($this->isMethod && ($this->descriptor->isAbstract || $this->isInInterface)) {
             $this->toNextSpecificPhpToken(';');
             return;
         }
@@ -118,19 +119,19 @@ class raPHPFunctionParser extends raPHPParser_base {
                 }
             }
         }
-        $this->info->lineEnd = $this->parserInfo->currentLine();
-        if(!$this->isMethod) $this->info->save();
+        $this->descriptor->lineEnd = $this->parserInfo->currentLine();
+        if(!$this->isMethod) $this->descriptor->save();
     }
 
     protected function declareParameter($type, $name, $defaultvalue) {
         $doc = '';
-        if (isset($this->info->docParameters[$name])) {
-            $docparam = $this->info->docParameters[$name];
+        if (isset($this->descriptor->docParameters[$name])) {
+            $docparam = $this->descriptor->docParameters[$name];
             if ($type == '')
                 $type = $docparam[0];
             $doc = $docparam[1];
         }
-        $this->info->parameters[] = array($type, $name, $defaultvalue, $doc);
+        $this->descriptor->parameters[] = array($type, $name, $defaultvalue, $doc);
     }
 
 }

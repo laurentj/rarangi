@@ -41,7 +41,6 @@ class raMethodDescriptor  extends raBaseDescriptor {
     protected $acceptPackage= false;
 
     public function inheritsFrom($desc) {
-        $this->projectId = $desc->projectId;
         $this->deprecated = $desc->deprecated;
         $this->ignore = $desc->ignore;
         $this->since = $desc->since;
@@ -65,13 +64,13 @@ class raMethodDescriptor  extends raBaseDescriptor {
                 $this->currentParam = $m[2];
             }
             else
-                raLogger::warning('@param, invalid arguments :'.$content);
+                $this->project->logger()->warning('@param, invalid arguments :'.$content);
         }
         return false;
     }
 
     protected function addContentToSpecificTag($tag, $content) {
-        if($tag == 'return') {
+        if ($tag == 'return') {
             $this->returnDescription .=  "\n".$content;
             return true;
         }
@@ -82,14 +81,18 @@ class raMethodDescriptor  extends raBaseDescriptor {
     }
 
     public function save() {
-        if($this->name == '')
+
+        if ($this->ignore)
+            return;
+
+        if ($this->name == '')
             throw new Exception('method name undefined');
 
         $dao = jDao::get('rarangi~class_methods');
         $record = jDao::createRecord('rarangi~class_methods');
         $record->name = $this->name;
         $record->class_id = $this->classId;
-        $record->project_id = $this->projectId;
+        $record->project_id = $this->project->id();
         $record->line_start = $this->line;
         $record->line_end = $this->lineEnd;
         $record->is_static = $this->isStatic;

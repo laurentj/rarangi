@@ -19,11 +19,11 @@ class raPHPInterfaceParser extends raPHPParser_base {
      */
     function __construct($fatherParser, $doccomment){
         parent::__construct($fatherParser);
-        $this->info = new raInterfaceDescriptor($this->parserInfo->getProjectId(),
-                                           $fatherParser->getInfo()->fileId,
+        $this->descriptor = new raInterfaceDescriptor($this->parserInfo->project(),
+                                           $fatherParser->getDescriptor()->fileId,
                                            $this->parserInfo->currentLine());
-        $this->info->inheritsFrom($fatherParser->getInfo());
-        $this->info->initFromPhpDoc($doccomment);
+        $this->descriptor->inheritsFrom($fatherParser->getDescriptor());
+        $this->descriptor->initFromPhpDoc($doccomment);
     }
 
     const MEMBER_TYPE_CONST = 1;
@@ -33,18 +33,18 @@ class raPHPInterfaceParser extends raPHPParser_base {
 
     public function parse(){
 
-        $this->info->name = $this->toNextSpecificPhpToken(T_STRING);
-        if ($this->info instanceof raClassDescriptor)
-            raLogger::message("   parsing class ".$this->info->name);
+        $this->descriptor->name = $this->toNextSpecificPhpToken(T_STRING);
+        if ($this->descriptor instanceof raClassDescriptor)
+            $this->parserInfo->project()->logger()->message("   parsing class ".$this->descriptor->name);
         else
-            raLogger::message("   parsing interface ".$this->info->name);
+            $this->parserInfo->project()->logger()->message("   parsing interface ".$this->descriptor->name);
         $this->parseDeclaration();
         
         $bracketlevel = 1;
 
         $previousDocComment = '';
         $doExit = false;
-        
+
         $memberAccessibility = T_PUBLIC;
         $memberStatic = false;
         $memberFinal = false;
@@ -54,16 +54,22 @@ class raPHPInterfaceParser extends raPHPParser_base {
             if (is_array($tok)) {
                 switch($tok[0]){
                 case T_FUNCTION:
-                    $subparser = new raPHPFunctionParser($this, $previousDocComment, $memberAccessibility, $memberStatic, $memberFinal, $memberType == self::MEMBER_TYPE_FUNC_ABST);
+                    $subparser = new raPHPFunctionParser($this, $previousDocComment,
+                                                         $memberAccessibility,
+                                                         $memberStatic,
+                                                         $memberFinal,
+                                                         $memberType == self::MEMBER_TYPE_FUNC_ABST);
                     $subparser->parse();
-                    $this->info->members[]=$subparser->getInfo();
+                    $this->descriptor->members[]=$subparser->getDescriptor();
                     $memberAccessibility = T_PUBLIC;
                     $memberStatic = false;
                     $memberFinal = false;
                     $memberType= 0;
                     break;
                 case T_VARIABLE:
-                    $info = new raPropertyDescriptor($this->info->projectId, $this->info->fileId, $this->parserInfo->currentLine());
+                    $info = new raPropertyDescriptor($this->parserInfo->project(),
+                                                     $this->descriptor->fileId,
+                                                     $this->parserInfo->currentLine());
                     $info->initFromPhpDoc($previousDocComment);
                     $info->accessibility = $memberAccessibility;
                     if ($memberStatic)
@@ -71,7 +77,7 @@ class raPHPInterfaceParser extends raPHPParser_base {
                     list($pname, $pvalue) = $this->readVarnameAndValue(';');
                     $info->name = $pname;
                     $info->defaultValue = $pvalue;
-                    $this->info->members[]=$info;
+                    $this->descriptor->members[]=$info;
                     $memberAccessibility = T_PUBLIC;
                     $memberStatic = false;
                     $memberFinal = false;
@@ -107,14 +113,16 @@ class raPHPInterfaceParser extends raPHPParser_base {
                     break;
                 case T_STRING:
                     if ($memberType == self::MEMBER_TYPE_CONST) {
-                      $info = new raPropertyDescriptor($this->info->projectId, $this->info->fileId, $this->parserInfo->currentLine());
+                      $info = new raPropertyDescriptor($this->parserInfo->project(),
+                                                       $this->descriptor->fileId,
+                                                       $this->parserInfo->currentLine());
                       $info->initFromPhpDoc($previousDocComment);
                       $info->accessibility = $memberAccessibility;
                       $info->typeProperty = raPropertyDescriptor::TYPE_CONST;
                       list($pname, $pvalue) = $this->readConstAndValue(';');
                       $info->name = $pname;
                       $info->defaultValue = $pvalue;
-                      $this->info->members[]=$info;
+                      $this->descriptor->members[]=$info;
                       $memberAccessibility = T_PUBLIC;
                       $memberStatic = false;
                       $memberFinal = false;
@@ -137,8 +145,8 @@ class raPHPInterfaceParser extends raPHPParser_base {
                 $previousDocComment = '';
             }
         }
-        $this->info->lineEnd = $this->parserInfo->currentLine();
-        $this->info->save();
+        $this->descriptor->lineEnd = $this->parserInfo->currentLine();
+        $this->descriptor->save();
     }
  
 
@@ -154,7 +162,7 @@ class raPHPInterfaceParser extends raPHPParser_base {
             if($tok[0] != T_EXTENDS) {
                 throw new Exception ("Interface parsing, invalid syntax, bad token : ".token_name($tok[0]));
             }
-            $this->info->inheritsFrom = $this->toNextSpecificPhpToken(T_STRING);
+            $this->descriptor->mother = $this->toNextSpecificPhpToken(T_STRING);
             $tok = $this->toNextPhpToken();
             break;
         }

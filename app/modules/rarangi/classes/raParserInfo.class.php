@@ -3,7 +3,7 @@
 * @package     rarangi
 * @author      Laurent Jouanneau
 * @contributor
-* @copyright   2006-2008 Laurent Jouanneau
+* @copyright   2006-2009 Laurent Jouanneau
 * @link        http://forge.jelix.org/projects/rarangi
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
@@ -14,25 +14,26 @@
  */
 class raParserInfo {
 
-    /**
-     * @var jDocConfig
-     */
-    public $config = null;
-
     protected $fullSourcePath = '';
     protected $currentFile = '';
     protected $currentFileName = '';
     protected $currentLine = 1;
 
     /**
-     * @var jDaoRecord
+     * @var raProject
      */
-    protected $projectId;
+    protected $project;
 
-    function __construct($projectId, $fullSourcePath, $filepath, $filename) {
-        $this->projectId = $projectId;
-        $this->currentFile = $filepath;
-        $this->currentFileName = $filename;
+    /**
+     * @param raProject $project
+     * @param string $fullSourcePath the main path where sources are analysed
+     * @param string $currentFile the full path of the current analysed file
+     * @param string $currentFileName the name of the current analysed file
+     */
+    function __construct($project, $fullSourcePath, $currentFile, $currentFileName) {
+        $this->project = $project;
+        $this->currentFile = $currentFile;
+        $this->currentFileName = $currentFileName;
         $this->fullSourcePath = $fullSourcePath;
     }
 
@@ -58,7 +59,14 @@ class raParserInfo {
     
     public function eraseCurrentLine() { $this->currentLine = 1; }
     
-    public function getProjectId() { return $this->projectId; }
+    public function getProjectId() { return $this->project->id(); }
+    
+    /**
+     * @return raProject
+     */
+    public function project() {
+        return $this->project;
+    }
     
     /**
      * increment the line counter by the given number
@@ -74,5 +82,4 @@ class raParserInfo {
     public function incLineS($str) { 
         $this->currentLine += substr_count($str, "\n"); 
     }
-
 }

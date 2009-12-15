@@ -3,7 +3,7 @@
 * @package     rarangi
 * @author      Laurent Jouanneau
 * @contributor
-* @copyright   2006-2008 Laurent Jouanneau
+* @copyright   2006-2009 Laurent Jouanneau
 * @link        http://forge.jelix.org/projects/rarangi
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
@@ -18,7 +18,7 @@ class raFileDescriptor extends raBaseDescriptor  {
     
     protected $record;
     
-    function __construct($projectId, $fullSourcePath, $fullpath, $filename) {
+    function __construct($project, $fullSourcePath, $fullpath, $filename) {
         
         $relativeFullPath = substr($fullpath, strlen($fullSourcePath)+1);
         $relativePath = substr(dirname($fullpath), strlen($fullSourcePath)+1);
@@ -26,9 +26,10 @@ class raFileDescriptor extends raBaseDescriptor  {
         $this->filepath = $relativeFullPath;
         $this->filename = $filename;
         $this->fullpath = $fullpath;
+        $this->project = $project;
         
         $this->record = jDao::createRecord('rarangi~files');
-        $this->projectId = $this->record->project_id = $projectId;
+        $this->record->project_id = $this->project->id();
         $this->record->isdir = 0;
         $this->record->fullpath = $relativeFullPath;
         $this->record->filename = $filename;
@@ -39,7 +40,12 @@ class raFileDescriptor extends raBaseDescriptor  {
     }
 
     public function save() {
-        $this->record->package_id = $this->getPackageId($this->package);
+        if ($this->ignore) {
+            jDao::get('rarangi~files')->delete($this->fileId);
+            return;
+        }
+
+        $this->record->package_id = $this->project->getPackageId($this->package);
         $this->record->copyright = $this->copyright;
         $this->record->short_description = $this->shortDescription;
         $this->record->description = $this->description;

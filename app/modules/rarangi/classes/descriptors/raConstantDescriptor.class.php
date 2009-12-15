@@ -13,4 +13,11 @@
  */
 class raConstantDescriptor extends raBaseDescriptor {
     public $value;
+    
+    public function save() {
+        if ($this->ignore)
+            return;
+
+        parent::save();
+    }
 }

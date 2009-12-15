@@ -23,8 +23,8 @@ class raPHPIncludeParser extends raPHPParser_base {
      * @param string $doccomment the documented comment associated to the include declaration
      */
     function __construct( $it, $doccomment){
-        //$this->info = new jIncludeDescriptor();
-        //$this->info->initFromPhpDoc($doccomment);
+        //$this->descriptor = new jIncludeDescriptor();
+        //$this->descriptor->initFromPhpDoc($doccomment);
         parent::__construct( $it);
     }
 
