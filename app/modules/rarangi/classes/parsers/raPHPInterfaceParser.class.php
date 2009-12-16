@@ -65,6 +65,7 @@ class raPHPInterfaceParser extends raPHPParser_base {
                     $memberStatic = false;
                     $memberFinal = false;
                     $memberType= 0;
+                    $previousDocComment = '';
                     break;
                 case T_VARIABLE:
                     while($tok != ';' && $tok !== false) {
@@ -90,6 +91,7 @@ class raPHPInterfaceParser extends raPHPParser_base {
                     $memberStatic = false;
                     $memberFinal = false;
                     $memberType= 0;
+                    $previousDocComment = '';
                     break;
                 case T_DOC_COMMENT:
                     $previousDocComment = $tok[1];
@@ -142,6 +144,7 @@ class raPHPInterfaceParser extends raPHPParser_base {
                       $memberStatic = false;
                       $memberFinal = false;
                       $memberType= 0;
+                      $previousDocComment = '';
                     }
                     else
                        throw new Exception ("Interface/class parsing, invalid syntax, unexpected string '".$tok[1]."'");
