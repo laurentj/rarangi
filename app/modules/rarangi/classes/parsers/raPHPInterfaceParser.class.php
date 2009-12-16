@@ -68,19 +68,22 @@ class raPHPInterfaceParser extends raPHPParser_base {
                     $previousDocComment = '';
                     break;
                 case T_VARIABLE:
+                    $info = new raPropertyDescriptor($this->parserInfo->project(),
+                                 $this->descriptor->fileId,
+                                 $this->parserInfo->currentLine());
+                    $info->initFromPhpDoc($previousDocComment);
+                    $info->accessibility = $memberAccessibility;
+                    if ($memberStatic)
+                      $info->typeProperty = raPropertyDescriptor::TYPE_STATIC_VAR;
+
                     while($tok != ';' && $tok !== false) {
                         if (is_array($tok) && $tok[0] == T_VARIABLE) {
-                            $info = new raPropertyDescriptor($this->parserInfo->project(),
-                                                             $this->descriptor->fileId,
-                                                             $this->parserInfo->currentLine());
-                            $info->initFromPhpDoc($previousDocComment);
-                            $info->accessibility = $memberAccessibility;
-                            if ($memberStatic)
-                              $info->typeProperty = raPropertyDescriptor::TYPE_STATIC_VAR;
+                            $info2 = clone $info;
+                            
                             list($pname, $pvalue) = $this->readVarnameAndValue(array(',',';'));
-                            $info->name = $pname;
-                            $info->defaultValue = $pvalue;
-                            $this->descriptor->members[]=$info;
+                            $info2->name = $pname;
+                            $info2->defaultValue = $pvalue;
+                            $this->descriptor->members[] = $info2;
                             $tok =  $this->iterator->current();
                         }
                         else
@@ -123,18 +126,20 @@ class raPHPInterfaceParser extends raPHPParser_base {
                     break;
                 case T_STRING:
                     if ($memberType == self::MEMBER_TYPE_CONST) {
+                        $info = new raPropertyDescriptor($this->parserInfo->project(),
+                                                         $this->descriptor->fileId,
+                                                         $this->parserInfo->currentLine());
+                        $info->initFromPhpDoc($previousDocComment);
+                        $info->accessibility = $memberAccessibility;
+                        $info->typeProperty = raPropertyDescriptor::TYPE_CONST;
+
                         while($tok != ';' && $tok !== false) {
                             if (is_array($tok) && $tok[0] == T_STRING) {
-                                $info = new raPropertyDescriptor($this->parserInfo->project(),
-                                                                 $this->descriptor->fileId,
-                                                                 $this->parserInfo->currentLine());
-                                $info->initFromPhpDoc($previousDocComment);
-                                $info->accessibility = $memberAccessibility;
-                                $info->typeProperty = raPropertyDescriptor::TYPE_CONST;
                                 list($pname, $pvalue) = $this->readConstAndValue(array(',',';'));
-                                $info->name = $pname;
-                                $info->defaultValue = $pvalue;
-                                $this->descriptor->members[]=$info;
+                                $info2 = clone $info;
+                                $info2->name = $pname;
+                                $info2->defaultValue = $pvalue;
+                                $this->descriptor->members[] = $info2;
                                 $tok =  $this->iterator->current();
                             }
                             else

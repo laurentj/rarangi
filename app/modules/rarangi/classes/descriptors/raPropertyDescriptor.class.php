@@ -17,11 +17,11 @@ class raPropertyDescriptor extends raBaseDescriptor {
     const TYPE_STATIC_VAR = 1;
     const TYPE_CONST = 2;
 
-    public $name;
+    public $name = '';
     
     public $defaultValue = '';
     
-    public $datatype='';
+    public $datatype = '';
     
     public $accessibility = T_PUBLIC;
     
@@ -37,10 +37,75 @@ class raPropertyDescriptor extends raBaseDescriptor {
         $this->since = $desc->since;
     }
 
+    protected $currentVar = '';
+    protected $varData = array();
+    protected $unamedVarData = null;
+    protected $varContentInError = false;
+
     protected function parseSpecificTag($tag, $content) {
-        if($tag == 'var') {
-            $this->datatype = $content;
+        if ($tag == 'var' || $tag == 'const' ) {
+            if (preg_match("/^([^\s]+)(?:\s+". ($tag == 'var'?'\$':'#')."([a-zA-Z_0-9]+))?(?:\s+(.+))?\s*$/", $content, $m)) {
+                $this->varContentInError = false;
+                $data = array($m[1], '', '');
+                $name = '';
+                if (isset($m[2])) {
+                    $name = $m[2];
+                    if (isset($m[3])) {
+                        if ($this->shortDescription) {
+                            $data[1] = $this->shortDescription;
+                            if (trim($this->description)) {
+                                $data[2] = $this->description."\n".$m[3];
+                            }
+                            else
+                                $data[2] = $m[3];
+                        }
+                        else {
+                            $data[1] = $m[3];
+                        }
+                    }
+                }
+                $this->currentVar = $name;
+                if ($name) {
+                    $this->varData[$name] = $data;
+                }
+                else {
+                    $this->unamedVarData = $data;
+                }
+            }
+            else {
+                $this->currentVar = '';
+                $this->varContentInError = true;
+                $this->project->logger()->warning('@'.$tag.': invalid arguments: '.$content);
+            }
+            return true;
         }
+        return false;
+    }
+    
+    protected function addContentToSpecificTag ($tag, $content) {
+        if ($tag == 'var' || $tag == 'const') {
+            if ($this->varContentInError)
+                return true;
+
+            if ($this->currentVar) {
+                $d = $this->varData[$this->currentVar][2];
+                if ($d)
+                    $d .= "\n".$content;
+                else
+                    $d = $content;
+                $this->varData[$this->currentVar][2] = $d;
+            }
+            else {
+                $d = $this->unamedVarData[2];
+                if ($d)
+                    $d .= "\n".$content;
+                else
+                    $d = $content;
+                $this->unamedVarData[2] = $d;
+            }
+            return true;
+        }
+        return false;
     }
     
     public function save() {
@@ -56,7 +121,6 @@ class raPropertyDescriptor extends raBaseDescriptor {
         $record->class_id = $this->classId;
         $record->project_id = $this->project->id();
         $record->line_start = $this->line;
-        $record->datatype = $this->datatype;
         $record->default_value = $this->defaultValue;
         $record->type = $this->typeProperty;
         if ($this->accessibility == T_PUBLIC)
@@ -66,8 +130,16 @@ class raPropertyDescriptor extends raBaseDescriptor {
         elseif ($this->accessibility == T_PRIVATE)
             $record->accessibility = 'PRI';
 
-        $record->short_description = $this->shortDescription;
-        $record->description = $this->description;
+        if (isset($this->varData[$this->name])) {
+            $data = $this->varData[$this->name];
+        }
+        else if ($this->unamedVarData !== null) {
+            $data = $this->unamedVarData;
+        }
+        else
+            $data = array('', $this->shortDescription, $this->description);
+        
+        list($record->datatype, $record->short_description, $record->description) = $data;
 
         $record->copyright = $this->copyright;
         $record->internal = $this->internal;

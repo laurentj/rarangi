@@ -202,10 +202,44 @@ class ut_class_parser extends jUnitTestCaseDb {
     }
 
     function testSimpleClass() {
-        $content = " <?php \nclass foo {\n public \$bar; \n protected static \$baz =\"lorem ipsum\"; \nconst bla = 4;\n}\n ?>";
+        $content = " <?php
+ class foo {
+    /**
+    * this is a description
+    */
+    public \$bar;
+    /**
+    * @var string \$baz this is an other description
+    */
+    protected static \$baz =\"lorem ipsum\";
+
+    /**
+     * @const integer bli bla blo
+     */
+    const bla = 4;
+    /**
+     * begin of the description
+     * @var string the description continue here.
+     *             and also here.
+     */
+    private \$aprivate;
+    
+    public \$other;
+
+    /**
+     * @const integer #zoop oh, zoop variable !
+     */
+    const zoop = 8;
+    
+    /**
+     * @var myClass
+     */
+    public \$anObject;
+}
+?>";
         $p = new ut_class_parser_test($content,1,$this->parserInfo);
         $p->parse();
-        $this->assertEqual($p->getParserInfo()->currentLine(), 6);
+        $this->assertEqual($p->getParserInfo()->currentLine(), 34);
         
         if($this->assertTrue($p->getIterator()->valid())) {
             $tok = $p->getIterator()->current();
@@ -223,7 +257,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             'project_id'=>$this->parserInfo->getProjectId(),
             'file_id'=>1,
             'line_start'=>2,
-            'line_end'=>6,
+            'line_end'=>34,
             'package_id'=>null,
             'mother_class'=>null,
             'is_abstract'=>0,
@@ -231,62 +265,142 @@ class ut_class_parser extends jUnitTestCaseDb {
             ));
         $this->assertTableContainsRecords('classes', $records);
         
-        $records = array(
+        $this->assertTableHasNRecords('class_properties', 7);
+        $this->assertTableContainsRecords('class_properties', array(
             array(
                 'name'=>'bar',
                 'class_id'=>$p->getDescriptor()->classId,
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>3,
+                'line_start'=>6,
+                'datatype'=>'',
+                'default_value'=>'',
+                'type'=>0,
+                'accessibility'=>'PUB',
+                'short_description'=>'this is a description',
+                'description'=>''
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
+            array(
+                'name'=>'baz',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>10,
+                'datatype'=>'string',
+                'default_value'=>'"lorem ipsum"',
+                'type'=>1,
+                'accessibility'=>'PRO',
+                'short_description'=>'this is an other description',
+                'description'=>''
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
+            array(
+                'name'=>'bla',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>15,
+                'datatype'=>'integer',
+                'default_value'=>'4',
+                'type'=>2,
+                'accessibility'=>'PUB',
+                'short_description'=>'bli bla blo',
+                'description'=>''
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
+            array(
+                'name'=>'aprivate',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>21,
+                'datatype'=>'string',
+                'default_value'=>'',
+                'type'=>0,
+                'accessibility'=>'PRI',
+                'short_description'=>'begin of the description',
+                'description'=>'the description continue here.
+and also here.'
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
+            array(
+                'name'=>'other',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>23,
                 'datatype'=>'',
                 'default_value'=>'',
                 'type'=>0,
                 'accessibility'=>'PUB',
                 'short_description'=>'',
                 'description'=>''
-            ),
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
             array(
-                'name'=>'baz',
+                'name'=>'zoop',
                 'class_id'=>$p->getDescriptor()->classId,
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>4,
-                'datatype'=>'',
-                'default_value'=>'"lorem ipsum"',
-                'type'=>1,
-                'accessibility'=>'PRO',
-                'short_description'=>'',
-                'description'=>''
-            ),
-            array(
-                'name'=>'bla',
-                'class_id'=>$p->getDescriptor()->classId,
-                'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>5,
-                'datatype'=>'',
-                'default_value'=>'4',
+                'line_start'=>28,
+                'datatype'=>'integer',
+                'default_value'=>'8',
                 'type'=>2,
+                'accessibility'=>'PUB',
+                'short_description'=>'oh, zoop variable !',
+                'description'=>''
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
+            array(
+                'name'=>'anObject',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>33,
+                'datatype'=>'myClass',
+                'default_value'=>'',
+                'type'=>0,
                 'accessibility'=>'PUB',
                 'short_description'=>'',
                 'description'=>''
             ),
-        );
-
-        $this->assertTableContainsRecords('class_properties', $records);
+        ), false);
     }
 
 
     function testCombinedProperties() {
         $content = " <?php
 class foo {
-public \$bar, \$bar2;
-protected \$baz =\"lorem ipsum\", \$baz2;
-private \$priv1 = null, \$priv2= 3.141,
+    /**
+    * this is a description
+    */
+    public \$bar, \$bar2;
+
+    /**
+    * description 2
+    * @var string \$baz2 documentation of baz2
+    */
+    protected \$baz =\"lorem ipsum\", \$baz2;
+
+    /**
+     * @var null|object \$priv1  doc of priv1
+     *              which continue here.
+     * @var integer \$priv4 doc of priv4
+     * @var string valid for all
+     */
+    private \$priv1 = null, \$priv2= 3.141,
   \$priv4, \$priv5='bachibouzouk';
-const bla = 4, zoop = 'toto';
+   
+   /**
+    * @const integer #zoop bla bla
+    * @const integer #bla yes, an other bla const
+    */
+   const bla = 4, zoop = 'toto';
 }
 ?>";
         $p = new ut_class_parser_test($content,1,$this->parserInfo);
         $p->parse();
-        //$this->assertEqual($p->getParserInfo()->currentLine(), 6);
+        $this->assertEqual($p->getParserInfo()->currentLine(), 28);
         
         /*if($this->assertTrue($p->getIterator()->valid())) {
             $tok = $p->getIterator()->current();
@@ -304,7 +418,7 @@ const bla = 4, zoop = 'toto';
             'project_id'=>$this->parserInfo->getProjectId(),
             'file_id'=>1,
             'line_start'=>2,
-            'line_end'=>8,
+            'line_end'=>28,
             'package_id'=>null,
             'mother_class'=>null,
             'is_abstract'=>0,
@@ -312,129 +426,147 @@ const bla = 4, zoop = 'toto';
             ));
         $this->assertTableContainsRecords('classes', $records);
         
-        $records = array(
+        $this->assertTableHasNRecords('class_properties',10);
+        $this->assertTableContainsRecords('class_properties', array(
             array(
                 'name'=>'bar',
                 'class_id'=>$p->getDescriptor()->classId,
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>3,
+                'line_start'=>6,
                 'datatype'=>'',
                 'default_value'=>'',
                 'type'=>0,
                 'accessibility'=>'PUB',
-                'short_description'=>'',
+                'short_description'=>'this is a description',
                 'description'=>''
-            ),
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
             array(
                 'name'=>'bar2',
                 'class_id'=>$p->getDescriptor()->classId,
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>3,
+                'line_start'=>6,
                 'datatype'=>'',
                 'default_value'=>'',
                 'type'=>0,
                 'accessibility'=>'PUB',
-                'short_description'=>'',
+                'short_description'=>'this is a description',
                 'description'=>''
-            ),
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
             array(
                 'name'=>'baz',
                 'class_id'=>$p->getDescriptor()->classId,
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>4,
+                'line_start'=>12,
                 'datatype'=>'',
                 'default_value'=>'"lorem ipsum"',
                 'type'=>0,
                 'accessibility'=>'PRO',
-                'short_description'=>'',
+                'short_description'=>'description 2',
                 'description'=>''
-            ),
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
             array(
                 'name'=>'baz2',
                 'class_id'=>$p->getDescriptor()->classId,
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>4,
-                'datatype'=>'',
+                'line_start'=>12,
+                'datatype'=>'string',
                 'default_value'=>'',
                 'type'=>0,
                 'accessibility'=>'PRO',
-                'short_description'=>'',
-                'description'=>''
-            ),
+                'short_description'=>'description 2',
+                'description'=>'documentation of baz2'
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
             array(
                 'name'=>'priv1',
                 'class_id'=>$p->getDescriptor()->classId,
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>5,
-                'datatype'=>'',
+                'line_start'=>20,
+                'datatype'=>'null|object',
                 'default_value'=>'null',
                 'type'=>0,
                 'accessibility'=>'PRI',
-                'short_description'=>'',
-                'description'=>''
-            ),
+                'short_description'=>'doc of priv1',
+                'description'=>'which continue here.'
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
             array(
                 'name'=>'priv2',
                 'class_id'=>$p->getDescriptor()->classId,
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>5,
-                'datatype'=>'',
+                'line_start'=>20,
+                'datatype'=>'string',
                 'default_value'=>'3.141',
                 'type'=>0,
                 'accessibility'=>'PRI',
-                'short_description'=>'',
+                'short_description'=>'valid for all',
                 'description'=>''
-            ),
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
             array(
                 'name'=>'priv4',
                 'class_id'=>$p->getDescriptor()->classId,
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>6,
-                'datatype'=>'',
+                'line_start'=>20,
+                'datatype'=>'integer',
                 'default_value'=>'',
                 'type'=>0,
                 'accessibility'=>'PRI',
-                'short_description'=>'',
+                'short_description'=>'doc of priv4',
                 'description'=>''
-            ),
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
             array(
                 'name'=>'priv5',
                 'class_id'=>$p->getDescriptor()->classId,
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>6,
-                'datatype'=>'',
+                'line_start'=>20,
+                'datatype'=>'string',
                 'default_value'=>'\'bachibouzouk\'',
                 'type'=>0,
                 'accessibility'=>'PRI',
-                'short_description'=>'',
+                'short_description'=>'valid for all',
                 'description'=>''
-            ),
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
             array(
                 'name'=>'bla',
                 'class_id'=>$p->getDescriptor()->classId,
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>7,
-                'datatype'=>'',
+                'line_start'=>27,
+                'datatype'=>'integer',
                 'default_value'=>'4',
                 'type'=>2,
                 'accessibility'=>'PUB',
-                'short_description'=>'',
+                'short_description'=>'yes, an other bla const',
                 'description'=>''
-            ),
+            )
+        ), false);
+        $this->assertTableContainsRecords('class_properties', array(
             array(
                 'name'=>'zoop',
                 'class_id'=>$p->getDescriptor()->classId,
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'line_start'=>7,
-                'datatype'=>'',
+                'line_start'=>27,
+                'datatype'=>'integer',
                 'default_value'=>'\'toto\'',
                 'type'=>2,
                 'accessibility'=>'PUB',
-                'short_description'=>'',
+                'short_description'=>'bla bla',
                 'description'=>''
             ),
-        );
-        $this->assertTableContainsRecords('class_properties', $records);
+        ),false);
     }
 
 
