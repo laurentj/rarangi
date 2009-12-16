@@ -235,11 +235,17 @@ class ut_class_parser extends jUnitTestCaseDb {
      * @var myClass
      */
     public \$anObject;
+
+   /**
+    * the data container
+    * @var jFormsDataContainer
+    */
+    protected \$container = null;
 }
 ?>";
         $p = new ut_class_parser_test($content,1,$this->parserInfo);
         $p->parse();
-        $this->assertEqual($p->getParserInfo()->currentLine(), 34);
+        $this->assertEqual($p->getParserInfo()->currentLine(), 40);
         
         if($this->assertTrue($p->getIterator()->valid())) {
             $tok = $p->getIterator()->current();
@@ -257,7 +263,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             'project_id'=>$this->parserInfo->getProjectId(),
             'file_id'=>1,
             'line_start'=>2,
-            'line_end'=>34,
+            'line_end'=>40,
             'package_id'=>null,
             'mother_class'=>null,
             'is_abstract'=>0,
@@ -265,7 +271,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             ));
         $this->assertTableContainsRecords('classes', $records);
         
-        $this->assertTableHasNRecords('class_properties', 7);
+        $this->assertTableHasNRecords('class_properties', 8);
         $this->assertTableContainsRecords('class_properties', array(
             array(
                 'name'=>'bar',
@@ -365,8 +371,21 @@ and also here.'
                 'description'=>''
             ),
         ), false);
+        $this->assertTableContainsRecords('class_properties', array(
+            array(
+                'name'=>'container',
+                'class_id'=>$p->getDescriptor()->classId,
+                'project_id'=>$this->parserInfo->getProjectId(),
+                'line_start'=>39,
+                'datatype'=>'jFormsDataContainer',
+                'default_value'=>'null',
+                'type'=>0,
+                'accessibility'=>'PRO',
+                'short_description'=>'the data container',
+                'description'=>''
+            ),
+        ), false);
     }
-
 
     function testCombinedProperties() {
         $content = " <?php
@@ -398,14 +417,11 @@ class foo {
    const bla = 4, zoop = 'toto';
 }
 ?>";
+
         $p = new ut_class_parser_test($content,1,$this->parserInfo);
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 28);
-        
-        /*if($this->assertTrue($p->getIterator()->valid())) {
-            $tok = $p->getIterator()->current();
-            $this->assertEqual($tok, '}');
-        }*/
+
         $log = $this->logger->getLog();
         $this->assertEqual(count($log['error']),0);
         $this->assertEqual(count($log['warning']),0);

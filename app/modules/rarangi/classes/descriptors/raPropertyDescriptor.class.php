@@ -46,15 +46,16 @@ class raPropertyDescriptor extends raBaseDescriptor {
         if ($tag == 'var' || $tag == 'const' ) {
             if (preg_match("/^([^\s]+)(?:\s+". ($tag == 'var'?'\$':'#')."([a-zA-Z_0-9]+))?(?:\s+(.+))?\s*$/", $content, $m)) {
                 $this->varContentInError = false;
-                $data = array($m[1], '', '');
+                $data = array($m[1], $this->shortDescription, $this->description);
                 $name = '';
+
                 if (isset($m[2])) {
                     $name = $m[2];
                     if (isset($m[3])) {
                         if ($this->shortDescription) {
                             $data[1] = $this->shortDescription;
                             if (trim($this->description)) {
-                                $data[2] = $this->description."\n".$m[3];
+                                $data[2] .= "\n".$m[3];
                             }
                             else
                                 $data[2] = $m[3];
@@ -138,7 +139,7 @@ class raPropertyDescriptor extends raBaseDescriptor {
         }
         else
             $data = array('', $this->shortDescription, $this->description);
-        
+
         list($record->datatype, $record->short_description, $record->description) = $data;
 
         $record->copyright = $this->copyright;
