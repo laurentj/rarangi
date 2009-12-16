@@ -10,7 +10,7 @@
                     {/if}
                     {if $comp->license_text}
                     <div class="license-description">
-                       ererere {$comp->license_text|eschtml}
+                        {$comp->license_text|eschtml}
                     </div>
                     {/if}
                 </div>

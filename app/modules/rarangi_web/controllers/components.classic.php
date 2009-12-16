@@ -102,7 +102,7 @@ class componentsCtrl extends jController {
 
         $resp->body->assignZone('MAIN', 'function_details', $zparams); 
     
-        if (!$this->functionDetails) {
+        if (!$this->functionRecord) {
             $resp->setHttpStatus('404', 'Not Found');
         } else {
             $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(

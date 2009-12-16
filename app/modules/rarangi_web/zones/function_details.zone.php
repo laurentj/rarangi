@@ -23,17 +23,17 @@ class function_detailsZone extends jZone {
 
         $functionname = $this->param('functionname');
 
-        $this->_tpl->assign('project', $project->name);
+        $this->_tpl->assign('project', $project);
 
         $dao = jDao::get('rarangi~functions');
         $func = $dao->getByName($project->id, $functionname);
-        $this->_tpl->assign('function',$func);
+        $this->_tpl->assign('func',$func);
         $this->param('toReturn')->functionRecord = $func;
 
-        if ($func) {            
+        if ($func) {
             if ($func->links)
                 $func->links = unserialize($func->links);
-            
+
             if ($func->see)
                 $func->see = unserialize($func->see);
 

@@ -2,6 +2,7 @@
 <dao xmlns="http://jelix.org/ns/dao/1.0">
     <datasources>
         <primarytable name="functions" realname="functions" primarykey="id" />
+        <optionalforeigntable name="f" realname="files" primarykey="id" onforeignkey="file_id"/>
     </datasources>
     <record>
         <property name="id" fieldname="id" datatype="autoincrement"/>
@@ -26,6 +27,8 @@
         <property name="license_label" fieldname="license_label" datatype="string"/>
         <property name="license_link" fieldname="license_link" datatype="string"/>
         <property name="license_text" fieldname="license_text" datatype="string"/>
+
+        <property name="fullpath" fieldname="fullpath" table="f" datatype="string"/>
     </record>
     <factory>
         <method name="deleteByProject" type="delete">
@@ -45,7 +48,7 @@
                <orderitem property="name" way="asc" />
             </order>
         </method>
-        <method name="getByName" type="select">
+        <method name="getByName" type="selectfirst">
             <parameter name="project" />
             <parameter name="name" />
             <conditions>
