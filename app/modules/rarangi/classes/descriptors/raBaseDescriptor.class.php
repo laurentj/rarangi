@@ -212,7 +212,7 @@ class raBaseDescriptor {
                             $this->parseAuthor($tag, $content);
                             break;
                         case 'copyright':
-                            $this->copyright .= $content;
+                            $this->copyright .= ' '.$content;
                             break;
                         case 'deprecated':
                             $this->deprecated = trim($content);

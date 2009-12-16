@@ -39,7 +39,7 @@ This script parses PHP files according to setting indicated in the given ini fil
     */
     function index() {
         $rep = $this->getResponse();
-
+        $memBegin = memory_get_usage();
         $logger = jClasses::create("raLogger");
         $logger->addLogger(new raInMemoryLogger());
         $logger->addLogger(new raConsoleLogger($rep, isset($this->_options['-v'])));
@@ -47,6 +47,10 @@ This script parses PHP files according to setting indicated in the given ini fil
         jClasses::inc("raDocGenerator");
         $docparser = new raDocGenerator($this->param('config'), $logger);
         $docparser->run();
+
+        $rep->addContent('Memory usage at the start: '.$memBegin." bytes\n");
+        $rep->addContent('Memory usage at the end: '.memory_get_usage()." bytes\n");
+        $rep->addContent('Memory peak usage: '.memory_get_peak_usage()." bytes\n");
 
         return $rep;
     }

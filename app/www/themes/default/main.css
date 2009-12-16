@@ -6,10 +6,16 @@ colors :
     red: #D41C0E
     purple: #72123D
 */
+
 body {
     margin: 0;
     font-family: Arial,Helvetica,sans-serif;
+    background-color: #ebebdf;
+    color: #8b8b8b;
 }
+
+a { color: #879CB1; }
+a:visited { color: #697C8B; }
 
 /* HEADER */
 #header {
@@ -27,11 +33,11 @@ body {
 #menubar {
     clear: both;
     border-bottom: 1px solid #72123D;
-    background-color: #E45605;
+    background-color: #e3856D;
     color: white;
 }
 #menubar a {
-    color: white;
+    color: #ebebdf;
 }
 body#home #menubar {
     padding: 10px;
@@ -39,7 +45,7 @@ body#home #menubar {
 }
 
 #menubar-top {
-    background-color: #ffffff;
+    background-color: #ebebdf;
 }
 #menubar-top ul {
     margin-left: 80px;
@@ -50,7 +56,8 @@ body#home #menubar {
 }
 #menubar-top li a {
     text-decoration: none;
-    background-color: #E45605;
+    background-color: #BB6E5B ;
+    color: #ccc;
     margin-left: 15px;
     padding: 5px 15px;
     -moz-border-radius-topleft: 4px;
@@ -64,8 +71,8 @@ body#home #menubar {
     margin-left: 30px;
 }
 #menubar-top a.active {
-    color: #E45605;
-    background-color: white;
+    color:#ebebdf;
+    background-color: #e3856D;
 }
 #menubar-content {
     padding: 10px;
@@ -82,8 +89,43 @@ body#home #menubar {
     padding: 15px 30px;
 }
 #main h2 {
-    color: #72123D;
+    background-color:#6B86A6;
+    padding:5px;
+    -moz-border-radius: 4px;
+    -moz-box-shadow:3px 3px 12px 0 #999;
+    color: #ebebdf;
 }
+
+#sidebar {
+    width:25%;
+    margin-top:2em;
+    font-size:0.8em;
+    background-color: #cfe2a1;
+    padding:5px;
+    -moz-border-radius: 4px;
+    -moz-box-shadow:3px 3px 12px 0 #999;
+
+}
+
+#sidebar .properties {
+    padding:5px;
+    margin:0;
+}
+
+#sidebar .properties > li {
+    margin:5px 0;
+    list-style-type:none;
+}
+
+
+#content {
+    float:right;
+    width:72%;
+}
+
+#content h2 {
+}
+
 #projects-list {
     list-style-type: none;
     width: 80%;
@@ -102,10 +144,14 @@ body#home #menubar {
     min-width: 60%;
     padding: 8px 20px;
     margin-bottom: 10px;
+    background-color: #F6F2C6;
     -moz-border-radius: 4px;
-    border: 1px solid #FF9000;
-    background-color: #FECF12;
+    -moz-box-shadow:3px 3px 12px 0 #999;
+
 }
+
+
+
 
 /* FOOTER */
 #footer {

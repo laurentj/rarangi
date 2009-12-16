@@ -1,4 +1,5 @@
 {if $class}
+  <div id="content">
     <h2>{if $class->is_interface}Interface{else}Class{/if}: {$class->name|eschtml}</h2>
         <div class="block">
         <h3 id="description">{@rarangi_web~default.description@}</h3>
@@ -118,25 +119,47 @@
             <li>TODO: list of classes which inherits from this class</li>
         </ul>
         </div>
-
-        <div class="block">
-        <h3 id="informations">Development Informations</h3>
-        <div class="development-info">
-            <div class="file-info">
-                {if $class->fullpath}
-                Defined in the file <a href="{jurl 'rarangi_web~sources:index',
-                                    array('project'=>$project->name,'path'=>$class->fullpath)}#{$class->line_start}">{$class->fullpath}</a>
-                {if $class->since}
-                since {$class->since|eschtml}
+  </div>
+  <div id="sidebar">
+        <ul class="properties">
+            <li><strong>Project:</strong> <a href="{jurl 'rarangi_web~default:project',array('project'=>$project->name)}">{$project->name}</a></li>
+            <li><strong>Package:</strong> <a href="{jurl 'rarangi_web~packages:details',array('project'=>$project->name, 'package'=>$package)}">{$package}</a></li>
+            {if $class->fullpath}{* some classes may be referenced but not parsed *}
+            <li><strong>File:</strong> <a href="{jurl 'rarangi_web~sources:index',
+                        array('project'=>$project->name,
+                              'path'=>$class->fullpath)}#{$class->line_start}">{$class->filename}</a></li>
+            {if $class->since}<ul><strong>Since:</strong> {$class->since|eschtml}</li>{/if}
+            {/if}
+            {if $class->copyright}<li><strong>Copyright:</strong> {$class->copyright|eschtml}</li>{/if}
+            {if $class->license_label || $comp->license_text}
+            <li><strong>licence:</strong>
+                    {if $comp->license_link}
+                        <a href="{$class->license_link|eschtml}">{$comp->license_label|eschtml}</a>
+                    {else}
+                        {$comp->license_label|eschtml}
+                    {/if}
+                    {if $comp->license_text}
+                    <div class="license-description">{$comp->license_text|eschtml}</div>
+                    {/if}
+            </li>{/if}
+            {if $class->links}
+            <li><ul class="links">{foreach $comp->links as $link}
+                    <li><a href="{$link[0]|eschtml}">{$link[1]|eschtml}</a></li>{/foreach}
+                </ul></li>
                 {/if}
-                {else}
-                This class isn't defined in any file of the project.
-                {/if}
-            </div>
-            {assign $comp = $class}
-            {include 'inc_comp_info'}
-        </div>
-        </div>
+            {if $comp->see}
+            <li><strong>{@default.seealso@}: </strong>
+                <ul class="see">{foreach $comp->see as $s}
+                    <li>{$s|eschtml}</li>{/foreach}
+                </ul></li>
+            {/if}
+            {if $comp->todo}<li class="todo">{$comp->todo|eschtml}</li>{/if}
+            {if $comp->changelog}
+            <li>{foreach $comp->changelog as $changelog}
+                    <div>{$changelog|eschtml}</div>{/foreach}
+            </li>{/if}
+        </ul>
+  </div>
 {else}
     <h2>Class: {$classname}</h2>
     <div class="blockcontent">
