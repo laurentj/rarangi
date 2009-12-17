@@ -1,26 +1,18 @@
 {if $class}
   <div id="content">
     <h2>{if $class->is_interface}Interface{else}Class{/if}: {$class->name|eschtml}</h2>
-        <div class="block">
-        <h3 id="description">{@rarangi_web~default.description@}</h3>
-        {if $class->mother_class}
-        <div class="class-inheriting">
-            This {if $class->is_interface}interface{else}class{/if} extends
-            {if $class->is_interface}
-            <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$package,'interfacename'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
-            {else}
-            <a href="{jurl 'rarangi_web~components:classdetails', array('project'=>$project->name,'package'=>$package,'classname'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
-            {/if}
-        </div>
-        {/if}
 
-        {if $class->is_abstract}
-        <div class="class-abstract">
-            {@rarangi_web~default.class.isabstract@}
-        </div>
-        {/if}
+        <div class="description-block">
+
         {assign $comp = $class}
         {include 'inc_comp_description'}
+
+        </div>
+
+        <div class="tags">     
+        {if $class->is_abstract}
+        <span class="tag-abstract">abstract</span>
+        {/if}
         </div>
         
         {if count($properties) || count($methods)}
@@ -34,7 +26,7 @@
                 <td>{if $p->type == 1}static{elseif $p->type == 2}const{/if}
                    {if $p->accessibility == 'PRO'}protected{elseif $p->accessibility=='PRI'}private{else}public{/if}
                    {$p->datatype}</td>
-                <td><a href="#p-{$p->name}">{$p->name}</a></td>
+                <td><a href="#p-{$p->name}">{if $p->type != 2}${/if}{$p->name}</a></td>
                 <td>{$p->short_description|eschtml}</td>
               </tr>
               {/foreach}
@@ -111,14 +103,7 @@
         </div>
         </div>
 
-        <div class="block">
-        <h3 id="relation">Relation to other components</h3>
-        <ul>
-            <li>TODO: list of methods/functions which return this class</li>
-            <li>TODO: list of methods/functions which accept this class as parameter</li>
-            <li>TODO: list of classes which inherits from this class</li>
-        </ul>
-        </div>
+
   </div>
   <div id="sidebar">
         <ul class="properties">
@@ -159,6 +144,23 @@
                     <div>{$changelog|eschtml}</div>{/foreach}
             </li>{/if}
         </ul>
+        
+        
+        <div class="relationship">
+        <ul>
+            <li><strong>Inherits from: </strong>
+            {if $class->mother_class}
+            {if $class->is_interface}
+            <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$package,'interfacename'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
+            {else}
+            <a href="{jurl 'rarangi_web~components:classdetails', array('project'=>$project->name,'package'=>$package,'classname'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
+            {/if}
+            {/if}</li>
+            <li><strong>Inherited by: </strong> </li>
+            <li><strong>Returned by: </strong> </li>
+            <li><strong>As parameter for: </strong> </li>
+        </ul>
+        </div>
   </div>
 {else}
     <h2>Class: {$classname}</h2>
