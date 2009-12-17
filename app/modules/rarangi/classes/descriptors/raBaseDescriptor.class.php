@@ -223,7 +223,7 @@ class raBaseDescriptor {
                         case 'internal':
                             $this->internal .= $content;
                             break;
-                        case 'links':
+                        case 'link':
                             $pos = strpos($content," ");
                             $link = $label = '';
                             if ($pos === false) {
@@ -251,6 +251,7 @@ class raBaseDescriptor {
                             $this->todo = $content;
                             break;
                         case 'license':
+                        case 'licence':
                             $pos = strpos($content," ");
                             $this->licenseLink = $this->licenseLabel = '';
                             if ($pos === false) {
@@ -308,6 +309,7 @@ class raBaseDescriptor {
                         break;
 
                     case 'license':
+                    case 'licence':
                         if ($this->licenseText != '') {
                             $this->licenseText .= "\n".$content;
                         }
@@ -318,7 +320,7 @@ class raBaseDescriptor {
 
                     case 'deprecated':
                     case 'ignore':
-                    case 'links':
+                    case 'link':
                     case 'see':
                     case 'uses':
                     case 'since':

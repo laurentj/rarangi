@@ -5,7 +5,13 @@
         <div class="description-block">
 
         {assign $comp = $class}
-        {include 'inc_comp_description'}
+        {if $comp->short_description || $comp->description}
+        <div class="short-description">{$comp->short_description|eschtml}</div>
+        <div class="text-description">{$comp->description|eschtml}</div>
+        {else}
+        <div class="text-description">{@rarangi_web~default.nodescription@}</div>
+        {/if}
+
 
         </div>
 
@@ -83,7 +89,7 @@
               {foreach $methods as $comp}
               <div class="method-details">
               <h4 id="m-{$comp->name}">{$comp->name}</h4>
-                {include 'inc_comp_info'}
+                {include 'inc_comp_description'}
                 <div class="datatype">Return : {if $comp->return_datatype}{$comp->return_datatype}{else}void{/if}
                 {if $comp->return_description}<br/>{$comp->return_description}{/if}</div>
                 <p class="type-access">{if $comp->is_static == 1}static{/if} {if $comp->is_final == 1}final{/if}
@@ -103,6 +109,35 @@
         </div>
         </div>
 
+        <div class="block">
+        <h3 id="internals">Others informations</h3>
+        
+            {if $class->internal}<div class="internal-description">
+            <strong>Internal documentation: </strong>
+                {$class->internal|eschtml}</div>{/if}
+            
+            <ul>
+            {if $class->copyright}<li><strong>Copyright:</strong> {$class->copyright|eschtml}</li>{/if}
+            {if $class->license_label || $class->license_text}
+            <li><strong>licence:</strong>
+            {if $class->license_link}
+                <a href="{$class->license_link|eschtml}">{$class->license_label|eschtml}</a>
+            {else}
+                {$class->license_label|eschtml}
+            {/if}
+            {if $class->license_text}
+            <div class="license-description">{$class->license_text|eschtml}</div>
+            {/if}
+            </li>{/if}
+            {if $class->todo}<li class="todo"><strong>todo:</strong> {$class->todo|eschtml}</li>{/if}
+            {if $class->changelog}
+            <li><strong>Changelog:</strong><ul>{foreach $class->changelog as $changelog}
+                    <li>{$changelog|eschtml}</li>{/foreach}
+                    </ul>
+            </li>{/if}
+            </ul>
+        </div>
+
 
   </div>
   <div id="sidebar">
@@ -113,41 +148,17 @@
             <li><strong>File:</strong> <a href="{jurl 'rarangi_web~sources:index',
                         array('project'=>$project->name,
                               'path'=>$class->fullpath)}#{$class->line_start}">{$class->filename}</a></li>
-            {if $class->since}<ul><strong>Since:</strong> {$class->since|eschtml}</li>{/if}
+            {if $class->since}<li><strong>Since:</strong> {$class->since|eschtml}</li>{/if}
             {/if}
-            {if $class->copyright}<li><strong>Copyright:</strong> {$class->copyright|eschtml}</li>{/if}
-            {if $class->license_label || $comp->license_text}
-            <li><strong>licence:</strong>
-                    {if $comp->license_link}
-                        <a href="{$class->license_link|eschtml}">{$comp->license_label|eschtml}</a>
-                    {else}
-                        {$comp->license_label|eschtml}
-                    {/if}
-                    {if $comp->license_text}
-                    <div class="license-description">{$comp->license_text|eschtml}</div>
-                    {/if}
-            </li>{/if}
-            {if $class->links}
-            <li><ul class="links">{foreach $comp->links as $link}
-                    <li><a href="{$link[0]|eschtml}">{$link[1]|eschtml}</a></li>{/foreach}
-                </ul></li>
-                {/if}
-            {if $comp->see}
-            <li><strong>{@default.seealso@}: </strong>
-                <ul class="see">{foreach $comp->see as $s}
-                    <li>{$s|eschtml}</li>{/foreach}
-                </ul></li>
-            {/if}
-            {if $comp->todo}<li class="todo">{$comp->todo|eschtml}</li>{/if}
-            {if $comp->changelog}
-            <li>{foreach $comp->changelog as $changelog}
-                    <div>{$changelog|eschtml}</div>{/foreach}
-            </li>{/if}
         </ul>
-        
-        
+
         <div class="relationship">
         <ul>
+            {if $class->is_interface}
+            <li><strong>Implemented by:</strong> </li>
+            {else}
+            <li><strong>Implements:</strong>
+            {/if}
             <li><strong>Inherits from: </strong>
             {if $class->mother_class}
             {if $class->is_interface}
@@ -161,6 +172,24 @@
             <li><strong>As parameter for: </strong> </li>
         </ul>
         </div>
+
+        <ul class="properties">
+            {if $class->links}
+            <li><strong>links: </strong>
+                <ul class="links">{foreach $class->links as $link}
+                    <li><a href="{$link[0]|eschtml}">{if $link[1]}{$link[1]|eschtml}{else}{$link[0]|eschtml}{/if}</a></li>{/foreach}
+                </ul></li>
+                {/if}
+            {if $class->see}
+            <li><strong>{@default.seealso@}: </strong>
+                <ul class="see">{foreach $class->see as $s}
+                    <li>{$s|eschtml}</li>{/foreach}
+                </ul></li>
+            {/if}
+        </ul>
+        
+        
+
   </div>
 {else}
     <h2>Class: {$classname}</h2>

@@ -41,13 +41,18 @@ class raPHPClassParser extends raPHPInterfaceParser {
                 throw new Exception ("Class parsing, invalid syntax, bad token : ".token_name($tok[0]));
             }
             $type = $tok[0];
-            if($type == T_IMPLEMENTS)
+            if($type == T_IMPLEMENTS) {
                 $this->descriptor->interfaces[] = $this->toNextSpecificPhpToken(T_STRING);
-            else
-                $this->descriptor->mother = $this->toNextSpecificPhpToken(T_STRING);
-            $tok = $this->toNextPhpToken();
-            if(is_string($tok)&& $tok ==',')
                 $tok = $this->toNextPhpToken();
+                while(is_string($tok) && $tok ==',') {
+                    $this->descriptor->interfaces[] = $this->toNextSpecificPhpToken(T_STRING);
+                    $tok = $this->toNextPhpToken();
+                }
+            }
+            else {
+                $this->descriptor->mother = $this->toNextSpecificPhpToken(T_STRING);
+                $tok = $this->toNextPhpToken();
+            }
         }
 
         if(!is_string($tok) || $tok != '{' )
