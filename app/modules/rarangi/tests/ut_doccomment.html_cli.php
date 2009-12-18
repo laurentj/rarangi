@@ -147,7 +147,13 @@ class ut_doccomment extends jUnitTestCase {
 */';
         $desc->initFromPhpDoc($c);
         $this->assertEqual(count($desc->authors),0);
-        $this->assertTrue($this->checkLogEmpty());
+        $log = $this->logger->getLog();
+        if(!$this->assertEqual(count($log['error']),0))
+            $this->dump($log['error'],'raLogger::error');
+        if(!$this->assertEqual(count($log['warning']),0))
+            $this->dump($log['warning'],'raLogger::warning');
+        if(!$this->assertEqual(count($log['notice']),1))
+            $this->dump($log['notice'],'raLogger::notice');
 
         $this->logger->clear();
         $c = '/**
@@ -301,6 +307,61 @@ class ut_doccomment extends jUnitTestCase {
         $desc->initFromPhpDoc($c);
         $this->assertEqual($desc->returnType, 'string');
         $this->assertEqual($desc->returnDescription, "Praesent at ante. Maecenas condimentum\nQuisque mi. Nunc mauris. Suspendisse vitae quam");
+    }
+
+    function testLink(){
+        $desc = new raBaseDescriptor($this->project, 1, 1);
+
+        $this->logger->clear();
+        $desc->links = array();
+        $c = '/**
+* @link 
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual(count($desc->links),0);
+        $log = $this->logger->getLog();
+        if(!$this->assertEqual(count($log['error']),0))
+            $this->dump($log['error'],'raLogger::error');
+        if(!$this->assertEqual(count($log['warning']),0))
+            $this->dump($log['warning'],'raLogger::warning');
+        if(!$this->assertEqual(count($log['notice']),1))
+            $this->dump($log['notice'],'raLogger::notice');
+
+        $this->logger->clear();
+        $desc->links = array();
+        $c = '/**
+* @link hello
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->links, array(array('','hello')));
+        $this->assertTrue($this->checkLogEmpty());
+
+        $this->logger->clear();
+        $desc->links = array();
+        $c = '/**
+* @link hello world
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->links, array(array('','hello world')));
+        $this->assertTrue($this->checkLogEmpty());
+
+        $this->logger->clear();
+        $desc->links = array();
+        $c = '/**
+* @link http://foo.local hello world
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->links, array(array('http://foo.local','hello world')));
+        $this->assertTrue($this->checkLogEmpty());
+
+        $this->logger->clear();
+        $desc->links = array();
+        $c = '/**
+* @link http://foo.local
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->links, array(array('http://foo.local','')));
+        $this->assertTrue($this->checkLogEmpty());
     }
 }
 ?>

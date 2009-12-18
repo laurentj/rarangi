@@ -8,9 +8,9 @@
 * @package     rarangi
 * @subpackage  example
 * @author      Laurent Jouanneau
-* @contributor John Smith
+* @contributor John ExampleSmith
 * @copyright   2009 Laurent Jouanneau
-* @copyright   2009 John Smith
+* @copyright   2009 John ExampleSmith
 * @link        http://forge.jelix.org/projects/rarangi
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
@@ -70,7 +70,7 @@ class exampleShortClass {
  * Curabitur gravida leo quis odio accumsan imperdiet. Curabitur bibendum
  * tellus eu dui tristique sed posuere nunc tincidunt. Donec porttitor
  * felis nec est vestibulum euismod.
- * @contributor Jammie Clark
+ * @contributor Jammie ExampleClark
  * @since 1.0
  * @link http://jelix.org the web site
  * @link http://rarangi.org
@@ -115,7 +115,7 @@ class exampleClass1 extends exampleShortClass implements IExample1, IExample2 {
      * @param ArrayObject $ar the array to process
      * @param boolean $reverse true if it is in the reverse order
      * @return boolean true if success
-     * @contributor Johnnie Halité
+     * @contributor Johnnie ExampleHalité
      * @since 1.2
      * @internal Praesent lobortis, leo non sodales pharetra,
      * magna eros tempor augue, vel mollis purus velit in eros.
@@ -185,7 +185,7 @@ class exampleClass1 extends exampleShortClass implements IExample1, IExample2 {
  * Curabitur gravida leo quis odio accumsan imperdiet. Curabitur bibendum
  * tellus eu dui tristique sed posuere nunc tincidunt. Donec porttitor
  * felis nec est vestibulum euismod.
- * @contributor Jammie Clark
+ * @contributor Jammie ExampleClark
  * @since 1.0
  * @link http://jelix.org the web site
  * @link http://rarangi.org

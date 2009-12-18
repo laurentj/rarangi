@@ -51,7 +51,7 @@ class raBaseDescriptor {
     /**
      * Indicate if it is deprecated + some optional information
      * like the version since it is deprecated
-     * @var 
+     * @var string 
      */
     public $deprecated = '';
 
@@ -70,7 +70,7 @@ class raBaseDescriptor {
 
     /**
      * internal documentation for contributors
-     * @var 
+     * @var string
      */
     public $internal = '';
 
@@ -194,15 +194,26 @@ class raBaseDescriptor {
                 if ($tag != '') {
                     switch ($tag) {
                         case 'package':
-                            if ($this->acceptPackage)
-                                $this->package = $content;
+                            if ($this->acceptPackage) {
+                                if ($content != '')
+                                    $this->package = $content;
+                                else
+                                    $this->noticeEmpty($tag);
+                            }
                             else
-                                $this->project->logger()->error('Package tag is not allowed here');
+                                $this->project->logger()->error('@package is not allowed here');
                             break;
                         case 'subpackage':
                             if ($this->acceptPackage) {
-                                if($content !='')
-                                    $this->package .= '.'.$content;
+                                if ($content !='') {
+                                    if ($this->package == '') {
+                                        $this->project->logger()->error('@subpackage shouldn\'t be defined because @package is not define');
+                                    }
+                                    else
+                                        $this->package .= '.'.$content;
+                                }
+                                else
+                                    $this->noticeEmpty($tag);
                             }
                             else
                                 $this->project->logger()->error('subpackage tag is not allowed here');
@@ -212,54 +223,76 @@ class raBaseDescriptor {
                             $this->parseAuthor($tag, $content);
                             break;
                         case 'copyright':
-                            $this->copyright .= ' '.$content;
+                            if ($content !='') {
+                                $this->copyright .= ' '.$content;
+                            }
+                            else {
+                                $this->noticeEmpty($tag);
+                            }
                             break;
                         case 'deprecated':
-                            $this->deprecated = trim($content);
+                            $this->deprecated = $content;
                             break;
                         case 'ignore':
                             $this->ignore = true;
+                            if ($content != '') {
+                                $this->project->logger()->notice('@ignore shouldn\'t have value');
+                            }
                             break;
                         case 'internal':
                             $this->internal .= $content;
                             break;
                         case 'link':
-                            $pos = strpos($content," ");
-                            $link = $label = '';
-                            if ($pos === false) {
-                                $link = $content;
+                            $link = $this->readLinkLabel($content);
+                            if ($link[0] == '' && $link[1] == '') {
+                                $this->noticeEmpty($tag);
                             }
-                            else {
-                                $link = substr($content, 0, $pos);
-                                $label = substr($content, $pos+1);
-                            }
-                            $this->links[] = array($link, $label);
+                            else 
+                                $this->links[] = $link;
                             break;
                         case 'see':
-                            $this->see[] = $content;
+                            if ($content == '') {
+                                $this->noticeEmpty($tag);
+                            }
+                            else
+                                $this->see[] = $content;
                             break;
                         case 'uses':
-                            $this->uses[] = $content;
+                            if ($content == '') {
+                                $this->noticeEmpty($tag);
+                            }
+                            else
+                                $this->uses[] = $content;
                             break;
                         case 'since':
-                            $this->since = $content;
+                            if ($content == '') {
+                                $this->noticeEmpty($tag);
+                            }
+                            else
+                                $this->since = $content;
                             break;
                         case 'changelog':
-                            $this->changelog[] = $content;
+                            if ($content == '') {
+                                $this->noticeEmpty($tag);
+                            }
+                            else
+                                $this->changelog[] = $content;
                             break;
                         case 'todo':
-                            $this->todo = $content;
+                            if ($content == '') {
+                                $this->noticeEmpty($tag);
+                            }
+                            else
+                                $this->todo = $content;
                             break;
                         case 'license':
                         case 'licence':
-                            $pos = strpos($content," ");
-                            $this->licenseLink = $this->licenseLabel = '';
-                            if ($pos === false) {
-                                $this->licenseLink = $content;
+                            if ($content == '') {
+                                $this->noticeEmpty($tag);
                             }
                             else {
-                                $this->licenseLink = substr($content, 0, $pos);
-                                $this->licenseLabel = substr($content, $pos+1);
+                                list($this->licenseLink, $this->licenseLabel)
+                                    = $this->readLinkLabel($content);
                             }
                             break;
                         default:
@@ -341,6 +374,27 @@ class raBaseDescriptor {
         }
     }
 
+    protected function noticeEmpty($tag) {
+        $this->project->logger()->notice("@$tag is ignored because it is empty");
+    }
+
+    protected function readLinkLabel($content) {
+        $pos = strpos($content," ");
+        $link = $label = '';
+        if ($pos === false) {
+            $link = $content;
+        }
+        else {
+            $link = substr($content, 0, $pos);
+            $label = substr($content, $pos+1);
+        }
+        if (!preg_match("/^(https|http|ftp):\\/\\//", $link)) {
+            $label = $content;
+            $link = '';
+        }
+        return array($link, $label);
+    }
+
     /**
      * this method is responsible to parse tags which are not commons to
      * all components type. Should be overrided in child classes.
@@ -377,6 +431,10 @@ class raBaseDescriptor {
      * @param string $content the value to parse
      */
     protected function parseAuthor($tag, $content) {
+        if ($content == '') {
+            $this->project->logger()->notice("@$tag is ignored because it is empty");
+            return;
+        }
         $people = explode(",", $content);
         foreach ($people as $p) {
             if (trim($p) == '') {
@@ -396,7 +454,7 @@ class raBaseDescriptor {
                 }
             }
             else {
-                $this->project->logger()->warning("@$tag:invalid value '$p'");
+                $this->project->logger()->warning("@$tag: invalid value '$p'");
                 $n = $p;
                 $e = '';
             }
