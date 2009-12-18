@@ -46,19 +46,11 @@ class raFileDescriptor extends raBaseDescriptor  {
         }
 
         $this->record->package_id = $this->project->getPackageId($this->package);
-        $this->record->copyright = $this->copyright;
         $this->record->short_description = $this->shortDescription;
         $this->record->description = $this->description;
-        $this->record->internal = $this->internal;
-        $this->record->links = serialize($this->links);
-        $this->record->see = serialize($this->see);
-        $this->record->uses = serialize($this->uses);
-        $this->record->changelog = serialize($this->changelog);
-        $this->record->todo = $this->todo;
-        $this->record->since = $this->since;
-        $this->record->license_label = $this->licenseLabel;
-        $this->record->license_link = $this->licenseLink;
-        $this->record->license_text = $this->licenseText;
+
+        $this->fillRecord($this->record);
+        
         jDao::get('rarangi~files')->update($this->record);
         
         $fileauthor = jDao::createRecord("rarangi~files_authors");

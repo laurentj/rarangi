@@ -25,6 +25,11 @@
         <property name="license_label" fieldname="license_label" datatype="string"/>
         <property name="license_link" fieldname="license_link" datatype="string"/>
         <property name="license_text" fieldname="license_text" datatype="string"/>
+        <property name="is_deprecated" fieldname="is_deprecated" datatype="boolean" default="0" required="true"/>
+        <property name="deprecated" fieldname="deprecated" datatype="string"/>
+        <property name="is_experimental" fieldname="is_experimental" datatype="boolean" default="0" required="true"/>
+        <property name="user_tags" fieldname="user_tags" datatype="string"/>
+
     </record>
     <factory>
         <method name="findByClass" type="select">

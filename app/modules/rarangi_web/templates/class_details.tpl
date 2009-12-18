@@ -3,22 +3,18 @@
     <h2>{if $class->is_interface}Interface{else}Class{/if}: {$class->name|eschtml}</h2>
 
         <div class="description-block">
-
         {assign $comp = $class}
         {if $comp->short_description || $comp->description}
-        <div class="short-description">{$comp->short_description|eschtml}</div>
+        <p class="short-description">{$comp->short_description|eschtml}</p>
         <div class="text-description">{$comp->description|eschtml}</div>
-        {else}
-        <div class="text-description">{@rarangi_web~default.nodescription@}</div>
         {/if}
-
-
+        {if $class->is_deprecated && $class->deprecated}<p>About deprecation: {$class->deprecated|eschtml}</p>{/if}
         </div>
 
         <div class="tags">     
-        {if $class->is_abstract}
-        <span class="tag-abstract">abstract</span>
-        {/if}
+        {if $class->is_abstract}<span class="tag-abstract">abstract</span>{/if}
+        {if $class->is_deprecated}<span class="tag-deprecated">deprecated</span>{/if}
+        {if $class->is_experimental}<span class="tag-experimental">experimental</span>{/if}
         </div>
         
         {if count($properties) || count($methods)}
@@ -67,10 +63,15 @@
               <h4 id="p-{$comp->name}"><a name="p-{$comp->name}"></a>{$comp->name}</h4>
                 {include 'inc_comp_description'}
 
-                <p class="datatype">Datatype : {if $comp->datatype}{$comp->datatype}{else}undefined{/if}</p>
+                {if $comp->datatype}<p class="datatype">Datatype : {$comp->datatype}</p>{/if}
                 <p class="type-access">{if $comp->type == 1}static{elseif $comp->type == 2}const{/if}
                    {if $comp->accessibility == 'PRO'}protected{elseif $comp->accessibility=='PRI'}private{else}public{/if}</p>
 
+                <div class="tags">
+                {if $class->is_deprecated}<span class="tag-deprecated">deprecated</span>{/if}
+                {if $class->is_experimental}<span class="tag-experimental">experimental</span>{/if}
+                </div>
+                {if $class->is_deprecated && $class->deprecated}<p>About deprecation: {$class->deprecated|eschtml}</p>{/if}
                 {include 'inc_comp_info'}
 
               </div>
@@ -100,6 +101,11 @@
                     <dt>{$param->type} <strong>${$param->name}</strong> {if $param->defaultvalue}= {$param->defaultvalue}{/if}</dt>
                     <dd>{$param->documentation|eschtml}</dd>
                 {/foreach}</dl>
+                <div class="tags">
+                {if $class->is_deprecated}<span class="tag-deprecated">deprecated</span>{/if}
+                {if $class->is_experimental}<span class="tag-experimental">experimental</span>{/if}
+                </div>
+                {if $class->is_deprecated && $class->deprecated}<p>About deprecation: {$class->deprecated|eschtml}</p>{/if}
                 {include 'inc_comp_info'}
               </div>
               {/foreach}
@@ -137,7 +143,6 @@
             </li>{/if}
             </ul>
         </div>
-
 
   </div>
   <div id="sidebar">
@@ -178,17 +183,16 @@
             <li><strong>links: </strong>
                 <ul class="links">{foreach $class->links as $link}
                     <li><a href="{$link[0]|eschtml}">{if $link[1]}{$link[1]|eschtml}{else}{$link[0]|eschtml}{/if}</a></li>{/foreach}
-                </ul></li>
-                {/if}
+                </ul></li>{/if}
             {if $class->see}
             <li><strong>{@default.seealso@}: </strong>
                 <ul class="see">{foreach $class->see as $s}
                     <li>{$s|eschtml}</li>{/foreach}
-                </ul></li>
-            {/if}
+                </ul></li>{/if}
+            {foreach $class->user_tags as $t=>$c}
+            <li><strong>{$t|eschtml}{if $c}: {/if}</strong>{$c|eschtml}</li>
+            {/foreach}
         </ul>
-        
-        
 
   </div>
 {else}

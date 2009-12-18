@@ -4,6 +4,12 @@
         <h3 id="description">{@rarangi_web~default.description@}</h3>
         {assign $comp = $func}
         {include 'inc_comp_description'}
+        {if $class->is_deprecated && $class->deprecated}<p>About deprecation: {$class->deprecated|eschtml}</p>{/if}
+        <div class="tags">
+        {if $class->is_deprecated}<span class="tag-deprecated">deprecated</span>{/if}
+        {if $class->is_experimental}<span class="tag-experimental">experimental</span>{/if}
+        </div>
+
         </div>
 
         <div class="block">

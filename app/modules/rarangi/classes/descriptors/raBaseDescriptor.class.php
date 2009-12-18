@@ -49,11 +49,22 @@ class raBaseDescriptor {
     public $copyright = '';
 
     /**
-     * Indicate if it is deprecated + some optional information
-     * like the version since it is deprecated
+     * Indicate if it is deprecated
+     * @var boolean
+     */
+    public $isDeprecated = false;
+
+    /**
+     * optional information for the deprecated status
      * @var string 
      */
     public $deprecated = '';
+
+    /**
+     * Indicate if it is experimental
+     * @var boolean 
+     */
+    public $experimental = false;
 
     /**
      * filename of an example to include in the documentation
@@ -117,7 +128,7 @@ class raBaseDescriptor {
      * other tags which are not supported natively
      * @var array
      */
-    public $otherTags = array();
+    public $userTags = array();
 
     /**
      * @var string
@@ -171,7 +182,9 @@ class raBaseDescriptor {
         $this->authors = $desc->authors;
         $this->contributors = $desc->contributors;
         $this->copyright = $desc->copyright;
+        $this->isDeprecated = $desc->isDeprecated;
         $this->deprecated = $desc->deprecated;
+        $this->experimental = $desc->experimental;
         $this->ignore = $desc->ignore;
         $this->since = $desc->since;
         $this->licenseLabel = $desc->licenseLabel;
@@ -231,7 +244,14 @@ class raBaseDescriptor {
                             }
                             break;
                         case 'deprecated':
+                            $this->isDeprecated = true;
                             $this->deprecated = $content;
+                            break;
+                        case 'experimental':
+                            $this->experimental = true;
+                            if ($content != '') {
+                                $this->project->logger()->notice('@experimental shouldn\'t have value');
+                            }
                             break;
                         case 'ignore':
                             $this->ignore = true;
@@ -297,7 +317,7 @@ class raBaseDescriptor {
                             break;
                         default:
                             if (!$this->parseSpecificTag($tag, $content)) {
-                                $this->otherTags[$tag] = $content;
+                                $this->userTags[$tag] = $content;
                             }
                     }
                     $currentTag = $tag;
@@ -357,11 +377,17 @@ class raBaseDescriptor {
                     case 'see':
                     case 'uses':
                     case 'since':
+                    case 'experimental':
                         break;
 
                     default:
                         if (!$this->addContentToSpecificTag($currentTag, $content)) {
-                            $this->otherTags[$currentTag] .= $content;
+                            if ($this->userTags[$currentTag] != '') {
+                                $this->userTags[$currentTag] .= "\n".$content;
+                            }
+                            else {
+                                $this->userTags[$currentTag] = $content;
+                            }
                         }
                     }
                     
@@ -369,7 +395,7 @@ class raBaseDescriptor {
             }
             else { // invalid line
                 //throw new Exception("bad syntax in a doc comment");
-               //jLogger::warning('bad syntax in a doc comment');
+               //$this->project->logger()->warning('bad syntax in a doc comment');
             }
         }
     }
@@ -424,7 +450,28 @@ class raBaseDescriptor {
      */
     public function save() {}
     
-    
+    /**
+     * fill a record with commons properties
+     * @param jDaoRecordBase $record
+     */
+    protected function fillRecord($record) {
+        $record->copyright = $this->copyright;
+        $record->internal = $this->internal;
+        $record->links = serialize($this->links);
+        $record->see = serialize($this->see);
+        $record->uses = serialize($this->uses);
+        $record->changelog = serialize($this->changelog);
+        $record->todo = $this->todo;
+        $record->since = $this->since;
+        $record->license_label = $this->licenseLabel;
+        $record->license_link = $this->licenseLink;
+        $record->license_text = $this->licenseText;
+        $record->deprecated = $this->deprecated;
+        $record->is_deprecated = $this->deprecated;
+        $record->is_experimental = $this->experimental;
+        $record->user_tags = serialize($this->userTags);
+    }
+
     /**
      * parse the value of a tag author
      * @param string $tag the tag

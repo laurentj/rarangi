@@ -68,30 +68,22 @@ class raInterfaceDescriptor extends raBaseDescriptor {
 
         $record->name = $this->name;
         $record->project_id = $this->project->id();
-        $record->file_id = $this->fileId;
-        $record->line_start = $this->line;
-        $record->line_end = $this->lineEnd;
         $record->mother_class = $mother_id;
         if (!$this->isInterface)
             $record->is_abstract = $this->isAbstract;
         else
             $record->is_abstract = 0;
+
         $record->package_id = $this->project->getPackageId($this->package);
         $record->is_interface = $this->isInterface;
+
+        $record->file_id = $this->fileId;
+        $record->line_start = $this->line;
+        $record->line_end = $this->lineEnd;
         $record->short_description = $this->shortDescription;
         $record->description = $this->description;
 
-        $record->copyright = $this->copyright;
-        $record->internal = $this->internal;
-        $record->links = serialize($this->links);
-        $record->see = serialize($this->see);
-        $record->uses = serialize($this->uses);
-        $record->changelog = serialize($this->changelog);
-        $record->todo = $this->todo;
-        $record->since = $this->since;
-        $record->license_label = $this->licenseLabel;
-        $record->license_link = $this->licenseLink;
-        $record->license_text = $this->licenseText;
+        $this->fillRecord($record);
 
         if (!$toInsert) {
             // if there is already a record, this is an empty record, created

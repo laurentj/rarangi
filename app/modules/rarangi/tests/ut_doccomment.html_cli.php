@@ -363,5 +363,67 @@ class ut_doccomment extends jUnitTestCase {
         $this->assertEqual($desc->links, array(array('http://foo.local','')));
         $this->assertTrue($this->checkLogEmpty());
     }
+    
+    function testUserTag(){
+        $desc = new raBaseDescriptor($this->project, 1, 1);
+
+        $this->logger->clear();
+        $desc->userTags = array();
+        $c = '/**
+* @mytag
+* @othertag bla bla bla
+*     lorem ipsum
+* @onetag hello world
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->userTags,array(
+            'mytag'=>'',
+            'othertag'=>'bla bla bla
+lorem ipsum',
+            'onetag'=>'hello world'
+        ));
+        $this->assertTrue($this->checkLogEmpty());
+
+    }
+
+    function testDeprecated(){
+        $desc = new raBaseDescriptor($this->project, 1, 1);
+
+        $this->logger->clear();
+        $desc->isDeprecated = false;
+        $desc->deprecated = '';
+        $c = '/**
+* @deprecated
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertTrue($desc->isDeprecated);
+        $this->assertEqual($desc->deprecated, '');
+        $this->assertTrue($this->checkLogEmpty());
+
+        $this->logger->clear();
+        $desc->isDeprecated = false;
+        $desc->deprecated = '';
+        $c = '/**
+* @deprecated hello world
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertTrue($desc->isDeprecated);
+        $this->assertEqual($desc->deprecated, 'hello world');
+        $this->assertTrue($this->checkLogEmpty());
+    }
+
+    function testExperimental(){
+        $desc = new raBaseDescriptor($this->project, 1, 1);
+
+        $this->logger->clear();
+        $desc->experimental = false;
+        $c = '/**
+* @experimental
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertTrue($desc->experimental);
+        $this->assertTrue($this->checkLogEmpty());
+    }
+
 }
 ?>

@@ -43,6 +43,9 @@ class function_detailsZone extends jZone {
             if ($func->changelog)
                 $func->changelog = unserialize($func->changelog);
 
+            if ($func->user_tags)
+                $func->user_tags = unserialize($func->user_tags);
+
             $rs_func_params = jDao::get('rarangi~function_parameters')->findByFunction($func->id);
             $func_params = array();
             foreach ($rs_func_params as $p) {

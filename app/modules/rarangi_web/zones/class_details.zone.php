@@ -13,9 +13,9 @@ class class_detailsZone extends jZone {
     protected $_tplname = 'class_details';
 
     protected function _prepareTpl() {
-        
+
         $project = $this->param('project');
-        
+
         if (!$project) {
             $this->_tpl->assign('project', $GLOBALS['currentproject']);
             $project = $GLOBALS['currentproject'];
@@ -23,7 +23,7 @@ class class_detailsZone extends jZone {
 
         $classname = $this->param('classname');
         $isInterface = $this->param('isInterface', false);
-        
+
         $dao = jDao::get('rarangi~classedetails');
         $class = $dao->getByName($project->id, $classname, ($isInterface?1:0));
         $this->_tpl->assign('class',$class);
@@ -34,7 +34,7 @@ class class_detailsZone extends jZone {
         if ($class) {
             if ($class->links)
                 $class->links = unserialize($class->links);
-            
+
             if ($class->see)
                 $class->see = unserialize($class->see);
 
@@ -43,22 +43,29 @@ class class_detailsZone extends jZone {
 
             if ($class->changelog)
                 $class->changelog = unserialize($class->changelog);
-            
+
+            if ($class->user_tags)
+                $class->user_tags = unserialize($class->user_tags);
+
             $properties = array();
             if (!$class->is_interface) {
                 $rs_properties = jDao::get('rarangi~class_properties')->findByClass($project->id, $class->id);
                 foreach ($rs_properties as $prop) {
                     if ($prop->links)
                         $prop->links = unserialize($prop->links);
-      
+
                     if ($prop->see)
                         $prop->see = unserialize($prop->see);
-        
+
                     if ($prop->uses)
                         $prop->uses = unserialize($prop->uses);
-        
+
                     if ($prop->changelog)
                         $prop->changelog = unserialize($prop->changelog);
+
+                    if ($prop->user_tags)
+                        $prop->user_tags = unserialize($prop->user_tags);
+
                     $properties[] = $prop;
                 }
             }
@@ -86,6 +93,10 @@ class class_detailsZone extends jZone {
     
                 if ($meth->changelog)
                     $meth->changelog = unserialize($meth->changelog);
+
+                if ($meth->user_tags)
+                    $meth->user_tags = unserialize($meth->user_tags);
+
                 $methods[] = $meth;
                 if(!isset($method_params[$meth->name]))
                     $method_params[$meth->name] = array();

@@ -95,8 +95,6 @@ class raMethodDescriptor  extends raBaseDescriptor {
         $record->name = $this->name;
         $record->class_id = $this->classId;
         $record->project_id = $this->project->id();
-        $record->line_start = $this->line;
-        $record->line_end = $this->lineEnd;
         $record->is_static = $this->isStatic;
         $record->is_final = $this->isFinal;
         $record->is_abstract = $this->isAbstract;
@@ -108,22 +106,16 @@ class raMethodDescriptor  extends raBaseDescriptor {
             $record->accessibility = 'PRI';
         else
             $record->accessibility = 'PUB';
-
-        $record->short_description = $this->shortDescription;
-        $record->description = $this->description;
         $record->return_datatype = $this->returnType;
         $record->return_description = $this->returnDescription;
-        $record->copyright = $this->copyright;
-        $record->internal = $this->internal;
-        $record->links = serialize($this->links);
-        $record->see = serialize($this->see);
-        $record->uses = serialize($this->uses);
-        $record->changelog = serialize($this->changelog);
-        $record->todo = $this->todo;
-        $record->since = $this->since;
-        $record->license_label = $this->licenseLabel;
-        $record->license_link = $this->licenseLink;
-        $record->license_text = $this->licenseText;
+
+        $record->line_start = $this->line;
+        $record->line_end = $this->lineEnd;
+        $record->short_description = $this->shortDescription;
+        $record->description = $this->description;
+
+        $this->fillRecord($record);
+
         $dao->insert($record);
 
         $methauthor = jDao::createRecord("rarangi~methods_authors");
