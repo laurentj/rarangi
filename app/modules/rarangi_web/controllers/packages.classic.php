@@ -115,14 +115,44 @@ class packagesCtrl extends jController {
 
     /**
     * display the list of classes of a package
-    * TODO
     */
     function classes() {
-        $rep = $this->getResponse('html');
+        $resp = $this->getResponse('html');
         $tpl = $this->_prepareTpl();
+        
+        $project = $tpl->get('project');
+        $projectname = $tpl->get('projectname');
+        $packagename = $this->param('package');
+        $tpl->assign('packagename', $packagename);
+        $resp->title = jLocale::get('default.packages.classes.title', array($packagename, $projectname));
+
+        if (!$project) {
+            $resp->setHttpStatus('404','Not found');
+        } else {
+            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
+                    'mode' => 'projectbrowse',
+                    'projectname' => $projectname));
+            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
+                                                            'project'=>$project));
+        }
+
+        // Get package
+        $dao = jDao::get('rarangi~packages');
+        $package = $dao->getByName($project->id, $packagename, 0);
+        $tpl->assign('package', $package);
+        
+        if (!$package) {
+            $resp->setHttpStatus('404', 'Not found');
+            $tpl->assign('classes', null);
+        } else {
+            // Get classes
+            $dao_classes = jDao::get('rarangi~classes');
+            $classes = $dao_classes->findByPackage($project->id, $package->id, 0);
+            $tpl->assign('classes', $classes);
+        }
         $tpl->assign('forInterfaces', false);
-        $rep->body->assign('MAIN', $tpl->fetch('classes_list'));
-        return $rep;
+        $resp->body->assign('MAIN', $tpl->fetch('classes_list'));
+        return $resp;
     }
 
     /**
