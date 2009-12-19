@@ -199,14 +199,43 @@ class packagesCtrl extends jController {
 
     /**
     * display the list of functions of a package
-    * TODO
     */
     function functions() {
-        $rep = $this->getResponse('html');
+        $resp = $this->getResponse('html');
         $tpl = $this->_prepareTpl();
 
-        $rep->body->assign('MAIN', $tpl->fetch('functions_list'));
-        return $rep;
+        $project = $tpl->get('project');
+        $projectname = $tpl->get('projectname');
+        $packagename = $this->param('package');
+        $tpl->assign('packagename', $packagename);
+        $resp->title = jLocale::get('default.packages.functions.title', array($packagename, $projectname));
+
+        if (!$project) {
+            $resp->setHttpStatus('404','Not found');
+        } else {
+            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
+                    'mode' => 'projectbrowse',
+                    'projectname' => $projectname));
+            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
+                                                            'project'=>$project));
+        }
+
+        // Get package
+        $dao = jDao::get('rarangi~packages');
+        $package = $dao->getByName($project->id, $packagename, 0);
+        $tpl->assign('package', $package);
+
+        if (!$package) {
+            $resp->setHttpStatus('404', 'Not found');
+            $tpl->assign('classes', null);
+        } else {
+            // Get functions
+            $dao_functions = jDao::get('rarangi~functions');
+            $functions = $dao_functions->findByPackage($project->id, $package->id);
+            $tpl->assign('functions', $functions);
+        }
+        $resp->body->assign('MAIN', $tpl->fetch('functions_list'));
+        return $resp;
     }
 
 }
