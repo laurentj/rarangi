@@ -2,8 +2,9 @@
 <urls xmlns="http://jelix.org/ns/urls/1.0">
     <classicentrypoint name="index" default="true">
 
-        <url pathinfo="/" module="rarangi_web" action="default:index">
-        </url>
+        <url pathinfo="/" module="rarangi_web" action="default:index" />
+        <url pathinfo="/help" module="rarangi_web" action="default:help" />
+        <url pathinfo="/about" module="rarangi_web" action="default:about" />
         
         <url handler="project" module="rarangi_web" action="default:project"
             actionoverride="sources:index,packages:index,packages:details,packages:subpackdetails,packages:classeslist,packages:functionslist,components:functiondetails,components:classdetails,components:interfacedetails"/>

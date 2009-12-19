@@ -64,4 +64,34 @@ class defaultCtrl extends jController {
 
         return $resp;
     }
+    
+    /**
+    * Display the help page
+    */
+    function help() {
+        $resp = $this->getResponse('html');
+        $resp->title = jLocale::get('default.page.help.title');
+
+        $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
+                    'mode' => 'help'));
+        $tpl = new jTpl();
+        $resp->body->assign('MAIN', $tpl->fetch('help'));
+        
+        return $resp;
+    }
+
+    /**
+    * Display the about rarangi page
+    */
+    function about() {
+        $resp = $this->getResponse('html');
+        $resp->title = jLocale::get('default.page.about.title');
+
+        $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
+                    'mode' => 'about'));
+        $tpl = new jTpl();
+        $resp->body->assign('MAIN', $tpl->fetch('about'));
+        
+        return $resp;
+    }
 }

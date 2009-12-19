@@ -1,8 +1,8 @@
 <div id="header">
     {$BREADCRUMB}
     <div id="help-links">
-        <a href="#" title="">{@rarangi_web~default.helplinks.help@}</a> |
-        <a href="#" title="">{@rarangi_web~default.helplinks.about@}</a>
+        <a href="{jurl 'default:help'}" title="">{@rarangi_web~default.helplinks.help@}</a> |
+        <a href="{jurl 'default:about'}" title="">{@rarangi_web~default.helplinks.about@}</a>
     </div>
 </div>
 
