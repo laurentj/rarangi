@@ -24,7 +24,7 @@ class class_detailsZone extends jZone {
         $classname = $this->param('classname');
         $isInterface = $this->param('isInterface', false);
 
-        $dao = jDao::get('rarangi~classedetails');
+        $dao = jDao::get('rarangi~class_details');
         $class = $dao->getByName($project->id, $classname, ($isInterface?1:0));
         $this->_tpl->assign('class',$class);
         if ($isInterface)
