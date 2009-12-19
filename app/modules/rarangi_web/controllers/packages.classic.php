@@ -4,7 +4,7 @@
 * @subpackage 
 * @author    Laurent Jouanneau
 * @contributor  Loic Mathaud
-* @copyright 2008 Laurent Jouanneau, 2008 Loic Mathaud
+* @copyright 2008 Laurent Jouanneau, 2008-2009 Loic Mathaud
 * @link      http://forge.jelix.org/projects/rarangi/
 * @licence   GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
@@ -157,14 +157,44 @@ class packagesCtrl extends jController {
 
     /**
     * display the list of interfaces of a package
-    * TODO
     */
     function interfaces() {
-        $rep = $this->getResponse('html');
+        $resp = $this->getResponse('html');
         $tpl = $this->_prepareTpl();
+
+        $project = $tpl->get('project');
+        $projectname = $tpl->get('projectname');
+        $packagename = $this->param('package');
+        $tpl->assign('packagename', $packagename);
+        $resp->title = jLocale::get('default.packages.interfaces.title', array($packagename, $projectname));
+
+        if (!$project) {
+            $resp->setHttpStatus('404','Not found');
+        } else {
+            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
+                    'mode' => 'projectbrowse',
+                    'projectname' => $projectname));
+            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
+                                                            'project'=>$project));
+        }
+
+        // Get package
+        $dao = jDao::get('rarangi~packages');
+        $package = $dao->getByName($project->id, $packagename, 0);
+        $tpl->assign('package', $package);
+
+        if (!$package) {
+            $resp->setHttpStatus('404', 'Not found');
+            $tpl->assign('classes', null);
+        } else {
+            // Get interfaces
+            $dao_classes = jDao::get('rarangi~classes');
+            $interfaces = $dao_classes->findByPackage($project->id, $package->id, 1);
+            $tpl->assign('interfaces', $interfaces);
+        }
         $tpl->assign('forInterfaces', true);
-        $rep->body->assign('MAIN', $tpl->fetch('classes_list'));
-        return $rep;
+        $resp->body->assign('MAIN', $tpl->fetch('classes_list'));
+        return $resp;
     }
 
     /**
