@@ -12,6 +12,22 @@
     </div>
     {/if}
     
+    <div class="block">
+    <h3>{@rarangi_web~default.project.code.stats@}</h3>
+    <ul>
+        <li>{$files_counter} files</li>
+        <li>{$lines_counter} lines of code</li>
+    </ul>
+    </div>
+    
+    <div class="block">
+    <h3>{@rarangi_web~default.project.components.stats@}</h3>
+    <ul>
+        <li>{$classes_counter} classes</li>
+        <li>{$functions_counter} functions</li>
+        <li>{$packages_counter} packages</li>
+    </ul>
+    </div>
 {else}
     <h2>Project: {$projectname}</h2>
     <div class="blockcontent">

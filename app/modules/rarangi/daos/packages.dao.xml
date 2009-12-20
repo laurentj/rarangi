@@ -32,5 +32,12 @@
                 <eq property="name" expr="$name" />
             </conditions>
         </method>
+        
+        <method name="countByProject" type="count">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
     </factory>
 </dao>

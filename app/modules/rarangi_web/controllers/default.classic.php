@@ -58,6 +58,28 @@ class defaultCtrl extends jController {
             $dao_authors = jDao::get('rarangi~authors');
             $authors = $dao_authors->findByProject($project->id);
             $tpl->assign('authors', $authors);
+            
+            // Get some stats on souce code
+            $dao_files = jDao::get('rarangi~files');
+            $files_counter = $dao_files->countByProject($project->id, 0);
+            $tpl->assign('files_counter', $files_counter);
+            
+            $dao_files_content = jDao::get('rarangi~files_content');
+            $lines_counter = $dao_files_content->countByProject($project->id);
+            $tpl->assign('lines_counter', $lines_counter);
+            
+            // Get some stats on components
+            $dao_classes = jDao::get('rarangi~classes');
+            $classes_counter = $dao_classes->countByProject($project->id);
+            $tpl->assign('classes_counter', $classes_counter);
+            
+            $dao_functions = jDao::get('rarangi~functions');
+            $functions_counter = $dao_functions->countByProject($project->id);
+            $tpl->assign('functions_counter', $functions_counter);
+            
+            $dao_packages = jDao::get('rarangi~packages');
+            $packages_counter = $dao_packages->countByProject($project->id);
+            $tpl->assign('packages_counter', $packages_counter);
         }
         
         $resp->body->assign('MAIN', $tpl->fetch('projects_details'));

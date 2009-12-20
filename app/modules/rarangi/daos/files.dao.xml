@@ -61,6 +61,14 @@
             </order>
         </method>
         
+        <method name="countByProject" type="count">
+            <parameter name="project" />
+            <parameter name="dir" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+                <eq property="isdir" expr="$dir" />
+            </conditions>
+        </method>
         
     </factory>
 </dao>
