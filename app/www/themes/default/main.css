@@ -220,6 +220,11 @@ body#home #menubar {
     background-color:blue;
 }
 
+#authors li {
+    display: inline;
+    margin-right: 1em;
+}
+
 /* FOOTER */
 #footer {
     clear:both;
