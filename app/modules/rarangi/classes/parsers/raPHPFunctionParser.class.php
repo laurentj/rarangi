@@ -30,7 +30,7 @@ class raPHPFunctionParser extends raPHPParser_base {
         
         parent::__construct($fatherParser);
         
-        if($fatherParser instanceof raPHPClassParser || $fatherParser instanceof raPHPInterfaceParser) {
+        if ($fatherParser instanceof raPHPClassParser || $fatherParser instanceof raPHPInterfaceParser) {
             if (!($fatherParser instanceof raPHPClassParser))
                 $this->isInInterface = true;
             $this->isMethod = true;

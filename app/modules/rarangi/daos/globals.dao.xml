@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dao xmlns="http://jelix.org/ns/dao/1.0">
+    <datasources>
+        <primarytable name="globals" realname="globals" primarykey="id" />
+    </datasources>
+    <record>
+        <property name="id" fieldname="id" datatype="autoincrement"/>
+        <property name="name" fieldname="name" datatype="string" required="true" maxlength="150"/>
+        <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
+        <property name="package_id" fieldname="package_id" datatype="int"/>
+        <property name="file_id" fieldname="file_id" datatype="int" />
+        <property name="line_start" fieldname="line_start" datatype="int" required="true" default="0"/>
+        
+        <property name="datatype" fieldname="datatype" datatype="string" required="true" maxlength="150"/>
+        <property name="default_value" fieldname="default_value" datatype="text"/>
+        <property name="type" fieldname="type" datatype="int" required="true"/>
+
+        <property name="short_description" fieldname="short_description" datatype="string"/>
+        <property name="description" fieldname="description" datatype="string"/>
+        <property name="copyright" fieldname="copyright" datatype="string"/>
+        <property name="internal" fieldname="internal" datatype="string"/>
+        <property name="links" fieldname="links" datatype="string"/>
+        <property name="see" fieldname="see" datatype="string"/>
+        <property name="uses" fieldname="uses" datatype="string"/>
+        <property name="changelog" fieldname="changelog" datatype="string"/>
+        <property name="todo" fieldname="todo" datatype="string"/>
+        <property name="since" fieldname="since" datatype="string"/>
+        <property name="license_label" fieldname="license_label" datatype="string"/>
+        <property name="license_link" fieldname="license_link" datatype="string"/>
+        <property name="license_text" fieldname="license_text" datatype="string"/>
+        <property name="is_deprecated" fieldname="is_deprecated" datatype="boolean" default="0" required="true"/>
+        <property name="deprecated" fieldname="deprecated" datatype="string"/>
+        <property name="is_experimental" fieldname="is_experimental" datatype="boolean" default="0" required="true"/>
+        <property name="user_tags" fieldname="user_tags" datatype="string"/>
+    </record>
+    <factory>
+        <method name="findByProject" type="select">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+            <order>
+               <orderitem property="name" way="asc" />
+            </order>
+        </method>
+        <method name="deleteByProject" type="delete">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+        <method name="findByPackage" type="select">
+            <parameter name="project" />
+            <parameter name="package" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+                <eq property="package_id" expr="$package" />
+            </conditions>
+            <order>
+               <orderitem property="name" way="asc" />
+            </order>
+        </method>
+        <method name="getByName" type="selectfirst">
+            <parameter name="project" />
+            <parameter name="name" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+                <eq property="name" expr="$name" />
+            </conditions>
+        </method>
+
+    </factory>
+</dao>

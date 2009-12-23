@@ -122,6 +122,12 @@ abstract class raPHPParser_base {
         return false;
     }
     
+    /**
+     * set the cursor on the next php token. It should correspond to the
+     * given token, else an exception is thrown.
+     * @return boolean|string the value of the token, or false if there isn't anymore token
+     */
+
     protected function toNextSpecificPhpToken($tokentype) {
         $tok = $this->toNextPhpToken();
         if (is_string($tokentype)) {
@@ -144,17 +150,37 @@ abstract class raPHPParser_base {
     }
 
     /**
-     * skip a PHP bloc
+     * advance the cursor until the given token is found
+     * @return boolean|string the value of the token, or false if there isn't anymore token
      */
-    protected function skipPhpBlock () {
+    protected function jumpToSpecificPhpToken($tokentype) {
         if (!$this->iterator->valid())
-            return;
+            return false;
         $this->iterator->next();
-        if (!$this->iterator->valid())
-            return;
+
+        while ($this->iterator->valid()) {
+            $tok = $this->iterator->current();
+
+            if (is_string($tokentype) && is_string($tok) && $tok == $tokentype) {
+                return $tok;
+            }
+            else if (!is_string($tokentype) && is_array($tok)) {
+                if ($tok[0] == $tokentype)
+                    return $tok[1];
+            }
+
+            $this->iterator->next();
+        }
+        return false;
     }
 
+    /**
+     * read a variable name and an optional value
+     * @param string|array $endToken the possible token on which it should stop the reading
+     * @return array the array contains the name and the value.
+     */
     protected function readVarnameAndValue($endToken = ';') {
+
         $tok = $this->iterator->current();
 
         if (is_array($tok) && $tok[0] != T_VARIABLE)
@@ -167,38 +193,10 @@ abstract class raPHPParser_base {
             throw new Exception('variable declaration invalid');
 
         if ($tok == '=') {
-            $value = '';
-            $tok = $this->toNextPhpToken();
-            $exit = $this->isEndToken($tok, $endToken);
-            $insideArray = false;
-            $parenthesisLevel = 0;
-            
-            while ($tok && !$exit) {
-                if (is_array($tok)) {
-                    $value .= $tok[1];
-                    if ($tok[0] == T_ARRAY)
-                        $insideArray = true;
-                }
-                else {
-                    $value .= $tok;
-                    if ($insideArray) {
-                        if ($tok == '(') {
-                            $parenthesisLevel++;
-                        }
-                        elseif ($tok == ')') {
-                            $parenthesisLevel--;
-                            if ($parenthesisLevel == 0)
-                                $insideArray = false;
-                        }
-                    }
-                }
-                $tok = $this->toNextPhpToken();
-                
-                if (!$insideArray) {
-                    $exit =  $this->isEndToken($tok, $endToken);
-                }
+            try {
+                $value = $this->readUntilPhpToken($endToken);
             }
-            if (!$tok) {
+            catch (Exception $e) {
                 throw  new Exception('value of variable invalid ('.$name.','.$value.')');
             }
             return array($name, $value);
@@ -209,7 +207,44 @@ abstract class raPHPParser_base {
         else
             throw new Exception('bad end of variable declaration');
     }
-    
+
+    /**
+     * read tokens until a specific token
+     * @param string|array $endToken the possible token on which it should stop the reading
+     * @return string the string containing all readed tokens.
+     */
+    protected function readUntilPhpToken($endToken = ';') {
+
+        $tok = $this->toNextPhpToken();
+        $exit = $this->isEndToken($tok, $endToken);
+        $parenthesisLevel = 0;
+        $value = '';
+
+        while ($tok && !$exit) {
+            if (is_array($tok)) {
+                $value .= $tok[1];
+            }
+            else {
+                $value .= $tok;
+                if ($tok == '(') {
+                    $parenthesisLevel++;
+                }
+                elseif ($tok == ')') {
+                    $parenthesisLevel--;
+                }
+            }
+            $tok = $this->toNextPhpToken();
+            
+            if (!$parenthesisLevel) {
+                $exit =  $this->isEndToken($tok, $endToken);
+            }
+        }
+        if (!$tok) {
+            throw  new Exception('didn\'t find the token');
+        }
+        return $value;
+    }
+
     protected function isEndToken($tok, $endToken){
         if (is_array($endToken)) {
             return in_array($tok, $endToken);
@@ -220,7 +255,7 @@ abstract class raPHPParser_base {
     }
 
     protected function readConstAndValue($endToken = ';') {
-        
+
         $tok = $this->iterator->current();
         if (is_array($tok) && $tok[0] != T_STRING)
             throw new Exception('not a const declaration');
@@ -234,40 +269,13 @@ abstract class raPHPParser_base {
         if ($tok != '=')
             throw new Exception('invalid const declaration: undefined value');
 
-        $value = '';
-        $tok = $this->toNextPhpToken();
-        $exit = $this->isEndToken($tok, $endToken);
-        $insideArray = false;
-        $parenthesisLevel = 0;
-            
-        while ( $tok && !$exit) {
-            if (is_array($tok)) {
-                $value .= $tok[1];
-                if ($tok[0] == T_ARRAY)
-                    $insideArray = true;
-            }
-            else {
-                $value .= $tok;
-                if ($insideArray) {
-                    if ($tok == '(') {
-                        $parenthesisLevel++;
-                    }
-                    elseif ($tok == ')') {
-                        $parenthesisLevel--;
-                        if ($parenthesisLevel == 0)
-                            $insideArray = false;
-                    }
-                }
-            }
-            $tok = $this->toNextPhpToken();
-            
-            if (!$insideArray) {
-                $exit =  $this->isEndToken($tok, $endToken);
-            }
+        try {
+            $value = $this->readUntilPhpToken($endToken);
         }
-        if (!$tok) {
-            throw new Exception('invalid value for const  ('.$name.','.$value.')');
+        catch (Exception $e) {
+            throw  new Exception('invalid value for const  ('.$name.','.$value.')');
         }
+
         return array($name, $value);
     }
 }

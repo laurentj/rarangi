@@ -2,6 +2,7 @@
 header('Content-type:text/plain');
 
 
+
 function stringify($s){
 	return '"'.str_replace(array("\n","\t"), array('\n','\t'),$s).'"';
 }
@@ -20,6 +21,14 @@ function show($src) {
 
 }
 
+
+show ('<?php /**
+ */
+
+?>
+
+<html xml:lang="<?php echo $check->messages->getLang(); ?>">
+<head>');
 
 
 show('

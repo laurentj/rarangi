@@ -24,6 +24,7 @@ class ut_method_parser extends jUnitTestCaseDb {
         $project = new ut_project_test($logger);
 
         $this->parserInfo = new raParserInfo($project, 'project/test.php','project','test.php');
+        $logger->setCurrentParserInfo($this->parserInfo);
 
         $this->emptyTable('class_methods');
         $this->emptyTable('methods_authors');

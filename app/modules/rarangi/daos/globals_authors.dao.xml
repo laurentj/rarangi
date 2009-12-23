@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dao xmlns="http://jelix.org/ns/dao/1.0">
+    <datasources>
+        <primarytable name="globals_authors" realname="globals_authors" primarykey="global_id,author_id" />
+    </datasources>
+    <record>
+        <property name="global_id" fieldname="global_id" datatype="int" required="true"/>
+        <property name="author_id" fieldname="author_id" datatype="int" required="true"/>
+        <property name="as_contributor" fieldname="as_contributor" datatype="int" required="true" default="0"/>
+    </record>
+</dao>

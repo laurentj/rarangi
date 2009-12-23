@@ -14,7 +14,7 @@
 class raPHPClassParser extends raPHPInterfaceParser {
 
     /**
-     * @param jParser_base $fatherParser  the parser which instancy this class
+     * @param raParser_base $fatherParser  the parser which instancy this class
      * @param string $doccomment the documented comment associated to the class
      * @param boolean $isAbstract  indicates if the class is an abstract class
      */

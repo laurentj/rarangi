@@ -24,6 +24,7 @@ class ut_function_parser extends jUnitTestCaseDb {
         $project = new ut_project_test($logger);
 
         $this->parserInfo = new raParserInfo($project, 'project/test.php','project','test.php');
+        $logger->setCurrentParserInfo($this->parserInfo);
 
         $this->emptyTable('functions');
         $this->emptyTable('functions_authors');
@@ -325,14 +326,14 @@ class ut_function_parser extends jUnitTestCaseDb {
     function testFunctionParametersWithdoc() {
         $doc = '/**
  *  @param integer $aaa first parameter
- *  @param string $ccc third parameter
+ *  @param array $ccc third parameter
    * @param Iteratoooooooor $bbb second parameter
    * with a long documentation
    *   and a bad type
 * @param Plop $ddd what?
 *  @return string the result
   */';
-        $content = " <?php \nfunction foo (".'$aaa'.", Iterator ".'$bbb'.", ".'$ccc'." = 'pipo', Plop ".'$ddd'." = null) {\n }\n ?>";
+        $content = " <?php \nfunction foo (".'$aaa'.", Iterator ".'$bbb'.", ".'$ccc'." = array('pipo'), Plop ".'$ddd'." = null) {\n }\n ?>";
         $p = new ut_function_parser_test($content,1, $this->parserInfo, $doc);
         $p->parse();
         $this->assertEqual($p->getParserInfo()->currentLine(), 3);
@@ -350,7 +351,7 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertEqual($p->getDescriptor()->parameters,
                            array(array('integer','aaa','','first parameter'),
                                  array('Iterator','bbb','', "second parameter\nwith a long documentation\nand a bad type"),
-                                 array('string','ccc',"'pipo'", 'third parameter'),
+                                 array('array','ccc',"array('pipo')", 'third parameter'),
                                  array('Plop','ddd','null', 'what?'),));
         
         $records = array(array(
@@ -399,9 +400,9 @@ class ut_function_parser extends jUnitTestCaseDb {
             array(
             'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>3,
-            'type'=>'string',
+            'type'=>'array',
             'name'=>'ccc',
-            'defaultvalue'=>"'pipo'",
+            'defaultvalue'=>"array('pipo')",
             'documentation'=>'third parameter',
         ),
             array(

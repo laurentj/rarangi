@@ -15,6 +15,7 @@ require($dirnamefile.'raPHPClassParser.class.php');
 require($dirnamefile.'raPHPIncludeParser.class.php');
 require($dirnamefile.'raPHPFunctionParser.class.php');
 require($dirnamefile.'raPHPDefineParser.class.php');
+require($dirnamefile.'raPHPGlobalVariableParser.class.php');
 
 /**
  * Object which parses a file content
@@ -94,32 +95,53 @@ class raPHPFileParser extends raPHPParser_base {
                     $previousDocComment = '';
                     $isAbstract = false;
                     break;
-                /*case T_INCLUDE:
+                case T_INCLUDE:
                 case T_INCLUDE_ONCE:
                 case T_REQUIRE:
                 case T_REQUIRE_ONCE:
-                    $subparser = new raPHPIncludeParser($this, $previousDocComment);
-                    $subparser->parse();
+                    //$subparser = new raPHPIncludeParser($this, $previousDocComment);
+                    //$subparser->parse();
+                    $this->jumpToSpecificPhpToken(';');
                     break;
                 case T_VARIABLE:
-                    break;*/
+                    $subparser = new raPHPGlobalVariableParser($this, $previousDocComment);
+                    $subparser->parse();
+                    $previousDocComment = '';
+                    $isAbstract = false;
+                    break;
+
                 case T_ABSTRACT:
                     $isAbstract = true;
                     break;
+
                 case T_DOC_COMMENT:
                     $previousDocComment = $tok[1];
                     break;
+
+                case T_STRING:
+                    switch ($tok[1]) {
+                    case 'define':
+                        $subparser = new raPHPDefineParser($this, $previousDocComment);
+                        $subparser->parse();
+                        $previousDocComment = '';
+                        $isAbstract = false;
+                        break;
+                    default:
+                        // ignore the rest of the instruction
+                        $this->jumpToSpecificPhpToken(array(';', T_CLOSE_TAG));
+                    }
+                    $previousDocComment = '';
+                    break;
+                case T_CLOSE_TAG:
+                case T_INLINE_HTML:
+                    $this->toNextPhpSection();
+                    break;
+                default:
+                    $this->jumpToSpecificPhpToken(array(';', T_CLOSE_TAG));
                 }
             }
             else {
-                switch ($tok) {
-                /*case 'define':
-                    $subparser = new jDefineParser($this, $previousDocComment);
-                    $subparser->parse();
-                    break;*/
-                default:
-                    $previousDocComment = '';
-                }
+                $previousDocComment = '';
             }
         }
         }

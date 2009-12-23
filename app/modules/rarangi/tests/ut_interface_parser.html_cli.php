@@ -23,6 +23,7 @@ class ut_interface_parser extends jUnitTestCaseDb {
         $project = new ut_project_test($logger);
 
         $this->parserInfo = new raParserInfo($project, 'project/test.php','project','test.php');
+        $logger->setCurrentParserInfo($this->parserInfo);
 
         $this->emptyTable('classes');
         $this->emptyTable('interface_class');

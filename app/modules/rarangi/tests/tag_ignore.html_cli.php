@@ -23,6 +23,7 @@ class ut_tag_ignore extends jUnitTestCaseDb {
         $project = new ut_project_test($logger);
         $project->emptyPackageCache();
         $this->parserInfo = new raParserInfo($project, '/home/foo/project','/home/foo/project/bar/test.php','test.php');
+        $logger->setCurrentParserInfo($this->parserInfo);
 
         $this->emptyTable('authors');
         $this->emptyTable('classes');

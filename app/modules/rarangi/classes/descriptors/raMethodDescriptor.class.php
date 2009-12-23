@@ -41,6 +41,8 @@ class raMethodDescriptor  extends raBaseDescriptor {
     protected $acceptPackage= false;
 
     public function inheritsFrom($desc) {
+        $this->experimental = $desc->experimental;
+        $this->isDeprecated = $desc->isDeprecated;
         $this->deprecated = $desc->deprecated;
         $this->ignore = $desc->ignore;
         $this->since = $desc->since;
