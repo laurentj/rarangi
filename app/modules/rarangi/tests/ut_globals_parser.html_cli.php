@@ -131,9 +131,9 @@ $content =
 define('bla', 4);
 
 /**
-* @const integer #zoop oh, zoop variable !
+* @const integer #zoop oh, zoop variable ! with spaces in the value
 */
-define('zoop', 8);
+define('zoop', myfunc ( 'toto' ) );
 
 \$other;
 
@@ -214,9 +214,9 @@ define('zoop', 8);
                 'file_id'=>$p->getDescriptor()->fileId,
                 'line_start'=>17,
                 'datatype'=>'integer',
-                'default_value'=>'8',
+                'default_value'=>'myfunc ( \'toto\' )',
                 'type'=>2,
-                'short_description'=>'oh, zoop variable !',
+                'short_description'=>'oh, zoop variable ! with spaces in the value',
                 'description'=>''
             )
         ), false);
@@ -270,7 +270,7 @@ define('zoop', 8);
                 'file_id'=>$p->getDescriptor()->fileId,
                 'line_start'=>42,
                 'datatype'=>'string',
-                'default_value'=>"myfunc(\$zip,'zap')",
+                'default_value'=>"myfunc(\$zip, 'zap')",
                 'type'=>0,
                 'short_description'=>'a result stored in a global var',
                 'description'=>''

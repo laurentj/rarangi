@@ -23,12 +23,13 @@ function show($src) {
 
 
 show ('<?php /**
+ * dummy file description
  */
 
-?>
-
-<html xml:lang="<?php echo $check->messages->getLang(); ?>">
-<head>');
+//it should be ignored, at least, for globals statement
+require($dirname.\'foo\');
+foo();
+');
 
 
 show('

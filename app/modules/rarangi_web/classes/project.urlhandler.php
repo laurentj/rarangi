@@ -42,23 +42,19 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
                 return $urlact;
             }
 
-            if(preg_match('!^packages/([^/]+)/(classes|interfaces|functions)/?$!', $match[3], $m)) {
+            if(preg_match('!^packages/([^/]+)/(classes|interfaces|functions|globals|constants)/?$!', $match[3], $m)) {
                 $urlact->setParam('action', 'packages:'.$m[2]);
                 $urlact->setParam('package', $m[1]);
                 return $urlact;
             }
-            if(preg_match('!^packages/([^/]+)/(classes|interfaces|functions)/(.+)$!', $match[3], $m)) {
-                if ($m[2] == 'classes') {
+            if(preg_match('!^packages/([^/]+)/(classe|interface|function|global|constant)s/(.+)$!', $match[3], $m)) {
+                if ($m[2] == 'classe') {
                     $urlact->setParam('action', 'components:classdetails');
                     $urlact->setParam('classname', $m[3]);
                 }
-                elseif ($m[2] == 'interfaces') {
-                    $urlact->setParam('action', 'components:interfacedetails');
-                    $urlact->setParam('interfacename', $m[3]);
-                }
-                else {
-                    $urlact->setParam('action', 'components:functiondetails');
-                    $urlact->setParam('functionname', $m[3]);
+                else{
+                    $urlact->setParam('action', 'components:'.$m[2].'details');
+                    $urlact->setParam($m[2].'name', $m[3]);
                 }
                 $urlact->setParam('package', $m[1]);
                 return $urlact;
@@ -66,7 +62,7 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
         }
         return false;
     }
- 
+  
     function create($urlact, $url){
         $action = $urlact->getParam('action');
         $project = $url->getParam('project');
@@ -104,6 +100,14 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
                 $url->pathInfo .= 'packages/' . $url->getParam('package').'/functions/';
                 $url->delParam('package');
                 break;
+            case 'packages:globals':
+                $url->pathInfo .= 'packages/' . $url->getParam('package').'/globals/';
+                $url->delParam('package');
+                break;
+            case 'packages:constants':
+                $url->pathInfo .= 'packages/' . $url->getParam('package').'/constants/';
+                $url->delParam('package');
+                break;
             case 'components:classdetails':
                 $url->pathInfo .= 'packages/' . $url->getParam('package').'/classes/'. $url->getParam('classname');
                 $url->delParam('package');
@@ -118,6 +122,16 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
                 $url->pathInfo .= 'packages/' . $url->getParam('package').'/functions/'. $url->getParam('functionname');
                 $url->delParam('package');
                 $url->delParam('functionname');
+                break;
+            case 'components:globaldetails':
+                $url->pathInfo .= 'packages/' . $url->getParam('package').'/globals/'. $url->getParam('globalname');
+                $url->delParam('package');
+                $url->delParam('globalname');
+                break;
+            case 'components:constantdetails':
+                $url->pathInfo .= 'packages/' . $url->getParam('package').'/constants/'. $url->getParam('constantname');
+                $url->delParam('package');
+                $url->delParam('constantname');
                 break;
         }
     }

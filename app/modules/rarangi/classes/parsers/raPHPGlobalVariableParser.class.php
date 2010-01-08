@@ -57,7 +57,7 @@ class raPHPGlobalVariableParser extends raPHPParser_base {
                 $this->descriptor->name = substr($tok[1],1,-1);
                 $tok = $this->toNextSpecificPhpToken(']');
                 $tok = $this->toNextSpecificPhpToken('=');
-                $this->descriptor->defaultValue = $this->readUntilPhpToken(';');
+                $this->descriptor->defaultValue = trim($this->readUntilPhpToken(';'));
                 $this->descriptor->save();
             }
             else if ($tok == '=') {

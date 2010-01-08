@@ -48,6 +48,7 @@ class raGlobalVariableDescriptor  extends raBaseDescriptor {
         $this->deprecated = $desc->deprecated;
         $this->experimental = $desc->experimental;
         $this->ignore = $desc->ignore;
+        $this->package = $desc->package;
     }
 
     protected function parseSpecificTag($tag, $content) {
@@ -132,6 +133,7 @@ class raGlobalVariableDescriptor  extends raBaseDescriptor {
         $record->line_start = $this->line;
         $record->default_value = $this->defaultValue;
         $record->type = $this->typeProperty;
+        $record->package_id = $this->project->getPackageId($this->package);
 
         if (isset($this->varData[$this->name])) {
             $data = $this->varData[$this->name];

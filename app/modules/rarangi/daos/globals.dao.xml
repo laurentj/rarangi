@@ -2,6 +2,7 @@
 <dao xmlns="http://jelix.org/ns/dao/1.0">
     <datasources>
         <primarytable name="globals" realname="globals" primarykey="id" />
+        <optionalforeigntable name="f" realname="files" primarykey="id" onforeignkey="file_id"/>
     </datasources>
     <record>
         <property name="id" fieldname="id" datatype="autoincrement"/>
@@ -32,6 +33,10 @@
         <property name="deprecated" fieldname="deprecated" datatype="string"/>
         <property name="is_experimental" fieldname="is_experimental" datatype="boolean" default="0" required="true"/>
         <property name="user_tags" fieldname="user_tags" datatype="string"/>
+
+        <property name="fullpath" fieldname="fullpath" table="f" datatype="string"/>
+        <property name="filename" fieldname="filename" table="f" datatype="string"/>
+
     </record>
     <factory>
         <method name="findByProject" type="select">
@@ -49,12 +54,25 @@
                 <eq property="project_id" expr="$project" />
             </conditions>
         </method>
-        <method name="findByPackage" type="select">
+        <method name="findVariablesByPackage" type="select">
             <parameter name="project" />
             <parameter name="package" />
             <conditions>
                 <eq property="project_id" expr="$project" />
                 <eq property="package_id" expr="$package" />
+                <eq property="type" value="0" />
+            </conditions>
+            <order>
+               <orderitem property="name" way="asc" />
+            </order>
+        </method>
+        <method name="findConstsByPackage" type="select">
+            <parameter name="project" />
+            <parameter name="package" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+                <eq property="package_id" expr="$package" />
+                <eq property="type" value="2" />
             </conditions>
             <order>
                <orderitem property="name" way="asc" />
@@ -63,9 +81,11 @@
         <method name="getByName" type="selectfirst">
             <parameter name="project" />
             <parameter name="name" />
+            <parameter name="type" />
             <conditions>
                 <eq property="project_id" expr="$project" />
                 <eq property="name" expr="$name" />
+                <eq property="type" expr="$type" />
             </conditions>
         </method>
 

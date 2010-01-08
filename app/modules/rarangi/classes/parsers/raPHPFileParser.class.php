@@ -132,6 +132,8 @@ class raPHPFileParser extends raPHPParser_base {
                     }
                     $previousDocComment = '';
                     break;
+                case T_COMMENT:
+                    break;
                 case T_CLOSE_TAG:
                 case T_INLINE_HTML:
                     $this->toNextPhpSection();
@@ -146,8 +148,9 @@ class raPHPFileParser extends raPHPParser_base {
         }
         }
         catch(jException $e) {
-            $GLOBALS['gJCoord']->handleError($GLOBALS['gJConfig']->error_handling['exception'], 'exception',
-            $e->getCode(), $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace());
+            $this->parserInfo->project()->logger()->error($e->getMessage());
+            /*$GLOBALS['gJCoord']->handleError($GLOBALS['gJConfig']->error_handling['exception'], 'exception',
+            $e->getCode(), $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace());*/
             return;       
         }
         catch(Exception $e) {

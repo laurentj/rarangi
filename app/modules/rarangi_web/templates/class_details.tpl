@@ -8,13 +8,13 @@
         <p class="short-description">{$comp->short_description|eschtml}</p>
         <div class="text-description">{$comp->description|eschtml}</div>
         {/if}
-        {if $class->is_deprecated && $class->deprecated}<p>About deprecation: {$class->deprecated|eschtml}</p>{/if}
+        {if $comp->is_deprecated && $comp->deprecated}<p>About deprecation: {$comp->deprecated|eschtml}</p>{/if}
         </div>
 
         <div class="tags">     
         {if $class->is_abstract}<span class="tag-abstract">abstract</span>{/if}
-        {if $class->is_deprecated}<span class="tag-deprecated">deprecated</span>{/if}
-        {if $class->is_experimental}<span class="tag-experimental">experimental</span>{/if}
+        {if $comp->is_deprecated}<span class="tag-deprecated">deprecated</span>{/if}
+        {if $comp->is_experimental}<span class="tag-experimental">experimental</span>{/if}
         </div>
         
         {if count($properties) || count($methods)}
@@ -68,10 +68,10 @@
                    {if $comp->accessibility == 'PRO'}protected{elseif $comp->accessibility=='PRI'}private{else}public{/if}</p>
 
                 <div class="tags">
-                {if $class->is_deprecated}<span class="tag-deprecated">deprecated</span>{/if}
-                {if $class->is_experimental}<span class="tag-experimental">experimental</span>{/if}
+                {if $comp->is_deprecated}<span class="tag-deprecated">deprecated</span>{/if}
+                {if $comp->is_experimental}<span class="tag-experimental">experimental</span>{/if}
                 </div>
-                {if $class->is_deprecated && $class->deprecated}<p>About deprecation: {$class->deprecated|eschtml}</p>{/if}
+                {if $comp->is_deprecated && $comp->deprecated}<p>About deprecation: {$comp->deprecated|eschtml}</p>{/if}
                 {include 'inc_comp_info'}
 
               </div>

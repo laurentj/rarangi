@@ -7,7 +7,7 @@
         <url pathinfo="/about" module="rarangi_web" action="default:about" />
         
         <url handler="project" module="rarangi_web" action="default:project"
-            actionoverride="sources:index,packages:index,packages:details,packages:subpackdetails,packages:classeslist,packages:functionslist,components:functiondetails,components:classdetails,components:interfacedetails"/>
+            actionoverride="sources:index,packages:index,packages:details,packages:subpackdetails,packages:classes,packages:functions,components:functiondetails,components:classdetails,components:interfacedetails,components:globaldetails,components:constantdetails,packages:constants,packages:globals"/>
     </classicentrypoint>
 
 </urls>

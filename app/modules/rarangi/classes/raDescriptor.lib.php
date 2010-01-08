@@ -75,4 +75,3 @@ require($dirname.'raClassDescriptor.class.php');
 require($dirname.'raPropertyDescriptor.class.php');
 require($dirname.'raMethodDescriptor.class.php');
 require($dirname.'raFunctionDescriptor.class.php');
-require($dirname.'raConstantDescriptor.class.php');

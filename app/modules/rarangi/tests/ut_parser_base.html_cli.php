@@ -181,7 +181,7 @@ class ut_parser_base extends jUnitTestCase {
         $parser = new dummyParser($tokeniser);
         $parser->toNextPhpSection2();
         $parser->toNextPhpToken2();
-        $this->assertEqual($parser->readVarnameAndValue2(';'), array('a','array(array(4),"pop")'));
+        $this->assertEqual($parser->readVarnameAndValue2(';'), array('a','array(array(4) , "pop")'));
 
 
         $content = '<?php function a($a=array(array(4) ,  "pop")){} ?>';
@@ -193,7 +193,7 @@ class ut_parser_base extends jUnitTestCase {
         $parser->toNextPhpToken2(); // a
         $parser->toNextPhpToken2(); // (
         $parser->toNextPhpToken2(); // $a
-        $this->assertEqual($parser->readVarnameAndValue2(array(',',')')), array('a','array(array(4),"pop")'));
+        $this->assertEqual($parser->readVarnameAndValue2(array(',',')')), array('a','array(array(4) , "pop")'));
 
         $content = '<?php function a($a=array(array(4) ,  "pop"), $b){} ?>';
         $tokens = new ArrayObject(token_get_all($content));
@@ -204,7 +204,7 @@ class ut_parser_base extends jUnitTestCase {
         $parser->toNextPhpToken2(); // a
         $parser->toNextPhpToken2(); // (
         $parser->toNextPhpToken2(); // $a
-        $this->assertEqual($parser->readVarnameAndValue2(array(',',')')), array('a','array(array(4),"pop")'));
+        $this->assertEqual($parser->readVarnameAndValue2(array(',',')')), array('a','array(array(4) , "pop")'));
         $parser->toNextPhpToken2();
         $this->assertEqual($parser->readVarnameAndValue2(array(',',')')), array('b',''));
 
@@ -217,7 +217,7 @@ class ut_parser_base extends jUnitTestCase {
         $parser->toNextPhpSection2();
         $parser->toNextPhpToken2(); // protected
         $parser->toNextPhpToken2(); //$allowed_options
-        $this->assertEqual($parser->readVarnameAndValue2(';'), array('allowed_options','array(\'index\'=>array(\'-v\'=>false))'));
+        $this->assertEqual($parser->readVarnameAndValue2(';'), array('allowed_options','array( \'index\' => array(\'-v\'=>false))'));
 
         $content = '<?php public $a=array(array(4) ,  "pop"), $b = 5,
 $c; ?>';
@@ -227,13 +227,13 @@ $c; ?>';
         $parser->toNextPhpSection2();
         $parser->toNextPhpToken2(); // public
         $parser->toNextPhpToken2(); // $a
-        $this->assertEqual($parser->readVarnameAndValue2(array(',',';')), array('a','array(array(4),"pop")'));
+        $this->assertEqual($parser->readVarnameAndValue2(array(',',';')), array('a','array(array(4) , "pop")'));
         $parser->toNextPhpToken2();
         $this->assertEqual($parser->readVarnameAndValue2(array(',',';')), array('b','5'));
         $parser->toNextPhpToken2();
         $this->assertEqual($parser->readVarnameAndValue2(array(',',';')), array('c',''));
 
-        $content = '<?php public const a=array(array(4) ,  "pop"), b = 5,
+        $content = '<?php public const a=  array(array(4) ,  "pop"), b = 5,
 c="toto"; ?>';
         $tokens = new ArrayObject(token_get_all($content));
         $tokeniser = $tokens->getIterator();
@@ -242,7 +242,7 @@ c="toto"; ?>';
         $parser->toNextPhpToken2(); // public
         $parser->toNextPhpToken2(); // const
         $parser->toNextPhpToken2(); // $a
-        $this->assertEqual($parser->readConstAndValue2(array(',',';')), array('a','array(array(4),"pop")'));
+        $this->assertEqual($parser->readConstAndValue2(array(',',';')), array('a','array(array(4) , "pop")'));
         $parser->toNextPhpToken2();
         $this->assertEqual($parser->readConstAndValue2(array(',',';')), array('b','5'));
         $parser->toNextPhpToken2();

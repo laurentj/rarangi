@@ -60,6 +60,7 @@ class raProject {
             $db->exec("DELETE FROM files_authors where file_id IN (SELECT id FROM files WHERE project_id = ".$this->projectRec->id.')');
             $db->exec("DELETE FROM methods_authors where class_id IN (SELECT id FROM classes WHERE project_id = ".$this->projectRec->id.')');
             $db->exec("DELETE FROM method_parameters where class_id IN (SELECT id FROM classes WHERE project_id = ".$this->projectRec->id.')');
+            $db->exec("DELETE FROM globals_authors where global_id IN (SELECT id FROM globals WHERE project_id = ".$this->projectRec->id.')');
             jDao::get('authors')->deleteByProject($this->projectRec->id);
             jDao::get('interface_class')->deleteByProject($this->projectRec->id);
             jDao::get('class_properties')->deleteByProject($this->projectRec->id);
@@ -68,6 +69,7 @@ class raProject {
             jDao::get('functions')->deleteByProject($this->projectRec->id);
             jDao::get('files_content')->deleteByProject($this->projectRec->id);
             jDao::get('files')->deleteByProject($this->projectRec->id);
+            jDao::get('globals')->deleteByProject($this->projectRec->id);
             jDao::get('packages')->deleteByProject($this->projectRec->id);
         }
     }

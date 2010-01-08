@@ -11,7 +11,7 @@
 
 class packagesCtrl extends jController {
     
-    protected function _prepareTpl() {
+    protected function _prepareTpl($resp, $title, $withPackage = false) {
         $tpl = new jTpl();
         $projectname = $this->param('project');
         $dao = jDao::get('rarangi~projects');
@@ -20,6 +20,46 @@ class packagesCtrl extends jController {
         $tpl->assign('project',$project);
         $tpl->assign('projectname',$projectname);
         
+        if ($withPackage) {
+            $packagename = $this->param('package');
+            $tpl->assign('packagename', $packagename);
+            $resp->title = jLocale::get($title, array($packagename, $projectname));
+        }
+        else {
+            $resp->title = jLocale::get($title, array($projectname));
+        }
+
+        $package = null;
+
+        if (!$project) {
+            $resp->setHttpStatus('404','Not found');
+        } else {
+            $resp->body->assignZone('BREADCRUMB',
+                                    'location_breadcrumb',
+                                    array(
+                                        'mode' => 'projectbrowse',
+                                        'projectname' => $projectname));
+
+            $param = array('project'=>$project);
+            if ($withPackage) {
+                $param['mode'] = 'browse';
+                $dao = jDao::get('rarangi~packages');
+                $package = $dao->getByName($project->id, $packagename, 0);
+            }
+
+            $resp->body->assignZone('MENUBAR',
+                                    'project_menubar',
+                                    $param);
+        }
+
+        if ($withPackage) {
+            if (!$package) {
+                $resp->setHttpStatus('404', 'Not found');
+            }
+            else
+                $tpl->assign('package', $package);
+        }
+
         return $tpl;
     }
     
@@ -28,34 +68,20 @@ class packagesCtrl extends jController {
     */
     function index() {
         $resp = $this->getResponse('html');
-        $tpl = $this->_prepareTpl();
-        
-        $project = $tpl->get('project');
-        $projectname = $tpl->get('projectname');
-        $resp->title = jLocale::get('default.packages.title', array($projectname));
-        
-        if (!$project) {
-            $resp->setHttpStatus('404','Not found');
-        } else {
-            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
-                    'mode' => 'projectbrowse',
-                    'projectname' => $projectname));
-            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
-                    'project'=>$project,
-                    'mode' => 'browse'));
-        }
-        
-        // Get packages
-        $dao = jDao::get('rarangi~packages');
-        $packages = $dao->findByProject($project->id);
+        $tpl = $this->_prepareTpl($resp, 'default.packages.title');
 
-        if (!$packages) {
-            $resp->setHttpStatus('404', 'Not found');
+        $project = $tpl->get('project');
+        if ($project) {
+            // Get packages
+            $dao = jDao::get('rarangi~packages');
+            $packages = $dao->findByProject($project->id);
         }
+        else
+            $packages = null;
+        
         $tpl->assign('packages', $packages);
-        
         $resp->body->assign('MAIN', $tpl->fetch('packages_list'));
-        
+
         return $resp;
     }
     
@@ -64,31 +90,12 @@ class packagesCtrl extends jController {
     */
     function details() {
         $resp = $this->getResponse('html');
-        $tpl = $this->_prepareTpl();
-        
-        $project = $tpl->get('project');
-        $projectname = $tpl->get('projectname');
-        $packagename = $this->param('package');
-        $tpl->assign('packagename', $packagename);
-        $resp->title = jLocale::get('default.packages.details.title', array($packagename, $projectname));
-        
-        if (!$project) {
-            $resp->setHttpStatus('404','Not found');
-        } else {
-            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
-                    'mode' => 'projectbrowse',
-                    'projectname' => $projectname));
-            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
-                                                            'project'=>$project));
-        }
+        $tpl = $this->_prepareTpl($resp, 'default.packages.details.title', true);
 
-        // Get package
-        $dao = jDao::get('rarangi~packages');
-        $package = $dao->getByName($project->id, $packagename, 0);
-        $tpl->assign('package', $package);
+        $project = $tpl->get('project');
+        $package = $tpl->get('package');
 
         if (!$package) {
-            $resp->setHttpStatus('404', 'Not found');
             $tpl->assign('interfaces', null);
             $tpl->assign('classes', null);
             $tpl->assign('functions', null);
@@ -107,6 +114,15 @@ class packagesCtrl extends jController {
             $dao_functions = jDao::get('rarangi~functions');
             $functions = $dao_functions->findByPackage($project->id, $package->id);
             $tpl->assign('functions', $functions);
+
+            // Get globals
+            $dao_globals = jDao::get('rarangi~globals');
+            $globals = $dao_globals->findVariablesByPackage($project->id, $package->id);
+            $tpl->assign('globals', $globals);
+
+            // Get defines
+            $defines = $dao_globals->findConstsByPackage($project->id, $package->id);
+            $tpl->assign('defines', $defines);
         }
         $resp->body->assign('MAIN', $tpl->fetch('package_details'));
         
@@ -118,31 +134,12 @@ class packagesCtrl extends jController {
     */
     function classes() {
         $resp = $this->getResponse('html');
-        $tpl = $this->_prepareTpl();
+        $tpl = $this->_prepareTpl($resp, 'default.packages.classes.title', true);
         
         $project = $tpl->get('project');
-        $projectname = $tpl->get('projectname');
-        $packagename = $this->param('package');
-        $tpl->assign('packagename', $packagename);
-        $resp->title = jLocale::get('default.packages.classes.title', array($packagename, $projectname));
-
-        if (!$project) {
-            $resp->setHttpStatus('404','Not found');
-        } else {
-            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
-                    'mode' => 'projectbrowse',
-                    'projectname' => $projectname));
-            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
-                                                            'project'=>$project));
-        }
-
-        // Get package
-        $dao = jDao::get('rarangi~packages');
-        $package = $dao->getByName($project->id, $packagename, 0);
-        $tpl->assign('package', $package);
+        $package = $tpl->get('package');
         
         if (!$package) {
-            $resp->setHttpStatus('404', 'Not found');
             $tpl->assign('classes', null);
         } else {
             // Get classes
@@ -160,31 +157,12 @@ class packagesCtrl extends jController {
     */
     function interfaces() {
         $resp = $this->getResponse('html');
-        $tpl = $this->_prepareTpl();
+        $tpl = $this->_prepareTpl($resp, 'default.packages.interfaces.title', true);
 
         $project = $tpl->get('project');
-        $projectname = $tpl->get('projectname');
-        $packagename = $this->param('package');
-        $tpl->assign('packagename', $packagename);
-        $resp->title = jLocale::get('default.packages.interfaces.title', array($packagename, $projectname));
-
-        if (!$project) {
-            $resp->setHttpStatus('404','Not found');
-        } else {
-            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
-                    'mode' => 'projectbrowse',
-                    'projectname' => $projectname));
-            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
-                                                            'project'=>$project));
-        }
-
-        // Get package
-        $dao = jDao::get('rarangi~packages');
-        $package = $dao->getByName($project->id, $packagename, 0);
-        $tpl->assign('package', $package);
+        $package = $tpl->get('package');
 
         if (!$package) {
-            $resp->setHttpStatus('404', 'Not found');
             $tpl->assign('classes', null);
         } else {
             // Get interfaces
@@ -202,31 +180,12 @@ class packagesCtrl extends jController {
     */
     function functions() {
         $resp = $this->getResponse('html');
-        $tpl = $this->_prepareTpl();
+        $tpl = $this->_prepareTpl($resp, 'default.packages.functions.title', true);
 
         $project = $tpl->get('project');
-        $projectname = $tpl->get('projectname');
-        $packagename = $this->param('package');
-        $tpl->assign('packagename', $packagename);
-        $resp->title = jLocale::get('default.packages.functions.title', array($packagename, $projectname));
-
-        if (!$project) {
-            $resp->setHttpStatus('404','Not found');
-        } else {
-            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
-                    'mode' => 'projectbrowse',
-                    'projectname' => $projectname));
-            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
-                                                            'project'=>$project));
-        }
-
-        // Get package
-        $dao = jDao::get('rarangi~packages');
-        $package = $dao->getByName($project->id, $packagename, 0);
-        $tpl->assign('package', $package);
+        $package = $tpl->get('package');
 
         if (!$package) {
-            $resp->setHttpStatus('404', 'Not found');
             $tpl->assign('classes', null);
         } else {
             // Get functions
@@ -235,6 +194,51 @@ class packagesCtrl extends jController {
             $tpl->assign('functions', $functions);
         }
         $resp->body->assign('MAIN', $tpl->fetch('functions_list'));
+        return $resp;
+    }
+
+    /**
+    * display the list of constants of a package
+    */
+    function constants() {
+        $resp = $this->getResponse('html');
+        $tpl = $this->_prepareTpl($resp, 'default.packages.constants.title', true);
+
+        $project = $tpl->get('project');
+        $package = $tpl->get('package');
+
+        if (!$package) {
+            $tpl->assign('components', null);
+        }
+        else {
+            $dao_globals = jDao::get('rarangi~globals');
+            $defines = $dao_globals->findConstsByPackage($project->id, $package->id);
+            $tpl->assign('components', $defines);
+        }
+        $resp->body->assign('MAIN', $tpl->fetch('package_constants'));
+        return $resp;
+    }
+
+
+    /**
+    * display the list of globals of a package
+    */
+    function globals() {
+        $resp = $this->getResponse('html');
+        $tpl = $this->_prepareTpl($resp, 'default.packages.globals.title', true);
+
+        $project = $tpl->get('project');
+        $package = $tpl->get('package');
+
+        if (!$package) {
+            $tpl->assign('components', null);
+        }
+        else {
+            $dao_globals = jDao::get('rarangi~globals');
+            $defines = $dao_globals->findVariablesByPackage($project->id, $package->id);
+            $tpl->assign('components', $defines);
+        }
+        $resp->body->assign('MAIN', $tpl->fetch('package_globals'));
         return $resp;
     }
 
