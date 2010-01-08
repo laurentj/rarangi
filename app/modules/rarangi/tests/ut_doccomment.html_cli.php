@@ -58,6 +58,14 @@ class ut_doccomment extends jUnitTestCase {
 
         $desc = new raBaseDescriptor($this->project, 1, 1);
         $c =
+        '/** lorem ipsum */';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->shortDescription,'lorem ipsum');
+        $this->assertEqual($desc->description,'');
+        $this->assertTrue($this->checkLogEmpty());
+
+        $desc = new raBaseDescriptor($this->project, 1, 1);
+        $c =
         '/**
           * lorem ipsum
           * qsdosdpqosi
@@ -362,6 +370,15 @@ class ut_doccomment extends jUnitTestCase {
         $desc->initFromPhpDoc($c);
         $this->assertEqual($desc->links, array(array('http://foo.local','')));
         $this->assertTrue($this->checkLogEmpty());
+
+        $this->logger->clear();
+        $desc->links = array();
+        $c = '/** @link http://foo.local
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->links, array(array('http://foo.local','')));
+        $this->assertTrue($this->checkLogEmpty());
+
     }
     
     function testUserTag(){
@@ -410,6 +427,16 @@ lorem ipsum',
         $this->assertTrue($desc->isDeprecated);
         $this->assertEqual($desc->deprecated, 'hello world');
         $this->assertTrue($this->checkLogEmpty());
+
+        $this->logger->clear();
+        $desc->isDeprecated = false;
+        $desc->deprecated = '';
+        $c = '/** @deprecated hello world */';
+        $desc->initFromPhpDoc($c);
+        $this->assertTrue($desc->isDeprecated);
+        $this->assertEqual($desc->deprecated, 'hello world');
+        $this->assertTrue($this->checkLogEmpty());
+
     }
 
     function testExperimental(){
@@ -423,6 +450,15 @@ lorem ipsum',
         $desc->initFromPhpDoc($c);
         $this->assertTrue($desc->experimental);
         $this->assertTrue($this->checkLogEmpty());
+
+
+        $this->logger->clear();
+        $desc->experimental = false;
+        $c = '/** @experimental */';
+        $desc->initFromPhpDoc($c);
+        $this->assertTrue($desc->experimental);
+        $this->assertTrue($this->checkLogEmpty());
+
     }
 
 }

@@ -26,26 +26,31 @@ show ('<?php /**
  * dummy file description
  */
 
-//it should be ignored, at least, for globals statement
-require($dirname.\'foo\');
-foo();
+/** @param other $truc */
+
+/**
+@param other $truc */
+
+/** @param other $truc
+*/
+
 ');
 
-
+/*
 show('
 <?php
 
 namespace MyProject;
 
 const CONNECT_OK = 1;
-class Connection { /* ... */ }
-function connect() { /* ... */  }
+class Connection {  }
+function connect() {   }
 
 namespace AnotherProject {
 
 const CONNECT_OK = 1;
-class Connection { /* ... */ }
-function connect() { /* ... */  }
+class Connection {  }
+function connect() {   }
 
 }
 
@@ -78,6 +83,6 @@ echo \Foo\Bar\FOO;
 );
 
 
-
+*/
 
 ?>

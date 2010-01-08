@@ -444,4 +444,72 @@ class ut_method_parser extends jUnitTestCaseDb {
     }
 
 
+
+    function testMethodParametersWithSingledoc() {
+        $doc = '/** @param integer $aaa first parameter */';
+        $content = " <?php \nfunction foo (".'$aaa'.") {\n }\n ?>";
+        $p = new ut_method_parser_test($content,1, $this->parserInfo, $doc);
+        $p->parse();
+        $p->getDescriptor()->save();
+        $this->assertEqual($p->getParserInfo()->currentLine(), 3);
+        
+        if($this->assertTrue($p->getIterator()->valid())) {
+            $tok = $p->getIterator()->current();
+            $this->assertEqual($tok, '}');
+        }
+        $log = $this->logger->getLog();
+        $this->assertEqual(count($log['error']),0);
+        $this->assertEqual(count($log['warning']),0);
+        $this->assertEqual(count($log['notice']),0);
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
+        
+        $this->assertEqual($p->getDescriptor()->parameters,
+                           array(array('integer','aaa','','first parameter'),
+                            ));
+        
+        $records = array(array(
+            'name'=>'foo',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            'class_id'=>1,
+            'line_start'=>2,
+            'line_end'=>3,
+            'is_static'=>0,
+            'is_final'=>0,
+            'is_abstract'=>0,
+            'accessibility'=>'PUB',
+            'short_description'=>'',
+            'description'=>'',
+            'return_datatype'=>'',
+            'return_description'=>'',
+            'copyright'=>'',
+            'internal'=>'',
+            'links'=>'a:0:{}',
+            'see'=>'a:0:{}',
+            'uses'=>'a:0:{}',
+            'changelog'=>'a:0:{}',
+            'todo'=>'',
+            'since'=>'',
+            'license_label'=>'',
+            'license_link'=>'',
+            'license_text'=>''
+            ));
+        $this->assertTableContainsRecords('class_methods', $records);
+        $this->assertTableIsEmpty('methods_authors');
+        
+        $records = array(array(
+            'class_id'=>1,
+            'method_name'=>'foo',
+            'arg_number'=>1,
+            'type'=>'integer',
+            'name'=>'aaa',
+            'defaultvalue'=>null,
+            'documentation'=>'first parameter',
+        ),
+        );
+        $this->assertTableContainsRecords('method_parameters', $records);
+        $this->assertTableHasNRecords('method_parameters', 1);
+    }
+
+
+
 }
