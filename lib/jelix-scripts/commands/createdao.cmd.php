@@ -68,17 +68,18 @@ class createdaoCommand extends JelixScriptCommand {
             $param['table'] = $param['name'];
 
        if($this->getOption('-empty')){
-          $this->createFile($filename,'dao_empty.xml.tpl',$param);
+          $this->createFile($filename,'module/dao_empty.xml.tpl',$param);
        }else{
 
-         $tools = jDb::getTools($profile);
+         $tools = jDb::getConnection($profile)->tools();
          $fields = $tools->getFieldList($param['table']);
 
          $properties='';
          $primarykeys='';
          foreach($fields as $fieldname=>$prop){
 
-            $properties.="\n        <property name=\"$fieldname\" fieldname=\"$fieldname\"";
+            $name = str_replace('-', '_', $fieldname);
+            $properties.="\n        <property name=\"$name\" fieldname=\"$fieldname\"";
             $properties.=' datatype="'.$prop->type.'"';
             if($prop->primary) {
                if($primarykeys != '')
@@ -111,7 +112,7 @@ class createdaoCommand extends JelixScriptCommand {
 
          $param['properties']=$properties;
          $param['primarykeys']=$primarykeys;
-         $this->createFile($filename,'dao.xml.tpl',$param);
+         $this->createFile($filename,'module/dao.xml.tpl',$param);
        }
     }
 }

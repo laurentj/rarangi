@@ -8,6 +8,9 @@
 * @license   http://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU Public Licence
 */
 
+/**
+ * controller to allow a user to edit his own profile in the admin
+ */
 class userCtrl extends jController {
    
     public $pluginParams=array(
@@ -55,12 +58,20 @@ class userCtrl extends jController {
      * 
      */
     function index(){
-        $id = $this->param('id');
+        $id = $this->param('j_user_login');
         if( $id === null ){
             $rep = $this->getResponse('redirect');
             $rep->action = 'master_admin~default:index';
             return $rep;
         }
+        
+        if ($id != jAuth::getUserSession()->login) {
+            jMessage::add(jLocale::get('jelix~errors.acl.action.right.needed'), 'error');
+            $rep = $this->getResponse('redirect');
+            $rep->action = 'master_admin~default:index';
+            return $rep;
+        }
+
         $rep = $this->getResponse('html');
 
         // we're using a form to display a record, to have the portunity to have
@@ -72,7 +83,7 @@ class userCtrl extends jController {
         $tpl->assign('id', $id);
         $tpl->assign('form',$form);
         $tpl->assign('personalview', true);
-        $tpl->assign('otherInfo', jEvent::notify('jauthdbAdminGetViewInfo', array('form'=>$form, 'tpl'=>$tpl))->getResponse());
+        $tpl->assign('otherInfo', jEvent::notify('jauthdbAdminGetViewInfo', array('form'=>$form, 'tpl'=>$tpl, 'himself'=>true))->getResponse());
         $form->deactivate('password');
         $form->deactivate('password_confirm');
         $tpl->assign('canUpdate', jAcl2::check('auth.user.modify'));
@@ -86,14 +97,21 @@ class userCtrl extends jController {
      * prepare a form in order to edit an existing record, and redirect to the editupdate action
      */
     function preupdate(){
-        $id = $this->param('id');
+        $id = $this->param('j_user_login');
         $rep = $this->getResponse('redirect');
 
         if( $id === null ){
             $rep->action = 'master_admin~default:index';
             return $rep;
         }
-        $rep->params['id'] = $id;
+
+        if ($id != jAuth::getUserSession()->login) {
+            jMessage::add(jLocale::get('jelix~errors.acl.action.right.needed'), 'error');
+            $rep->action = 'master_admin~default:index';
+            return $rep;
+        }
+
+        $rep->params['j_user_login'] = $id;
 
         $form = jForms::create($this->form, $id);
 
@@ -110,7 +128,7 @@ class userCtrl extends jController {
             return $rep;
         }
 
-        jEvent::notify('jauthdbAdminPrepareUpdate', array('form'=>$form));
+        jEvent::notify('jauthdbAdminPrepareUpdate', array('form'=>$form, 'himself'=>true));
         $form->setReadOnly('login');
         $form->deactivate('password');
         $form->deactivate('password_confirm');
@@ -125,13 +143,21 @@ class userCtrl extends jController {
      * won't cause a reset of the form
      */
     function editupdate(){
-        $id = $this->param('id');
+        $id = $this->param('j_user_login');
         $form = jForms::get($this->form,$id);
         if( $form === null || $id === null){
             $rep = $this->getResponse('redirect');
             $rep->action = 'master_admin~default:index';
             return $rep;
         }
+
+        if ($id != jAuth::getUserSession()->login) {
+            jMessage::add(jLocale::get('jelix~errors.acl.action.right.needed'), 'error');
+            $rep = $this->getResponse('redirect');
+            $rep->action = 'master_admin~default:index';
+            return $rep;
+        }
+
         $rep = $this->getResponse('html');
 
         $tpl = new jTpl();
@@ -139,7 +165,7 @@ class userCtrl extends jController {
         $tpl->assign('form',$form);
         $tpl->assign('saveaction', 'user:saveupdate');
         $tpl->assign('viewaction', 'user:index');
-        jEvent::notify('jauthdbAdminEditUpdate', array('form'=>$form, 'tpl'=>$tpl));
+        jEvent::notify('jauthdbAdminEditUpdate', array('form'=>$form, 'tpl'=>$tpl, 'himself'=>true));
         $form->deactivate('password'); //for security
         $form->deactivate('password_confirm');
         $form->setReadOnly('login');
@@ -152,9 +178,16 @@ class userCtrl extends jController {
      */
     function saveupdate(){
         $rep = $this->getResponse('redirect');
-        $id = $this->param('id');
+        $id = $this->param('j_user_login');
 
-        $form = jForms::get($this->form,$id);
+        if ($id != jAuth::getUserSession()->login) {
+            jMessage::add(jLocale::get('jelix~errors.acl.action.right.needed'), 'error');
+            $rep = $this->getResponse('redirect');
+            $rep->action = 'master_admin~default:index';
+            return $rep;
+        }
+
+        $form = jForms::get($this->form, $id);
         $form->initFromRequest();
 
         if( $form === null || $id === null){
@@ -162,7 +195,7 @@ class userCtrl extends jController {
             return $rep;
         }
         $evresp = array();
-        if($form->check() && !jEvent::notify('jauthdbAdminCheckUpdateForm', array('form'=>$form))->inResponse('check', false, $evresp)){
+        if($form->check() && !jEvent::notify('jauthdbAdminCheckUpdateForm', array('form'=>$form, 'himself'=>true))->inResponse('check', false, $evresp)){
             extract($form->prepareDaoFromControls($this->dao,$id,$this->dbProfile), 
                 EXTR_PREFIX_ALL, "form");
             // we call jAuth instead of using jDao, to allow jAuth to do
@@ -176,7 +209,7 @@ class userCtrl extends jController {
         } else {
             $rep->action = 'user:editupdate';
         }
-        $rep->params['id'] = $id;
+        $rep->params['j_user_login'] = $id;
         return $rep;
     }
 }

@@ -2,6 +2,9 @@
 ;for security reasons , don't remove or modify the first line
 ;this file doesn't list all possible properties. See lib/jelix/core/defaultconfig.ini.php for that
 
+startModule = "%%modulename%%"
+startAction = "default:index"
+
 locale = "%%default_locale%%"
 charset = "UTF-8"
 
@@ -14,19 +17,30 @@ pluginsPath = app:plugins/,lib:jelix-plugins/
 
 modulesPath = lib:jelix-modules/,app:modules/
 
-; says if jelix should check trustedModules
-checkTrustedModules = off
+; default domain name to use with jfullurl for example.
+; Let it empty to use $_SERVER['SERVER_NAME'] value instead.
+domainName =
 
-; list of modules which can be accessed from the web
-;    module,module,module
-trustedModules =
 
-; list of modules which are not used by the application
-; or not installed.
-unusedModules = jacldb
+[modules]
+; modulename.access = x where x =
+; 0 if installed but not used (database schema is ok for example)
+; 1 if accessible by other modules (other modules can use it, but it is not accessible directly through the web)
+; 2 if public (accessible through the web)
+
+jelix.access = 2
+
+; jacldb is deprecated. keep it uninstall if possible. install jacl2db instead
+jacldb.access = 0
+
+jacl2db.access = 0
+jauth.access = 0
+jauthdb.access = 0
+junittests.access = 0
+jWSDL.access = 0
 
 [coordplugins]
-;nom = nom_fichier_ini
+;name = file_ini_name or 1
 
 [tplplugins]
 defaultJformsBuilder = html
@@ -39,15 +53,15 @@ messageLogFormat = "%date%\t[%code%]\t%msg%\t%file%\t%line%\n"
 logFile = error.log
 email = root@localhost
 emailHeaders = "Content-Type: text/plain; charset=UTF-8\nFrom: webmaster@yoursite.com\nX-Mailer: Jelix\nX-Priority: 1 (Highest)\n"
-quietMessage="Une erreur technique est survenue. Désolé pour ce désagrément."
+quietMessage="An error occured. Sorry for the inconvenience."
 
-; mots clés que vous pouvez utiliser : ECHO, ECHOQUIET, EXIT, LOGFILE, SYSLOG, MAIL, TRACE
+; keywords you can use: ECHO, ECHOQUIET, EXIT, LOGFILE, SYSLOG, MAIL, TRACE
 default      = ECHO EXIT
 error        = ECHO EXIT
 warning      = ECHO
 notice       = ECHO
 strict       = ECHO
-; pour les exceptions, il y a implicitement un EXIT
+; for exceptions, there is always an implicit EXIT by default
 exception    = ECHO
 
 
@@ -124,13 +138,18 @@ default=messages.log
 webmasterEmail = root@localhost
 webmasterName =
 
-; how to send mail : "mail" (mail()), "sendmail" (call sendmail), or "smtp" (send directly to a smtp)
+; How to send mail : "mail" (mail()), "sendmail" (call sendmail), "smtp" (send directly to a smtp)
+;                   or "file" (store the mail into a file, in filesDir directory)
 mailerType = mail
 ; Sets the hostname to use in Message-Id and Received headers
 ; and as default HELO string. If empty, the value returned
 ; by SERVER_NAME is used or 'localhost.localdomain'.
 hostname =
 sendmailPath = "/usr/sbin/sendmail"
+
+; if mailer = file, fill the following parameters
+; this should be the directory in the var/ directory, where to store mail as files
+filesDir = "mails/"
 
 ; if mailer = smtp , fill the following parameters
 

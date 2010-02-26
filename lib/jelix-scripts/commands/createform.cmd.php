@@ -3,22 +3,25 @@
 * @package     jelix-scripts
 * @author      Jouanneau Laurent
 * @contributor Loic Mathaud
-* @copyright   2007 Jouanneau laurent, 2008 Loic Mathaud
+* @copyright   2007 Jouanneau laurent, 2008 Loic Mathaud, 2009 Bastien Jaillot
 * @link        http://www.jelix.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
+
 class createformCommand extends JelixScriptCommand {
 
     public  $name = 'createform';
-    public  $allowed_options=array();
+    public  $allowed_options=array('-createlocales'=>false);
     public  $allowed_parameters=array('module'=>true,'form'=>true, 'dao'=>false);
 
-    public  $syntaxhelp = "MODULE FORM [DAO]";
+    public  $syntaxhelp = "[-createlocales] MODULE FORM [DAO]";
     public  $help=array(
         'fr'=>"
     Crée un nouveau fichier jforms, soit vide, soit un formulaire à partir d'un fichier dao
-
+    
+    Si l'option -createlocales est présente, créé les fichiers locales avec les champs du formulaire
+    
     MODULE: nom du module concerné.
     FORM : nom du formulaire.
     DAO   : sélecteur du dao concerné. Si non indiqué, le fichier jforms sera vide.",
@@ -26,6 +29,8 @@ class createformCommand extends JelixScriptCommand {
         'en'=>"
     Create a new jforms file, from a jdao file.
 
+    If you give the -createlocales option, it will create the locales files with the form's values.
+    
     MODULE : module name where to create the form
     FORM : name of the form
     DAO    : selector of the dao on which the form will be based. If not given, the jforms file will be empty",
@@ -36,24 +41,46 @@ class createformCommand extends JelixScriptCommand {
 
         jxs_init_jelix_env();
 
-        $path= $this->getModulePath($this->_parameters['module']);
+        $path = $this->getModulePath($this->_parameters['module']);
 
-        $filename= $path.'forms/';
+        $filename = $path.'forms/';
         $this->createDir($filename);
 
         $filename.=strtolower($this->_parameters['form']).'.form.xml';
 
-        $submit="\n\n<submit ref=\"_submit\">\n\t<label>ok</label>\n</submit>";
+        if ($this->getOption('-createlocales')) {
 
-        if(($dao = $this->getParam('dao')) === null) {
-            $this->createFile($filename,'form.xml.tpl', array('content'=>'<!-- add control declaration here -->'.$submit));
+            $locale_content = '';
+            $locale_base = $this->_parameters['module'].'~'.strtolower($this->_parameters['form']).'.form.';
+
+            $locale_filename_fr = $path.'locales/fr_FR/';
+            $this->createDir($locale_filename_fr);
+            $locale_filename_fr.=strtolower($this->_parameters['form']).'.UTF-8.properties';
+            
+            $locale_filename_en = $path.'locales/en_EN/';
+            $this->createDir($locale_filename_en);
+            $locale_filename_en.=strtolower($this->_parameters['form']).'.UTF-8.properties';
+            $submit="\n\n<submit ref=\"_submit\">\n\t<label locale='".$locale_base."ok' />\n</submit>";
+        }
+        else
+            $submit="\n\n<submit ref=\"_submit\">\n\t<label>ok</label>\n</submit>";
+
+        $dao = $this->getParam('dao');
+        if ($dao === null) {
+            if ($this->getOption('-createlocales')) {
+                $locale_content = "form.ok=OK\n"; 
+                $this->createFile($locale_filename_fr, 'locales.tpl', array('content'=>$locale_content)); 
+                $this->createFile($locale_filename_en, 'locales.tpl', array('content'=>$locale_content)); 
+            }
+            $this->createFile($filename,'module/form.xml.tpl', array('content'=>'<!-- add control declaration here -->'.$submit));
             return;
         }
+
         global $gJConfig;
         $gJConfig->startModule = $this->_parameters['module'];
         jContext::push($this->_parameters['module']);
 
-        $tools = jDb::getTools();
+        $tools = jDb::getConnection()->tools();
         
         // we're going to parse the dao
         $selector = new jSelectorDao($dao,'');
@@ -62,7 +89,7 @@ class createformCommand extends JelixScriptCommand {
         $daoPath = $selector->getPath();
         
         if(!$doc->load($daoPath)){
-           throw new jException('jelix~daoxml.file.unknow', $daoPath);
+           throw new jException('jelix~daoxml.file.unknown', $daoPath);
         }
 
         if($doc->documentElement->namespaceURI != JELIX_NAMESPACE_BASE.'dao/1.0'){
@@ -72,8 +99,7 @@ class createformCommand extends JelixScriptCommand {
         $parser = new jDaoParser ($selector);
         $parser->parse(simplexml_import_dom($doc), $tools);
 
-        // know we generate the form file
-
+        // now we generate the form file
         $properties = $parser->GetProperties();
         $table = $parser->GetPrimaryTable();
 
@@ -100,8 +126,6 @@ class createformCommand extends JelixScriptCommand {
             if($property->minlength !== null)
                 $attr.=' minlength="'.$property->minlength.'"';
 
-            //if(false)
-            //    $attr.=' defaultvalue=""';
             $datatype='';
             $tag = 'input';
             switch($property->unifiedType){
@@ -132,11 +156,22 @@ class createformCommand extends JelixScriptCommand {
             }
             if($datatype != '')
                 $attr.=' type="'.$datatype.'"';
-
-            $content.="\n\n<$tag ref=\"$name\"$attr>\n\t<label>".ucwords(str_replace('_',' ',$name))."</label>\n</$tag>";
+            
+            if ($this->getOption('-createlocales')) {
+                $locale_content .= 'form.'.$name.'='. ucwords(str_replace('_',' ',$name))."\n";
+                $content.="\n\n<$tag ref=\"$name\"$attr>\n\t<label locale='".$locale_base.$name."' />\n</$tag>";
+            } else {
+                $content.="\n\n<$tag ref=\"$name\"$attr>\n\t<label>".ucwords(str_replace('_',' ',$name))."</label>\n</$tag>";
+            }
         }
-        $this->createFile($filename,'form.xml.tpl', array('content'=>$content.$submit));
 
+        if ($this->getOption('-createlocales')) {
+            $locale_content .= "form.ok=OK\n";
+            $this->createFile($locale_filename_fr, 'module/locales.tpl', array('content'=>$locale_content));
+            $this->createFile($locale_filename_en, 'module/locales.tpl', array('content'=>$locale_content));
+        }
+
+        $this->createFile($filename,'module/form.xml.tpl', array('content'=>$content.$submit));
     }
 }
 

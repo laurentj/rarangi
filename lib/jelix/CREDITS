@@ -6,6 +6,27 @@ By alphabetic order on the name
 Developers of the Jelix team
 ----------------------------
 
+Olivier Demah (aka FoxMaSk)
+ - bug fix in jFile::removeDir (#733)
+ - little improvement in jtpl_function_html_diff(#720)
+ - remove deprecated "value" attribute in breadcrumb function (#800)
+ - fix charset in htmlfragment (#948)
+ - jResponseHtml, balise meta content xhtml+xml (#984)
+ - fixed issues in the sql script of jacl2db_admin, about the anonymous groups storage (#915)
+ - little improvements on date_format tpl plugins (#654)
+ - improvements in jInstallChecker.class.php (#1022)
+ - tpl plugin hook (#1019)
+ - tpl plugin gravatar (#993) 
+
+Mickaël Fradin (aka mike/kewix)
+ - improvements in the jtpl plugin: formcontrols (#223)
+ - added style feature in the meta_html plugin (#553)
+ - little other improvements (#835)
+ - fixed bugs (#884)
+ - correct _generateCondition doesn't handle some operators with NULL values (#992)
+ - added jfullurl tpl plugin (#938)
+ - bug fixed on number_format (#995)
+
 Julien Issler
  - updated JSON class (#231)
  - table prefix support in jDb and jDao (#293)
@@ -44,6 +65,8 @@ Julien Issler
  - jForms: some controls are selected by default if their values are "0" (#757)
  - jCoordinator: exception loop when response's constructor fails (#749)
  - jAuth: update usersession when needed (#461)
+ - jSession: cannot use NOW() in dao storage because sqlite doesn't support it (#949)
+ - jDbPDOConnection: syntax error when setting utf-8 charset in mysql driver
 
 Bastien Jaillot (aka bastnic)
  - bug fix in jDaoGenerator (#282)
@@ -54,9 +77,10 @@ Bastien Jaillot (aka bastnic)
  - add a jFormBase prepareDaoFromControls which return a DAO filled by form (#497)
  - jforms tpl plugins : choice of builder (#583)
  - fixed bug in jacl2 events : conflict with jacl (#621)
+ - fixed regression in createform jelix-script with optimized sources (#896)
 
 Laurent Jouanneau (laurentj):
- - Conceptor and main developer of Jelix
+ - Conceptor and main developer of Jelix. Too many tickets to list them here :-)
 
 Yannick Le Guédart (aka Torgan)
  - auth driver: jAuthDriverClass
@@ -66,6 +90,8 @@ Yannick Le Guédart (aka Torgan)
  - jdb driver for Intuition
  - resolved memory exhausted errors in truncate modifier (#511)
  - fixed bug on jBundle (#639)
+ - fixed bug on jDaoConditions (#906)
+ - created jKVDb (#1048)
 
 Kévin Lepeltier (aka Lipki)
  - plugin image for jtpl (#474, #502, #558, #559, #560)
@@ -85,6 +111,8 @@ Loic Mathaud (bballizlife):
  - many improvements (jClasses::inc(), jIniFile, jAppManager, jelix-scripts etc )
  - coord plugin for Zend Framework (#651)
  - added title feature in the meta_html plugin (#810)
+ - translations in the config file (#940)
+ - jelix-script createdao should'nt validate fieldname with '-' (#980) 
 
 Dominique Papin (aka bibo)
  - added j_themepath variable in jtpl (#346)
@@ -104,17 +132,11 @@ Laurent Raufaste (aka analogue)
 Christophe Thiriot (aka Doubleface)
  - testor
  - bug fixes on PDO support in jDb
- - fixed minor bugs (#668...)
+ - fixed minor bugs (#668, #1010...)
  - Added enhanced service handling (dependency injection) in jClasses (#523, #602)
  - implementation of "live" exit in command line (#406)
  - automatic timezone setting (#600)
  - bug in jFilter tests (#842)
-
-Mickaël Fradin (aka mike/kewix)
- - improvements in the jtpl plugin: formcontrols (#223)
- - added style feature in the meta_html plugin (#553)
- - little other improvements (#835)
- - fixed bugs (#884)
 
 Baptiste Toinot (aka Surfoo)
  - double / in path for locale selector
@@ -132,6 +154,14 @@ Yoan Blanc (aka Greut)
 
 Vincent Bonnard
  - bug fix in jXmlRpc.class.php (#190)
+
+Brunto
+ - bug fix in the formdatafull plugin (#1027)
+
+Catsoup
+ - bug fixed in jEvent for multi entry point (#1004)
+ - invalid error locale in jMailer class  (#983)
+ - meta_html plugin should allow additionnal parameters (#996)
 
 Cedric
  - bug fix in jFile::read
@@ -154,16 +184,12 @@ F. Fernandez (aka e-media)
  - little improvement in jLog.(#344)
  - little improvement in formcontrols plugin (#353)
 
-FoxMaSk
-  - bug fix in jFile::removeDir (#733)
-  - little improvement in jtpl_function_html_diff(#720)
-  - remove deprecated "value" attribute in breadcrumb function (#800)
-
 Olivier Gambier (aka d-m-p)
  - code reviewer, bug fixes
 
 Geekbay
  - fixed bug in jMailer about the support of html plugins into the template (#898)
+ - fixed bug in jImageModifier (#945)
 
 Gildas Givaja (aka Giviz)
  - testor, bug fixes
@@ -180,6 +206,9 @@ Florian Hatat (aka flh)
 Emmanuel Hesry (aka m@noo)
  - improvement on jDateTime plugin for full date format (#796)
 
+Didier Huguet (aka isepman)
+ - tpl plugin: modifier truncatehtml (#760)
+
 Julien Jacottet
  - tpl plugin link_to_remote (#30)
 
@@ -190,11 +219,23 @@ Nicolas Jeudy (aka njeudy)
 Gwendal Jouannic (aka obewan)
  - oracle support with PDO-OCI (#615)
 
+Xavier L. (aka afroxav)
+ - improved the conformance with HTTP specification in redirections (#957)
+
+Denis Lallement (dlalleme)
+ - tpl plugin break (#808)
+
+Hadrien Lanneau
+ - jDateTime::substract() (#623)
+
 Nicolas Lassalle
  - bug fix in jResponseBinary (#188)
 
 Hugues Magnier (aka BaGroN)
  - tpl plugin stripws (#140)
+
+Yann Lecommandoux (aka YannL)
+ - mssql driver for jDb (#799)
 
 Alexis Métaireau
  - improvements on jtpl plugin formcontrol (#652)
@@ -266,4 +307,3 @@ Copix Team
     (version 2.3dev20050901), under copyright 2001-2005 Copix Team
     (http://www.copix.org)
 
-(updated svn-1213)

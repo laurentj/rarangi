@@ -4,7 +4,7 @@
 * @subpackage  db
 * @author     Laurent Jouanneau
 * @contributor Yannick Le Guédart, Laurent Raufaste
-* @copyright  2005-2007 Laurent Jouanneau
+* @copyright  2005-2010 Laurent Jouanneau
 *
 * API ideas of this class were get originally from the Copix project (CopixDbFactory, Copix 2.3dev20050901, http://www.copix.org)
 * No lines of code are copyrighted by CopixTeam
@@ -26,16 +26,24 @@ require(JELIX_LIB_PATH.'db/jDbResultSet.class.php');
  */
 class jDb {
 
-    static private $_profiles =  null;
+    /**
+     * @var array list of profiles currently used
+     */
+    static private $_profiles = null;
+    
+    /**
+     * @var array list of opened connections
+     */
     static private $_cnxPool = array();
 
     /**
-    * return a database connector
-    * Use a local pool.
+    * return a database connector. It uses a temporay pool of connection to reuse
+    * currently opened connections.
+    * 
     * @param string  $name  profile name to use. if empty, use the default one
-    * @return jDbConnection  connector
+    * @return jDbConnection  the connector
     */
-    public static function getConnection ($name = null){
+    public static function getConnection ($name = null) {
         $profile = self::getProfile ($name);
 
         if (!$name) {
@@ -55,38 +63,20 @@ class jDb {
      * @param string  $name  profile name to use. if empty, use the default one
      * @return jDbWidget
      */
-    public static function getDbWidget($name=null){
+    public static function getDbWidget ($name = null) {
         $dbw = new jDbWidget(self::getConnection($name));
         return $dbw;
     }
 
     /**
-    * instancy a jDbTools object
+    * instancy a jDbTools object. Use jDbConnection::tools() instead.
     * @param string $name profile name to use. if empty, use the default one
     * @return jDbTools
+    * @deprecated since 1.2
     */
-    public static function getTools ($name=null){
-        $profile = self::getProfile ($name);
-
-        $driver = $profile['driver'];
-
-        if($driver == 'pdo'){
-            preg_match('/^(\w+)\:.*$/',$profile['dsn'], $m);
-            $driver = $m[1];
-        }
-
-        global $gJConfig;
-        if(!isset($gJConfig->_pluginsPathList_db[$driver])
-            || !file_exists($gJConfig->_pluginsPathList_db[$driver]) ){
-            throw new jException('jelix~db.error.driver.notfound', $driver);
-        }
-        require_once($gJConfig->_pluginsPathList_db[$driver].$driver.'.dbtools.php');
-        $class = $driver.'DbTools';
-
-        //Création de l'objet
+    public static function getTools ($name = null) {
         $cnx = self::getConnection ($name);
-        $tools = new $class ($cnx);
-        return $tools;
+        return $cnx->tools();
     }
 
     /**
@@ -94,42 +84,59 @@ class jDb {
     *
     * a profile is a section in the dbprofils.ini.php file
     *
-    * with getProfile('myprofile') (or getProfile('myprofile', false)), you get the profile which
-    * has the name "myprofile". this name should correspond to a section name in the ini file
+    * the given name can be a profile name (it should correspond to a section name
+    * in the ini file), or an alias of a profile. An alias is a parameter name
+    * in the global section of the ini file, and the value of this parameter
+    * should be a profile name.
     *
-    * with getProfile('myprofiletype',true), it will search a parameter named 'myprofiletype' in the ini file. 
-    * This parameter should contains a profile name, and the corresponding profile will be loaded.
-    *
-    * with getProfile(), it will load the default profile, (so the profile of "default" type)
-    *
-    * @param string   $name  profile name or profile type to load. if empty, use the default one
-    * @param boolean  $nameIsProfileType  says if the name is a profile name or a profile type. this parameter exists since 1.0b2
+    * @param string   $name  profile name or alias of a profile name. if empty, use the default profile
+    * @param boolean  $noDefault  if true and if the profile doesn't exist, throw an error instead of getting the default profile
     * @return array  properties
     */
-    public static function getProfile ($name='', $nameIsProfileType=false){
+    public static function getProfile ($name='', $noDefault = false) {
         global $gJConfig;
-        if(self::$_profiles === null){
+        if (self::$_profiles === null) {
             self::$_profiles = parse_ini_file(JELIX_APP_CONFIG_PATH.$gJConfig->dbProfils , true);
         }
 
-        if($name == ''){
-            if(isset(self::$_profiles['default']))
-                $name=self::$_profiles['default'];
-            else
-                throw new jException('jelix~db.error.default.profile.unknow');
-        }elseif($nameIsProfileType){
-            if(isset(self::$_profiles[$name]) && is_string(self::$_profiles[$name])){
-                $name = self::$_profiles[$name];
-            }else{
-                throw new jException('jelix~db.error.profile.type.unknow',$name);
+        if ($name == '')
+            $name = 'default';
+        $targetName = $name;
+
+        if (isset(self::$_profiles[$name])) {
+            if (is_string(self::$_profiles[$name])) {
+                $targetName = self::$_profiles[$name];
+            }
+            else { // this is an array, and so a section
+                self::$_profiles[$name]['name'] = $name;
+                return self::$_profiles[$name];
             }
         }
+        // if the profile doesn't exist, we take the default one
+        elseif (!$noDefault && isset(self::$_profiles['default'])) {
+            trigger_error(jLocale::get('jelix~db.error.profile.use.default', $name), E_USER_NOTICE);
+            if (is_string(self::$_profiles['default'])) {
+                $targetName = self::$_profiles['default'];
+            }
+            else {
+                self::$_profiles['default']['name'] = 'default';
+                return self::$_profiles['default'];
+            }
+        }
+        else {
+            if ($name == 'default')
+                throw new jException('jelix~db.error.default.profile.unknown');
+            else
+                throw new jException('jelix~db.error.profile.type.unknown',$name);
+        }
 
-        if(isset(self::$_profiles[$name]) && is_array(self::$_profiles[$name])){
+        if (isset(self::$_profiles[$targetName]) && is_array(self::$_profiles[$targetName])) {
+            self::$_profiles[$name] = self::$_profiles[$targetName];
             self::$_profiles[$name]['name'] = $name;
             return self::$_profiles[$name];
-        }else{
-            throw new jException('jelix~db.error.profile.unknow',$name);
+        }
+        else {
+            throw new jException('jelix~db.error.profile.unknown', $targetName);
         }
     }
 
@@ -138,11 +145,12 @@ class jDb {
      * @param array  $profile  profile properties
      * @return boolean  true if properties are ok
      */
-    public function testProfile($profile){
-        try{
+    public function testProfile ($profile) {
+        try {
             self::_createConnector ($profile);
             $ok = true;
-        }catch(Exception $e){
+        }
+        catch(Exception $e) {
             $ok = false;
         }
         return $ok;
@@ -153,14 +161,15 @@ class jDb {
     * @param array  $profile  profile properties
     * @return jDbConnection|jDbPDOConnection  database connector
     */
-    private static function _createConnector ($profile){
-        if($profile['driver'] == 'pdo'){
+    private static function _createConnector ($profile) {
+        if ($profile['driver'] == 'pdo') {
             $dbh = new jDbPDOConnection($profile);
             return $dbh;
-        }else{
+        }
+        else {
             global $gJConfig;
-            if(!isset($gJConfig->_pluginsPathList_db[$profile['driver']])
-                || !file_exists($gJConfig->_pluginsPathList_db[$profile['driver']]) ){
+            if (!isset($gJConfig->_pluginsPathList_db[$profile['driver']])
+                || !file_exists($gJConfig->_pluginsPathList_db[$profile['driver']])) {
                 throw new jException('jelix~db.error.driver.notfound', $profile['driver']);
             }
             $p = $gJConfig->_pluginsPathList_db[$profile['driver']].$profile['driver'];
@@ -174,14 +183,17 @@ class jDb {
         }
     }
 
+    /**
+     * create a temporary new profile
+     * @param string $name the name of the profile
+     * @param array|string $params parameters of the profile. key=parameter name, value=parameter value.
+     *                      same kind of parameters we found in dbProfils.ini.php
+     *                      we can also indicate a name of an other profile, to create an alias
+     */
     public static function createVirtualProfile ($name, $params) {
         global $gJConfig;
         if ($name == '') {
            throw new jException('jelix~db.error.virtual.profile.no.name');
-        }
-
-        if (! is_array ($params)) {
-           throw new jException('jelix~db.error.virtual.profile.invalid.params', $name);
         }
 
         if (self::$_profiles === null) {
@@ -189,5 +201,15 @@ class jDb {
         }
         self::$_profiles[$name] = $params;
         unset (self::$_cnxPool[$name]);
+    }
+    
+    /**
+     * clear the loaded profiles to force to reload the db profiles file.
+     * WARNING: it closes all opened connections !
+     * @since 1.2
+     */
+    public static function clearProfiles() {
+        self::$_profiles = null;
+        self::$_cnxPool  = array();
     }
 }

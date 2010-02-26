@@ -4,29 +4,38 @@
 * @subpackage  installer
 * @author      Laurent Jouanneau
 * @contributor 
-* @copyright   2008 Laurent Jouanneau
-* @link        http://www.jelix.org
+* @copyright   2008-2009 Laurent Jouanneau
+* @link        http://jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
 
 /**
-* EXPERIMENTAL
-* interface for classes used as reporter for installation
-* This classes are responsible to show information to the user
+* interface for classes used as reporter for installation or check etc...
+* This classes are responsible to show informations to the user
 * @package     jelix
 * @subpackage  installer
-* @experimental
-* @since 1.1
+* @since 1.2
 */
 interface jIInstallReporter {
 
-    function error($string);
+    /**
+     * start the process
+     */
+    function start();
 
-    function warning($string);
+    /**
+     * displays a message
+     * @param string $message the message to display
+     * @param string $type the type of the message : 'error', 'notice', 'warning', ''
+     */
+    function message($message, $type='');
 
-    function notice($string);
-
-    function message($string);
+    /**
+     * called when the installation is finished
+     * @param array $results an array which contains, for each type of message,
+     * the number of messages
+     */
+    function end($results);
 
 }
 

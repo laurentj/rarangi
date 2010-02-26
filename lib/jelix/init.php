@@ -17,7 +17,7 @@
  * Version number of Jelix
  * @name  JELIX_VERSION
  */
-define ('JELIX_VERSION', '1.2b1pre.1391');
+define ('JELIX_VERSION', '1.2b1pre.1473');
 
 /**
  * base of namespace path used in xml files of jelix
@@ -34,6 +34,8 @@ define ('BYTECODE_CACHE_EXISTS', function_exists('apc_cache_info') || function_e
 
 if(!defined('E_DEPRECATED'))
     define ('E_DEPRECATED',8192);
+if(!defined('E_USER_DEPRECATED'))
+    define ('E_USER_DEPRECATED',16384);
 error_reporting (E_ALL | E_STRICT);
 
 
@@ -92,13 +94,14 @@ $gJConfig = null;
 $gLibPath=array('Db'=>JELIX_LIB_PATH.'db/', 'Dao'=>JELIX_LIB_PATH.'dao/',
  'Forms'=>JELIX_LIB_PATH.'forms/', 'Event'=>JELIX_LIB_PATH.'events/',
  'Tpl'=>JELIX_LIB_PATH.'tpl/', 'Acl'=>JELIX_LIB_PATH.'acl/', 'Controller'=>JELIX_LIB_PATH.'controllers/',
- 'Auth'=>JELIX_LIB_PATH.'auth/', 'Installer'=>JELIX_LIB_PATH.'installer/');
+ 'Auth'=>JELIX_LIB_PATH.'auth/', 'Installer'=>JELIX_LIB_PATH.'installer/',
+ 'KV'=>JELIX_LIB_PATH.'kvdb/');
 
 /**
  * function used by php to try to load an unknown class
  */
 function jelix_autoload($class) {
-    if(preg_match('/^j(Dao|Tpl|Acl|Event|Db|Controller|Forms|Auth|Installer).*/i', $class, $m)){
+    if(preg_match('/^j(Dao|Tpl|Acl|Event|Db|Controller|Forms|Auth|Installer|KV).*/i', $class, $m)){
         $f=$GLOBALS['gLibPath'][$m[1]].$class.'.class.php';
     }elseif(preg_match('/^cDao(?:Record)?_(.+)_Jx_(.+)_Jx_(.+)$/', $class, $m)){
         // for DAO which are stored in sessions for example

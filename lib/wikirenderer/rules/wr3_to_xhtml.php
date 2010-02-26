@@ -24,16 +24,12 @@
  */
 
 class wr3_to_xhtml  extends WikiRendererConfig  {
-  /**
-    * @var array   liste des tags inline
-   */
-   public $inlinetags= array( 'wr3xhtml_strong','wr3xhtml_em','wr3xhtml_code','wr3xhtml_q',
-    'wr3xhtml_cite','wr3xhtml_acronym','wr3xhtml_link', 'wr3xhtml_image',
-    'wr3xhtml_anchor', 'wr3xhtml_footnote');
 
    public $defaultTextLineContainer = 'WikiHtmlTextLine';
 
-   public $availabledTextLineContainers = array('WikiHtmlTextLine');
+   public $textLineContainers = array('WikiHtmlTextLine'=> array( 'wr3xhtml_strong','wr3xhtml_em','wr3xhtml_code','wr3xhtml_q',
+    'wr3xhtml_cite','wr3xhtml_acronym','wr3xhtml_link', 'wr3xhtml_image',
+    'wr3xhtml_anchor', 'wr3xhtml_footnote'));
 
    /**
    * liste des balises de type bloc reconnus par WikiRenderer.
@@ -230,7 +226,7 @@ class wr3xhtml_list extends WikiRendererBloc {
       $str='';
 
       for($i=strlen($t); $i >= $this->_firstTagLen; $i--){
-          $str.=($t{$i-1}== '#'?"</li></ol>\n":"</li></ul>\n");
+          $str.=($t[$i-1]== '#'?"</li></ol>\n":"</li></ul>\n");
       }
       return $str;
    }
@@ -243,7 +239,7 @@ class wr3xhtml_list extends WikiRendererBloc {
       if( $d > 0 ){ // on remonte d'un ou plusieurs cran dans la hierarchie...
          $l=strlen($this->_detectMatch[1]);
          for($i=strlen($t); $i>$l; $i--){
-            $str.=($t{$i-1}== '#'?"</li></ol>\n":"</li></ul>\n");
+            $str.=($t[$i-1]== '#'?"</li></ol>\n":"</li></ul>\n");
          }
          $str.="</li>\n<li>";
          $this->_previousTag=substr($this->_previousTag,0,-$d); // pour étre sur...
@@ -395,7 +391,14 @@ class wr3xhtml_pre extends WikiRendererBloc {
 
         }else{
             if(preg_match('/^\s*<code>(.*)/',$string,$m)){
-                $this->_detectMatch=$m[1];
+                if(preg_match('/(.*)<\/code>\s*$/',$m[1],$m2)){
+                    $this->_closeNow = true;
+                    $this->_detectMatch=$m2[1];
+                }
+                else {
+                    $this->_closeNow = false;
+                    $this->_detectMatch=$m[1];
+                }
                 return true;
             }else{
                 return false;

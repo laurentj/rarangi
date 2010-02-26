@@ -7,7 +7,7 @@
 * @contributor Warren Seine, Alexis Métaireau, Julien Issler
 * @copyright   2005-2009 Laurent Jouanneau, 2006 Yann, 2007 Dominique Papin
 * @copyright   2008 Warren Seine, Alexis Métaireau
-* @copyright   2009 Julien Issler
+* @copyright   2009 Julien Issler, Olivier Demah
 *              few lines of code are copyrighted CopixTeam http://www.copix.org
 * @link        http://www.jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
@@ -196,7 +196,8 @@ class jResponseHtml extends jResponse {
                         echo 'console.error("[error ';
                         break;
                     }
-                    echo $e[1],'] ',str_replace(array('"',"\n","\r","\t"),array('\"','\\n','\\r','\\t'),$e[2]),' (',str_replace('\\','\\\\',$e[3]),' ',$e[4],')");';
+                    $m = $e[2]. ($e[5]?"\n".$e[5]:"");
+                    echo $e[1],'] ',str_replace(array('"',"\n","\r","\t"),array('\"','\\n','\\r','\\t'),$m),' (',str_replace('\\','\\\\',$e[3]),' ',$e[4],')");';
                 }
                 echo '}else{alert("there are some errors, you should activate Firebug to see them");}</script>';
             }else{
@@ -233,15 +234,7 @@ class jResponseHtml extends jResponse {
      * @since 1.1
      */
     protected function doAfterActions(){
-        $this->_commonProcess(); // for compatibility with jelix 1.0
-    }
 
-    /**
-     * same use as doAfterActions, but deprecated method. It is just here for compatibility with Jelix 1.0.
-     * Use doAfterActions instead
-     * @deprecated
-     */
-    protected function _commonProcess(){
     }
 
     /**
@@ -261,7 +254,7 @@ class jResponseHtml extends jResponse {
         if($this->hasErrors()){
             echo $this->getFormatedErrorMsg();
         }else{
-            echo '<p style="color:#FF0000">Unknow Error</p>';
+            echo '<p style="color:#FF0000">Unknown Error</p>';
         }
         echo '</body></html>';
     }
@@ -274,7 +267,10 @@ class jResponseHtml extends jResponse {
     protected function getFormatedErrorMsg(){
         $errors='';
         foreach( $GLOBALS['gJCoord']->errorMessages  as $e){
-           $errors .=  '<p style="margin:0;"><b>['.$e[0].' '.$e[1].']</b> <span style="color:#FF0000">'.htmlspecialchars($e[2], ENT_NOQUOTES, $this->_charset)."</span> \t".$e[3]." \t".$e[4]."</p>\n";
+           $errors .=  '<p style="margin:0;"><b>['.$e[0].' '.$e[1].']</b> <span style="color:#FF0000">';
+           $errors .= htmlspecialchars($e[2], ENT_NOQUOTES, $this->_charset)."</span> \t".$e[3]." \t".$e[4]."</p>\n";
+           if ($e[5])
+            $errors.= '<pre>'.htmlspecialchars($e[5], ENT_NOQUOTES, $this->_charset).'</pre>';
         }
         return $errors;
     }
@@ -402,11 +398,11 @@ class jResponseHtml extends jResponse {
      */
     protected function outputDoctype (){
         if($this->_isXhtml){
-            echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 ',$this->_strictDoctype?'Strict':'Transitional','//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-',$this->_strictDoctype?'strict':'transitional','.dtd">
+            echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 '.($this->_strictDoctype?'Strict':'Transitional').'//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-'.($this->_strictDoctype?'strict':'transitional').'.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="',$this->_lang,'" lang="',$this->_lang,'">
 ';
         }else{
-            echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01',$this->_strictDoctype?'':' Transitional','//EN" "http://www.w3.org/TR/html4/',$this->_strictDoctype?'strict':'loose','.dtd">', "\n";
+            echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01'.($this->_strictDoctype?'':' Transitional').'//EN" "http://www.w3.org/TR/html4/'.($this->_strictDoctype?'strict':'loose').'.dtd">', "\n";
             echo '<html lang="',$this->_lang,'">';
         }
     }
@@ -416,7 +412,11 @@ class jResponseHtml extends jResponse {
      */
     final protected function outputHtmlHeader (){
         echo '<head>'."\n";
-        echo '<meta content="text/html; charset='.$this->_charset.'" http-equiv="content-type"'.$this->_endTag;
+        if($this->_isXhtml && $this->xhtmlContentType && strstr($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')){      
+            echo '<meta content="application/xhtml+xml; charset='.$this->_charset.'" http-equiv="content-type"'.$this->_endTag;
+        } else {
+            echo '<meta content="text/html; charset='.$this->_charset.'" http-equiv="content-type"'.$this->_endTag;
+        }
         echo '<title>'.htmlspecialchars($this->title)."</title>\n";
 
         if(!empty($this->_MetaDescription)){

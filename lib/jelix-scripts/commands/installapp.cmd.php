@@ -3,88 +3,49 @@
 /**
 * @package     jelix-scripts
 * @author      Laurent Jouanneau
-* @contributor
-* @copyright   2008 Laurent Jouanneau
-* @link        http://www.jelix.org
+* @contributor Julien Issler
+* @copyright   2008-2009 Laurent Jouanneau
+* @copyright   2009 Julien Issler
+* @link        http://jelix.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
-require_once (JELIXS_LIB_PATH.'jelix/installer/jIInstallReporter.iface.php');
-
-class installappReporter implements jIInstallReporter {
-
-    public $hasError = false;
-    public $hasWarning = false;
-
-    function error($string){
-        $this->hasError=true;
-        echo "[ERROR] $string \n";
-    }
-
-    function warning($string){
-        $this->hasWarning=true;
-        echo "[WARNING] $string \n";
-    }
-
-    function notice($string){
-        echo "[NOTICE] $string \n";
-    }
-
-    function message($string){
-        echo $string."\n";
-    }
-}
-
 
 class installappCommand extends JelixScriptCommand {
 
     public  $name = 'installapp';
-    public  $allowed_options=array();
-    public  $allowed_parameters=array();
+    public  $allowed_options = array('-v'=>false);
+    public  $allowed_parameters = array();
 
-    public  $syntaxhelp = "";
-    public  $help='';
+    public  $applicationMustExist = false;
+
+    public  $syntaxhelp = "[-v]";
+    public  $help = '';
 
     function __construct(){
         $this->help= array(
             'fr'=>"
-    Installe une application. EXPERIMENTAL ! En cours de développement.
+    Installe ou met à jour tout les modules d'une application qui sont activés.
+
+    Option -v : mode verbeux.
     ",
             'en'=>"
-    Install a new application. EXPERIMENTAL ! Still in development
+    Install or upgrade all activated modules of an application.
+
+    Option -v: verbose mode.
     ",
     );
     }
 
     public function run(){
-        $installFile = JELIX_APP_PATH.'install/installer.php';
-        echo "EXPERIMENTAL ! Still in development !\n";
-        if (!file_exists($installFile)) {
-            echo "No install script.\nDone.\n";
-            return;
-        }
+        require_once (JELIXS_LIB_PATH.'jelix/installer/jInstaller.class.php');
 
-        jxs_init_jelix_env();
-        include($installFile);
-
-        if (!class_exists('appInstaller',true)) {
-            echo "No appInstaller class in install script.\nDone.\n";
-            return;
-        }
-
-        //@TODO: show information found in project.xml
-        //@TODO: check the jelix version according to project.xml
-        //@TODO: put rights on temp directory (and create directory ?)
-
-        $reporter = new installappReporter;
-        $installer = new appInstaller($reporter, JELIX_APP_PATH.'install/');
-        $installer->install();
-
-        if($reporter->hasError)
-            echo "\nEnded with errors.\n";
-        else if($reporter->hasWarning)
-            echo "\nEnded with warning.\n";
+        if ($this->getOption("-v"))
+            $reporter = new textInstallReporter();
         else
-            echo "\nSuccessful install.\n";
+            $reporter = new ghostInstallReporter();
+
+        $installer = new jInstaller($reporter);
+
+        $installer->installApplication();
     }
 }
-

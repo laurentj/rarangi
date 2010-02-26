@@ -85,7 +85,7 @@ class jResponseRss20 extends jResponseXMLFeed {
         if ($this->hasErrors()) {
             echo $this->getFormatedErrorMsg();
         } else {
-            echo '<error>Unknow Error</error>';
+            echo '<error>Unknown Error</error>';
         }
         echo '</errors>';
     }
@@ -97,8 +97,11 @@ class jResponseRss20 extends jResponseXMLFeed {
     protected function getFormatedErrorMsg(){
         $errors = '';
         foreach ($GLOBALS['gJCoord']->errorMessages  as $e) {
-            // FIXME : Pourquoi utiliser htmlentities() ?
-           $errors .=  '<error xmlns="http://jelix.org/ns/xmlerror/1.0" type="'. $e[0] .'" code="'. $e[1] .'" file="'. $e[3] .'" line="'. $e[4] .'">'.htmlentities($e[2], ENT_NOQUOTES, $this->charset). '</error>'. "\n";
+           $errors .=  '<error xmlns="http://jelix.org/ns/xmlerror/1.0" type="'. $e[0] .'" code="'. $e[1] .'" file="'. $e[3] .'" line="'. $e[4] .'">';
+           $errors .= htmlspecialchars($e[2], ENT_NOQUOTES, $this->charset);
+           if ($e[5])
+              $errors .= "\n".htmlspecialchars($e[5], ENT_NOQUOTES, $this->charset);
+           $errors .= '</error>'. "\n";
         }
         return $errors;
     }

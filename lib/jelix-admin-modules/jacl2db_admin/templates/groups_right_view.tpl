@@ -13,15 +13,13 @@
 </thead>
 <tbody>
 
-{assign $line = true}
 {foreach $rights as $subject=>$right}
-<tr class="{if $line}odd{else}even{/if}">
-    <th>{$subject}</th>
+<tr class="{cycle array('odd','even')}">
+    <th>{$subjects_localized[$subject]|eschtml}</th>
     {foreach $right as $group=>$r}
     <td>{if $r}X{/if}</td>
     {/foreach}
 </tr>
-{assign $line = !$line}
 {/foreach}
 </tbody>
 </table>

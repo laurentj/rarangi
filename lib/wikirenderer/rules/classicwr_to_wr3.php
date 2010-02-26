@@ -24,15 +24,12 @@
  */
 
 class classicwr_to_wr3  extends WikiRendererConfig {
-  /**
-    * @var array   liste des tags inline
-   */
-   public $inlinetags= array( 'cwrwr3_strong','cwrwr3_em','cwrwr3_code','cwrwr3_q',
-    'cwrwr3_cite','cwrwr3_acronym','cwrwr3_link', 'cwrwr3_image', 'cwrwr3_anchor');
 
    public $defaultTextLineContainer = 'WikiTextLine';
 
-   public $availabledTextLineContainers = array('WikiHtmlTextLine');
+   public $textLineContainers = array(
+           'WikiTextLine'=>array( 'cwrwr3_strong','cwrwr3_em','cwrwr3_code','cwrwr3_q',
+              'cwrwr3_cite','cwrwr3_acronym','cwrwr3_link', 'cwrwr3_image', 'cwrwr3_anchor'));
 
    /**
    * liste des balises de type bloc reconnus par WikiRenderer.
@@ -210,7 +207,7 @@ class cwrwr3_p extends WrWr3Bloc {
    public function detect($string){
       if($string=='') return false;
       if(preg_match('/^={4,} *$/',$string)) return false;
-      $c=$string{0};
+      $c=$string[0];
       if(strpos("*#-!| \t>;" ,$c) === false){
         $this->_detectMatch=array($string,$string);
         return true;

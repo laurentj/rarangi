@@ -4,7 +4,7 @@
 * @subpackage  db
 * @author      Laurent Jouanneau
 * @contributor Julien Issler
-* @copyright   2005-2006 Laurent Jouanneau
+* @copyright   2005-2010 Laurent Jouanneau
 * @copyright   2007-2009 Julien Issler
 *
 * This class was get originally from the Copix project (CopixDbConnection, Copix 2.3dev20050901, http://www.copix.org)
@@ -39,6 +39,7 @@ abstract class jDbConnection {
 
     /**
      * The database type name (mysql, pgsql ...)
+     * @var string
      */
     public $dbms;
 
@@ -68,14 +69,14 @@ abstract class jDbConnection {
     * do a connection to the database, using properties of the given profile
     * @param array $profile  profile properties
     */
-    function __construct($profile){
+    function __construct($profile) {
         $this->profile = & $profile;
         $this->dbms = $profile['driver'];
         $this->_connection = $this->_connect();
     }
 
-    function __destruct(){
-        if($this->_connection !== null){
+    function __destruct() {
+        if ($this->_connection !== null) {
             $this->_disconnect ();
         }
     }
@@ -88,7 +89,7 @@ abstract class jDbConnection {
     * @param array  $ctoargs  arguments for the constructor if FETCH_CLASS
     * @return  jDbResultSet|boolean  False if the query has failed.
     */
-    public function query ($queryString, $fetchmode = self::FETCH_OBJ, $arg1 = null, $ctoargs = null){
+    public function query ($queryString, $fetchmode = self::FETCH_OBJ, $arg1 = null, $ctoargs = null) {
         $this->lastQuery = $queryString;
         $result = $this->_doQuery ($queryString);
         if ($fetchmode != self::FETCH_OBJ) {
@@ -98,7 +99,7 @@ abstract class jDbConnection {
     }
 
     /**
-    * Launch a SQL Query with limit parameter (so only a subset of a result)
+    * Launch a SQL Query with limit parameter, so it returns only a subset of a result
     * @param   string   $queryString   the SQL query
     * @param   integer  $limitOffset   the offset of the first row to return
     * @param   integer  $limitCount    the maximum of number of rows to return
@@ -106,8 +107,7 @@ abstract class jDbConnection {
     */
     public function limitQuery ($queryString, $limitOffset, $limitCount){
         $this->lastQuery = $queryString;
-        $result = $this->_doLimitQuery ($queryString, intval($limitOffset), intval($limitCount));
-        return $result;
+        return $this->_doLimitQuery ($queryString, intval($limitOffset), intval($limitCount));
     }
 
     /**
@@ -115,10 +115,9 @@ abstract class jDbConnection {
     * @param   string   $query   the SQL query
     * @return  integer  the number of affected rows. False if the query has failed.
     */
-    public function exec ($query){
+    public function exec ($query) {
         $this->lastQuery = $query;
-        $result = $this->_doExec ($query);
-        return $result;
+        return $this->_doExec ($query);
     }
 
     /**
@@ -127,11 +126,11 @@ abstract class jDbConnection {
     * @param boolean $checknull if true, check if $text is a null value, and then return NULL
     * @return string escaped string
     */
-    public function quote($text, $checknull=true){
-        if($checknull)
-            return (is_null ($text) ? 'NULL' : "'".$this->_quote($text)."'");
+    public function quote ($text, $checknull=true, $binary = false) {
+        if ($checknull)
+            return (is_null ($text) ? 'NULL' : "'".$this->_quote($text, $binary)."'");
         else
-            return "'".$this->_quote ($text)."'";
+            return "'".$this->_quote($text, $binary)."'";
     }
 
     /**
@@ -140,7 +139,7 @@ abstract class jDbConnection {
      * @return string the enclosed field name
      * @since 1.1.1
      */
-    public function encloseName($fieldName){
+    public function encloseName ($fieldName) {
         return $fieldName;
     }
     
@@ -148,7 +147,7 @@ abstract class jDbConnection {
      * @deprecated since 1.1.2
      * @see encloseName
      */
-    public function encloseFieldName($fieldName) {
+    public function encloseFieldName ($fieldName) {
         return $this->encloseName($fieldName);
     }
 
@@ -243,7 +242,10 @@ abstract class jDbConnection {
     public function setAttribute($id, $value){ }
 
     /**
-     *
+     * return the maximum value of the given primary key in a table
+     * @param string $fieldName the name of the primary key
+     * @param string $tableName the name of the table
+     * @return integer the maximum value
      */
     public function lastIdInTable($fieldName, $tableName){
         $rs = $this->query ('SELECT MAX('.$fieldName.') as ID FROM '.$tableName);
@@ -292,8 +294,54 @@ abstract class jDbConnection {
     /**
     * do the escaping of a string.
     * you should override it into the driver
+    * @param string $text the text to escape
+    * @param boolean $binary true if the content of the string is a binary content
     */
-    protected function _quote($text){
+    protected function _quote($text, $binary){
         return addslashes($text);
     }
+    
+    /**
+     * @var jDbTools
+     * @since 1.2
+     */
+    protected $_tools = null;
+    
+    /**
+     * @return jDbTools
+     * @since 1.2
+     */
+    public function tools () {
+        if (!$this->_tools) {
+            global $gJConfig;
+            require_once($gJConfig->_pluginsPathList_db[$this->dbms].$this->dbms.'.dbtools.php');
+            $class = $this->dbms.'DbTools';
+            $this->_tools = new $class($this);
+        }
+
+        return $this->_tools;
+    }
+
+
+    /**
+     * @var jDbSchema
+     * @since 1.2
+     */
+    protected $_schema = null;
+    
+    /**
+     * @return jDbSchema
+     * @since 1.2
+     */
+    public function schema () {
+        if (!$this->_schema) {
+            global $gJConfig;
+            require_once($gJConfig->_pluginsPathList_db[$this->dbms].$this->dbms.'.dbschema.php');
+            $class = $this->dbms.'DbSchema';
+            $this->_schema = new $class($this);
+        }
+
+        return $this->_schema;
+    }
+    
 }

@@ -4,7 +4,7 @@
 * @subpackage core
 * @author     Julien Issler
 * @contributor Laurent Jouanneau
-* @copyright  2007-2008 Julien Issler, 2008 Laurent Jouanneau
+* @copyright  2007-2009 Julien Issler, 2008 Laurent Jouanneau
 * @link       http://www.jelix.org
 * @licence    GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 * @since 1.0
@@ -139,10 +139,14 @@ class jSession {
             $session = jDao::createRecord(self::$_params['dao_selector']);
             $session->id = $id;
             $session->data = $data;
+            $now = date('Y-m-d H:i:s');
+            $session->creation = $now;
+            $session->access = $now;
             $dao->insert($session);
         }
         else{
             $session->data = $data;
+            $session->access = date('Y-m-d H:i:s');
             $dao->update($session);
         }
 
@@ -168,7 +172,7 @@ class jSession {
         $date = new jDateTime();
         $date->now();
         $date->sub(0,0,0,0,0,$maxlifetime);
-        self::_getDao()->deleteExpired($date->toString(jDateTime::BD_DTFORMAT));
+        self::_getDao()->deleteExpired($date->toString(jDateTime::DB_DTFORMAT));
         return true;
     }
 

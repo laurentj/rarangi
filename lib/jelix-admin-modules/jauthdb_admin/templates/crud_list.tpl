@@ -8,17 +8,15 @@
 </tr>
 </thead>
 <tbody>
-{assign $lineparity = true}
 {foreach $list as $record}
-<tr class="{if $lineparity}odd{else}even{/if}">
+<tr class="{cycle array('odd','even')}">
     <td>{$record->login|eschtml}</td>
     <td>
         {if $canview}
-        <a href="{jurl 'jauthdb_admin~default:view',array('id'=>$record->$primarykey)}">{@jauthdb_admin~crud.link.view.record@}</a>
+        <a href="{jurl 'jauthdb_admin~default:view',array('j_user_login'=>$record->$primarykey)}">{@jauthdb_admin~crud.link.view.record@}</a>
         {/if}
     </td>
 </tr>
-{assign $lineparity = !$lineparity}
 {/foreach}
 </tbody>
 </table>

@@ -4,7 +4,7 @@
 * @subpackage   core
 * @author       Laurent Jouanneau
 * @contributor  Thibault PIRONT < nuKs >, Julien Issler, Dominique Papin
-* @copyright    2005-2009 laurent Jouanneau
+* @copyright    2005-2010 laurent Jouanneau
 * @copyright    2007 Thibault PIRONT
 * @copyright    2008 Julien Issler
 * @copyright    2008 Dominique Papin
@@ -143,14 +143,14 @@ class jCoordinator {
             }
         }
 
-        // module check
-        if($gJConfig->checkTrustedModules && !in_array($this->moduleName,$gJConfig->_trustedModules)){
-            throw new jException('jelix~errors.module.untrusted',$this->moduleName);
-        }
-
         jContext::push ($this->moduleName);
         try{
             $this->action = new jSelectorActFast($this->request->type, $this->moduleName, $this->actionName);
+
+            if($gJConfig->modules[$this->moduleName.'.access'] < 2){
+                throw new jException('jelix~errors.module.untrusted',$this->moduleName);
+            }
+
             $ctrl = $this->getController($this->action);
         }catch(jException $e){
             if ($gJConfig->urlengine['notfoundAct'] =='') {
@@ -197,7 +197,6 @@ class jCoordinator {
             $this->plugins[$name]->beforeOutput ();
         }
 
-        // envoi de la réponse
         if(!$this->response->output()){
             $this->response->outputErrors();
         }
@@ -218,18 +217,18 @@ class jCoordinator {
 
         $ctrlpath = $selector->getPath();
         if(!file_exists($ctrlpath)){
-            throw new jException('jelix~errors.ad.controller.file.unknow',array($this->actionName,$ctrlpath));
+            throw new jException('jelix~errors.ad.controller.file.unknown',array($this->actionName,$ctrlpath));
         }
         require_once($ctrlpath);
         $class = $selector->getClass();
         if(!class_exists($class,false)){
-            throw new jException('jelix~errors.ad.controller.class.unknow',array($this->actionName,$class, $ctrlpath));
+            throw new jException('jelix~errors.ad.controller.class.unknown',array($this->actionName,$class, $ctrlpath));
         }
         $ctrl = new $class($this->request);
         if($ctrl instanceof jIRestController){
             $method = $selector->method = strtolower($_SERVER['REQUEST_METHOD']);
         }elseif(!method_exists($ctrl, $selector->method)){
-            throw new jException('jelix~errors.ad.controller.method.unknow',array($this->actionName, $selector->method, $class, $ctrlpath));
+            throw new jException('jelix~errors.ad.controller.method.unknown',array($this->actionName, $selector->method, $class, $ctrlpath));
         }
         return $ctrl;
     }
@@ -250,7 +249,7 @@ class jCoordinator {
         $type = $this->request->defaultResponseType;
 
         if(!isset($responses[$type]))
-            return jLocale::get('jelix~errors.default.response.type.unknow',array($this->moduleName.'~'.$this->actionName,$type));
+            return jLocale::get('jelix~errors.default.response.type.unknown',array($this->moduleName.'~'.$this->actionName,$type));
 
         try{
             $respclass = $responses[$type];
@@ -300,7 +299,7 @@ class jCoordinator {
         // url params including module and action
         if ($this->request)
             $url = str_replace('array', 'url', var_export($this->request->params, true));
-        else $url = 'Unknow url';
+        else $url = 'Unknown url';
 
         // formatting message
         $messageLog = strtr($conf['messageLogFormat'], array(
@@ -316,14 +315,14 @@ class jCoordinator {
             '\n' => "\n"
         ));
 
+        $traceLog = '';
         if(strpos($toDo , 'TRACE') !== false){
-            $arr = debug_backtrace();
             $messageLog.="\ttrace:";
-            foreach($arr as $k=>$t){
-                $messageLog.="\n\t$k\t".(isset($t['class'])?$t['class'].$t['type']:'').$t['function']."()\t";
-                $messageLog.=(isset($t['file'])?$t['file']:'[php]').' : '.(isset($t['line'])?$t['line']:'');
+            foreach($trace as $k=>$t){
+                $traceLog.="\n\t$k\t".(isset($t['class'])?$t['class'].$t['type']:'').$t['function']."()\t";
+                $traceLog.=(isset($t['file'])?$t['file']:'[php]').' : '.(isset($t['line'])?$t['line']:'');
             }
-            $messageLog.="\n";
+            $messageLog.=$traceLog."\n";
         }
 
 
@@ -335,7 +334,7 @@ class jCoordinator {
                 header("HTTP/1.1 500 Internal jelix error");
                 header('Content-type: text/plain');
                 echo 'JELIX PANIC ! Error during initialization !! ';
-            }elseif($this->addErrorMsg($type, $code, $conf['quietMessage'], '', '')){
+            }elseif($this->addErrorMsg($type, $code, $conf['quietMessage'], '', '', '')){
                 $toDo.=' EXIT';
             }
         }elseif(strpos($toDo , 'ECHO') !== false){
@@ -344,7 +343,7 @@ class jCoordinator {
                 header("HTTP/1.1 500 Internal jelix error");
                 header('Content-type: text/plain');
                 echo $messageLog;
-            }elseif($this->addErrorMsg($type, $code, $message, $file, $line)){
+            }elseif($this->addErrorMsg($type, $code, $message, $file, $line, $traceLog)){
                 $toDo.=' EXIT';
             }
         }
@@ -384,8 +383,8 @@ class jCoordinator {
      * @param  integer $line  the line number where the error appear
      * @return boolean    true= the process should stop now, false = the error manager do its job
      */
-    protected function addErrorMsg($type, $code, $message, $file, $line){
-        $this->errorMessages[] = array($type, $code, $message, $file, $line);
+    protected function addErrorMsg($type, $code, $message, $file, $line, $trace){
+        $this->errorMessages[] = array($type, $code, $message, $file, $line, $trace);
         return !$this->response->acceptSeveralErrors();
     }
 
@@ -432,8 +431,8 @@ class jCoordinator {
     * @param string $moduleName
     * @return boolean true : module is ok
     */
-    public function isModuleEnabled ($moduleName){
-        return in_array($moduleName, $GLOBALS['gJConfig']->_trustedModules);
+    public function isModuleEnabled ($moduleName) {
+        return isset($GLOBALS['gJConfig']->_modulesPathList[$moduleName]);
     }
 
     /**
@@ -441,10 +440,9 @@ class jCoordinator {
      * @param string $module a module name
      * @return string the corresponding path
      */
-
     public function getModulePath($module){
         global $gJConfig;
-        if(!isset($gJConfig->_modulesPathList[$module])){
+        if (!isset($gJConfig->_modulesPathList[$module])) {
             throw new Exception('getModulePath : invalid module name');
         }
         return $gJConfig->_modulesPathList[$module];

@@ -2,7 +2,7 @@
 <grammar 
   xmlns="http://relaxng.org/ns/structure/1.0"
   xmlns:ev="http://www.w3.org/2001/xml-events"
-  datatype="http://www.w3.org/2001/XMLSchema-datatypes"
+  datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
   ns="http://jelix.org/ns/forms/1.1">
 
    <start>
@@ -38,6 +38,7 @@
     <ref name="input" />
     <ref name="textarea" />
     <ref name="htmleditor" />
+    <ref name="wikieditor" />
     <ref name="secret" />
     <ref name="output" />
     <ref name="upload" />
@@ -110,6 +111,19 @@
        <ref name="attr.length" />
        <optional><attribute name="config" /></optional>
        <optional><attribute name="skin" /></optional>
+       <optional><attribute name="rows"><data type="integer" /></attribute></optional>
+       <optional><attribute name="cols"><data type="integer" /></attribute></optional>
+     </element>
+  </define>
+
+  <define name="wikieditor">
+     <element name="wikieditor">
+       <ref name="control.common" />
+       <ref name="UI.attr.readonly" />
+       <ref name="UI.attr.required" />
+       <ref name="UI.attr.defaultvalue" />
+       <ref name="attr.length" />
+       <optional><attribute name="config" /></optional>
        <optional><attribute name="rows"><data type="integer" /></attribute></optional>
        <optional><attribute name="cols"><data type="integer" /></attribute></optional>
      </element>
@@ -249,6 +263,7 @@
      <element name="choice">
         <ref name="control.common" />
         <ref name="UI.attr.readonly" />
+        <ref name="UI.attr.required" />
         <optional><attribute name="selectedvalue" /></optional>
         <oneOrMore>
             <element name="item">

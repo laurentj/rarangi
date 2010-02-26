@@ -3,9 +3,10 @@
 * @package     jelix
 * @subpackage  core_response
 * @author      Tahina Ramaroson
-* @contributor Sylvain de Vathaire, Dominique Papin
+* @contributor Sylvain de Vathaire, Dominique Papin, Olivier Demah, Laurent Jouanneau
 * @copyright   2008 Tahina Ramaroson, Sylvain de Vathaire
 * @copyright   2008 Dominique Papin
+* @copyright   2009 Olivier Demah, 2009 Laurent Jouanneau
 * @link        http://www.jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
@@ -102,15 +103,7 @@ class jResponseHtmlFragment extends jResponse {
      * @since 1.1
      */
     protected function doAfterActions(){
-        $this->_commonProcess(); // for compatibility with jelix 1.0
-    }
 
-    /**
-     * same use as doAfterActions, but deprecated method. It is just here for compatibility with Jelix 1.0.
-     * Use doAfterActions instead
-     * @deprecated
-     */
-    protected function _commonProcess(){
     }
 
     /**
@@ -127,7 +120,7 @@ class jResponseHtmlFragment extends jResponse {
         if($this->hasErrors()){
             $content = $this->getFormatedErrorMsg();
         }else{
-            $content = '<p style="color:#FF0000">Unknow Error</p>';
+            $content = '<p style="color:#FF0000">Unknown Error</p>';
         }
 
         $this->_httpHeaders['Content-length'] = strlen($content);
@@ -140,9 +133,14 @@ class jResponseHtmlFragment extends jResponse {
      * @return string html content
      */
     protected function getFormatedErrorMsg(){
+        global $gJConfig;
+        
         $errors='';
-        foreach( $GLOBALS['gJCoord']->errorMessages  as $e){
-           $errors .=  '<p style="margin:0;"><b>['.$e[0].' '.$e[1].']</b> <span style="color:#FF0000">'.htmlspecialchars($e[2], ENT_NOQUOTES, $this->_charset)."</span> \t".$e[3]." \t".$e[4]."</p>\n";
+        foreach ($GLOBALS['gJCoord']->errorMessages  as $e) {
+           $errors .= '<p style="margin:0;"><b>['.$e[0].' '.$e[1].']</b> <span style="color:#FF0000">';
+           $errors .= htmlspecialchars($e[2], ENT_NOQUOTES, $gJConfig->charset)."</span> \t".$e[3]." \t".$e[4]."</p>\n";
+           if ($e[5])
+              $errors.= '<pre>'.htmlspecialchars($e[5], ENT_NOQUOTES, $gJConfig->charset).'</pre>';
         }
         return $errors;
     }

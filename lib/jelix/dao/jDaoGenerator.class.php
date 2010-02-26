@@ -6,7 +6,7 @@
 * @contributor Laurent Jouanneau
 * @contributor Bastien Jaillot (bug fix)
 * @contributor Julien Issler
-* @copyright  2001-2005 CopixTeam, 2005-2009 Laurent Jouanneau
+* @copyright  2001-2005 CopixTeam, 2005-2010 Laurent Jouanneau
 * @copyright  2007-2008 Julien Issler
 * This class was get originally from the Copix project (CopixDAOGeneratorV1, Copix 2.3dev20050901, http://www.copix.org)
 * Few lines of code are still copyrighted 2001-2005 CopixTeam (LGPL licence).
@@ -59,6 +59,23 @@ class jDaoGenerator {
     protected $_dbType;
 
     /**
+     * the real name of the main table
+     */
+    protected $tableRealName = '';
+
+    /**
+     * the real name of the main table, escaped in SQL
+     * so it is ready to include into a SQL query.
+     */
+    protected $tableRealNameEsc = '';
+    
+    protected $sqlWhereClause = '';
+    
+    protected $sqlFromClause = '';
+    
+    protected $sqlSelectClause = '';
+
+    /**
     * constructor
     * @param jDaoParser $daoDefinition
     */
@@ -75,7 +92,7 @@ class jDaoGenerator {
     /**
     * build all classes
     */
-    public final function buildClasses () {
+    public function buildClasses () {
 
         $src = array();
         $src[] = ' require_once ( JELIX_LIB_PATH .\'dao/jDaoRecordBase.class.php\');';
@@ -83,16 +100,17 @@ class jDaoGenerator {
 
         // prepare some values to generate properties and methods
 
-        list($sqlFromClause, $sqlWhereClause)= $this->_getFromClause();
+        $this->buildFromWhereClause();
+        $this->sqlSelectClause   = $this->buildSelectClause();
+        
         $tables            = $this->_dataParser->getTables();
-        $sqlSelectClause   = $this->_getSelectClause();
         $pkFields          = $this->_getPropertiesBy('PkFields');
-        $pTableRealName    = $tables[$this->_dataParser->getPrimaryTable()]['realname'];
-        $pTableRealNameEsc = $this->_encloseName('\'.$this->_conn->prefixTable(\''.$pTableRealName.'\').\'');
-        $pkai              = $this->_getAutoIncrementPKField();
-        $sqlPkCondition    = $this->_buildSimpleConditions($pkFields);
-        if($sqlPkCondition != ''){
-            $sqlPkCondition= ($sqlWhereClause !='' ? ' AND ':' WHERE ').$sqlPkCondition;
+        $this->tableRealName    = $tables[$this->_dataParser->getPrimaryTable()]['realname'];
+        $this->tableRealNameEsc = $this->_encloseName('\'.$this->_conn->prefixTable(\''.$this->tableRealName.'\').\'');
+        
+        $sqlPkCondition    = $this->buildSimpleConditions($pkFields);
+        if ($sqlPkCondition != '') {
+            $sqlPkCondition= ($this->sqlWhereClause !='' ? ' AND ':' WHERE ').$sqlPkCondition;
         }
 
         //-----------------------
@@ -112,6 +130,7 @@ class jDaoGenerator {
                 $src[] =' public $'.$id.';';
         }
 
+        // TODO PHP 5.3 : we could remove that
         $src[] = '   public function getProperties() { return '.$this->_DaoClassName.'::$_properties; }';
         $src[] = '   public function getPrimaryKeyNames() { return '.$this->_DaoClassName.'::$_pkFields; }';
         $src[] = '}';
@@ -123,9 +142,9 @@ class jDaoGenerator {
         $src[] = "\nclass ".$this->_DaoClassName.' extends jDaoFactoryBase {';
         $src[] = '   protected $_tables = '.var_export($tables, true).';';
         $src[] = '   protected $_primaryTable = \''.$this->_dataParser->getPrimaryTable().'\';';
-        $src[] = '   protected $_selectClause=\''.$sqlSelectClause.'\';';
+        $src[] = '   protected $_selectClause=\''.$this->sqlSelectClause.'\';';
         $src[] = '   protected $_fromClause;';
-        $src[] = '   protected $_whereClause=\''.$sqlWhereClause.'\';';
+        $src[] = '   protected $_whereClause=\''.$this->sqlWhereClause.'\';';
         $src[] = '   protected $_DaoRecordClassName=\''.$this->_DaoRecordClassName.'\';';
         $src[] = '   protected $_daoSelector = \''.$this->_daoId.'\';';
 
@@ -149,7 +168,7 @@ class jDaoGenerator {
         $src[] = ' ';
         $src[] = 'public function __construct($conn){';
         $src[] = '   parent::__construct($conn);';
-        $src[] = '   $this->_fromClause = \''.$sqlFromClause.'\';';
+        $src[] = '   $this->_fromClause = \''.$this->sqlFromClause.'\';';
         $src[] = '}';
 
         // cannot put this methods directly into jDaoBase because self cannot refer to a child class
@@ -166,10 +185,35 @@ class jDaoGenerator {
         $src[] = ' ';
         $src[] = 'protected function _getPkWhereClauseForNonSelect($pk){';
         $src[] = '   extract($pk);';
-        $src[] = '   return \' where '.$this->_buildSimpleConditions($pkFields,'',false).'\';';
+        $src[] = '   return \' where '.$this->buildSimpleConditions($pkFields,'',false).'\';';
         $src[] = '}';
 
         //----- Insert method
+
+        $src[] = $this->buildInsertMethod($pkFields);
+
+        //-----  update method
+
+        $src[] = $this->buildUpdateMethod($pkFields);
+
+        //----- other user methods
+
+        $src[] = $this->buildUserMethods();
+
+        $src[] = $this->buildEndOfClass();
+
+        $src[] = '}';//end of class
+
+        return implode("\n",$src);
+    }
+
+    /**
+     * build the insert() method in the final class
+     * @return string the source of the method
+     */
+    protected function buildInsertMethod($pkFields) {
+        $pkai = $this->getAutoIncrementPKField();
+        $src = array();
         $src[] = 'public function insert ($record){';
 
         if($pkai !== null){
@@ -177,7 +221,7 @@ class jDaoGenerator {
 
             // if a value is given for the autoincrement field, then with do a full insert
             $src[]=' if($record->'.$pkai->name.' > 0 ){';
-            $src[] = '    $query = \'INSERT INTO '.$pTableRealNameEsc.' (';
+            $src[] = '    $query = \'INSERT INTO '.$this->tableRealNameEsc.' (';
             $fields = $this->_getPropertiesBy('PrimaryTable');
             list($fields, $values) = $this->_prepareValues($fields,'insertPattern', 'record->');
 
@@ -193,11 +237,15 @@ class jDaoGenerator {
             $fields = $this->_getPropertiesBy('PrimaryTable');
         }
 
+        if($this->_dataParser->hasEvent('insertbefore') || $this->_dataParser->hasEvent('insert')){
+            $src[] = '   jEvent::notify("daoInsertBefore", array(\'dao\'=>$this->_daoSelector, \'record\'=>$record));';
+        }
+        
         // if there isn't a autoincrement as primary key, then we do a full insert.
         // if there isn't a value for the autoincrement field and if this is a mysql/sqlserver and pgsql,
         // we do an insert without given primary key. In other case, we do a full insert.
 
-        $src[] = '    $query = \'INSERT INTO '.$pTableRealNameEsc.' (';
+        $src[] = '    $query = \'INSERT INTO '.$this->tableRealNameEsc.' (';
 
         list($fields, $values) = $this->_prepareValues($fields,'insertPattern', 'record->');
 
@@ -209,9 +257,6 @@ class jDaoGenerator {
         if($pkai !== null)
             $src[] = '}';
 
-        if($this->_dataParser->hasEvent('insertbefore') || $this->_dataParser->hasEvent('insert')){
-            $src[] = '   jEvent::notify("daoInsertBefore", array(\'dao\'=>$this->_daoSelector, \'record\'=>$record));';
-        }
         $src[] = '   $result = $this->_conn->exec ($query);';
 
         if($pkai !== null){
@@ -219,7 +264,7 @@ class jDaoGenerator {
             $src[] = '       return false;';
 
             $src[] = '   if($record->'.$pkai->name.' < 1 ) ';
-            $src[] = $this->genUpdateAutoIncrementPK($pkai, $pTableRealName);
+            $src[] = $this->buildUpdateAutoIncrementPK($pkai);
         }
 
         // we generate a SELECT query to update field on the record object, which are autoincrement or calculated
@@ -227,11 +272,11 @@ class jDaoGenerator {
         if (count($fields)) {
             $result = array();
             foreach ($fields as $id=>$prop){
-                $result[]= $this->genSelectPattern($prop->selectPattern, '', $prop->fieldName, $prop->name);
+                $result[]= $this->buildSelectPattern($prop->selectPattern, '', $prop->fieldName, $prop->name);
             }
 
-            $sql = 'SELECT '.(implode (', ',$result)). ' FROM '.$pTableRealNameEsc.' WHERE ';
-            $sql.= $this->_buildSimpleConditions($pkFields, 'record->', false);
+            $sql = 'SELECT '.(implode (', ',$result)). ' FROM '.$this->tableRealNameEsc.' WHERE ';
+            $sql.= $this->buildSimpleConditions($pkFields, 'record->', false);
 
             $src[] = '  $query =\''.$sql.'\';';
             $src[] = '  $rs  =  $this->_conn->query ($query);';
@@ -248,26 +293,37 @@ class jDaoGenerator {
         $src[] = '    return $result;';
         $src[] = '}';
 
-        //-----  update method
+        return implode("\n",$src);
+    }
 
+    /**
+     * build the update() method for the final class
+     * @return string the source of the method
+     */
+    protected function buildUpdateMethod($pkFields) {
+        $src = array();
+        
         $src[] = 'public function update ($record){';
         list($fields, $values) = $this->_prepareValues($this->_getPropertiesBy('PrimaryFieldsExcludePk'),'updatePattern', 'record->');
+        
         if(count($fields)){
-            $src[] = '   $query = \'UPDATE '.$pTableRealNameEsc.' SET ';
+        	
+            if($this->_dataParser->hasEvent('updatebefore') || $this->_dataParser->hasEvent('update')){
+                $src[] = '   jEvent::notify("daoUpdateBefore", array(\'dao\'=>$this->_daoSelector, \'record\'=>$record));';
+            }
+            
+        	$src[] = '   $query = \'UPDATE '.$this->tableRealNameEsc.' SET ';
             $sqlSet='';
             foreach($fields as $k=> $fname){
                 $sqlSet.= ', '.$fname. '= '. $values[$k];
             }
             $src[] = substr($sqlSet,1);
 
-            $sqlCondition = $this->_buildSimpleConditions($pkFields, 'record->', false);
+            $sqlCondition = $this->buildSimpleConditions($pkFields, 'record->', false);
             if($sqlCondition!='')
                 $src[] = ' where '.$sqlCondition;
 
             $src[] = "';";
-            if($this->_dataParser->hasEvent('updatebefore') || $this->_dataParser->hasEvent('update')){
-                $src[] = '   jEvent::notify("daoUpdateBefore", array(\'dao\'=>$this->_daoSelector, \'record\'=>$record));';
-            }
 
             $src[] = '   $result = $this->_conn->exec ($query);';
 
@@ -276,11 +332,11 @@ class jDaoGenerator {
             if (count($fields)) {
                 $result = array();
                 foreach ($fields as $id=>$prop){
-                    $result[]= $this->genSelectPattern($prop->selectPattern, '', $prop->fieldName, $prop->name);
+                    $result[]= $this->buildSelectPattern($prop->selectPattern, '', $prop->fieldName, $prop->name);
                 }
 
-                $sql = 'SELECT '.(implode (', ',$result)). ' FROM '.$pTableRealNameEsc.' WHERE ';
-                $sql.= $this->_buildSimpleConditions($pkFields, 'record->', false);
+                $sql = 'SELECT '.(implode (', ',$result)). ' FROM '.$this->tableRealNameEsc.' WHERE ';
+                $sql.= $this->buildSimpleConditions($pkFields, 'record->', false);
 
                 $src[] = '  $query =\''.$sql.'\';';
                 $src[] = '  $rs  =  $this->_conn->query ($query, jDbConnection::FETCH_INTO, $record);';
@@ -291,19 +347,28 @@ class jDaoGenerator {
                 $src[] = '   jEvent::notify("daoUpdateAfter", array(\'dao\'=>$this->_daoSelector, \'record\'=>$record));';
 
             $src[] = '   return $result;';
-            $src[] = ' }';//ends the update function
         }else{
             //the dao is mapped on a table which contains only primary key : update is impossible
             // so we will generate an error on update
             $src[] = "     throw new jException('jelix~dao.error.update.impossible',array('".$this->_daoId."','".$this->_daoPath."'));";
-            $src[] = " }";
         }
 
-        //----- other user methods
+        $src[] = ' }';//ends the update function
+        return implode("\n",$src);
+    }
 
+    /**
+     * build all methods defined by the developer in the dao file
+     * @return string the source of the methods
+     */
+    protected function buildUserMethods() {
+        
         $allField = $this->_getPropertiesBy('All');
         $primaryFields = $this->_getPropertiesBy('PrimaryTable');
         $ct=null;
+        $src = array();
+        $tables = $this->_dataParser->getTables();
+        $properties = $this->_dataParser->getProperties ();
 
 
         foreach($this->_dataParser->getMethods() as $name=>$method){
@@ -328,11 +393,11 @@ class jDaoGenerator {
 
             switch($method->type){
                 case 'delete':
-                    $src[] = '    $__query = \'DELETE FROM '.$pTableRealNameEsc.' \';';
+                    $src[] = '    $__query = \'DELETE FROM '.$this->tableRealNameEsc.' \';';
                     $glueCondition =' WHERE ';
                     break;
                 case 'update':
-                    $src[] = '    $__query = \'UPDATE '.$pTableRealNameEsc.' SET ';
+                    $src[] = '    $__query = \'UPDATE '.$this->tableRealNameEsc.' SET ';
                     $updatefields = $this->_getPropertiesBy('PrimaryFieldsExcludePk');
                     $sqlSet='';
                     foreach($method->getValues() as $propname=>$value){
@@ -358,27 +423,27 @@ class jDaoGenerator {
 
                 case 'count':
                     if($method->distinct !=''){
-                        $prop = $this->_dataParser->getProperties ();
-                        $prop = $prop[$method->distinct];
+                        $prop = $properties[$method->distinct];
                         $count=' DISTINCT '.$this->_encloseName($tables[$prop->table]['name']) .'.'.$this->_encloseName($prop->fieldName);
-                    }else{
+                    }
+                    else{
                         $count='*';
                     }
                     $src[] = '    $__query = \'SELECT COUNT('.$count.') as c \'.$this->_fromClause.$this->_whereClause;';
-                    $glueCondition = ($sqlWhereClause !='' ? ' AND ':' WHERE ');
+                    $glueCondition = ($this->sqlWhereClause !='' ? ' AND ':' WHERE ');
                     break;
                 case 'selectfirst':
                 case 'select':
                 default:
                     if($method->distinct !=''){
-                        $select = '\''.$this->_getSelectClause($method->distinct).'\'';
+                        $select = '\''.$this->buildSelectClause($method->distinct).'\'';
                     }else{
                         $select=' $this->_selectClause';
                     }
                     $src[] = '    $__query = '.$select.'.$this->_fromClause.$this->_whereClause;';
-                    $glueCondition = ($sqlWhereClause !='' ? ' AND ':' WHERE ');
+                    $glueCondition = ($this->sqlWhereClause !='' ? ' AND ':' WHERE ');
                     if( $method->type == 'select' && ($lim = $method->getLimit ()) !==null){
-                        $limit=', '.$lim['offset'].', '.$lim['count'];
+                        $limit =', '.$lim['offset'].', '.$lim['count'];
                     }
             }
 
@@ -389,14 +454,14 @@ class jDaoGenerator {
             $sqlCond = '';
             if($cond !== null){
                 if($method->type == 'delete' || $method->type == 'update')
-                    $sqlCond = $this->_buildConditions($cond, $primaryFields, $method->getParameters(), false);
+                    $sqlCond = $this->buildConditions($cond, $primaryFields, $method->getParameters(), false);
                 else if($method->type == 'count')
-                    $sqlCond = $this->_buildConditions($cond, $allField, $method->getParameters(), true);
+                    $sqlCond = $this->buildConditions($cond, $allField, $method->getParameters(), true);
                 else
-                    $sqlCond = $this->_buildConditions($cond, $allField, $method->getParameters(), true, $method->getGroupBy());
+                    $sqlCond = $this->buildConditions($cond, $allField, $method->getParameters(), true, $method->getGroupBy());
 
             } else if(($method->type == 'select' || $method->type == 'selectfirst')) {
-                $sqlCond = $this->_buildConditions(null, $allField, $method->getParameters(), true, $method->getGroupBy());
+                $sqlCond = $this->buildConditions(null, $allField, $method->getParameters(), true, $method->getGroupBy());
             }
 
             if(trim($sqlCond) != '')
@@ -409,7 +474,7 @@ class jDaoGenerator {
                         $src[] = '   $args = func_get_args();';
                         $methname = ($method->type == 'update'?'Update':'Delete');
                         if ($method->eventBeforeEnabled) {
-                        $src[] = '   jEvent::notify("daoSpecific'.$methname.'Before", array(\'dao\'=>$this->_daoSelector,\'method\'=>\''.
+                            $src[] = '   jEvent::notify("daoSpecific'.$methname.'Before", array(\'dao\'=>$this->_daoSelector,\'method\'=>\''.
                             $method->name.'\', \'params\'=>$args));';
                         }
                         if ($method->eventAfterEnabled) {
@@ -431,7 +496,7 @@ class jDaoGenerator {
                     break;
                 case 'selectfirst':
                     $src[] = '    $__rs = $this->_conn->limitQuery($__query,0,1);';
-                    $src[] = '    $__rs->setFetchMode(8,\''.$this->_DaoRecordClassName.'\');';
+                    $src[] = '    $this->finishInitResultSet($__rs);';
                     $src[] = '    return $__rs->fetch();';
                     break;
                 case 'select':
@@ -440,22 +505,18 @@ class jDaoGenerator {
                         $src[] = '    $__rs = $this->_conn->limitQuery($__query'.$limit.');';
                     else
                         $src[] = '    $__rs = $this->_conn->query($__query);';
-                    $src[] = '    $__rs->setFetchMode(8,\''.$this->_DaoRecordClassName.'\');';
+                    $src[] = '    $this->finishInitResultSet($__rs);';
                     $src[] = '    return $__rs;';
             }
             $src[] = '}';
         }
-
-        $src[] = '}';//end of class
-
         return implode("\n",$src);
     }
 
     /**
-    *  create FROM clause for all SELECT query
-    * @return array  FROM string and WHERE string
+    * create FROM clause and WHERE clause for all SELECT query
     */
-    final protected function _getFromClause(){
+    protected function buildFromWhereClause(){
 
         $tables = $this->_dataParser->getTables();
 
@@ -467,7 +528,7 @@ class jDaoGenerator {
         $ptrealname = $this->_encloseName($primarytable['realname']);
         $ptname = $this->_encloseName($primarytable['name']);
 
-        list($sqlFrom, $sqlWhere) = $this->genOuterJoins($tables, $ptname);
+        list($sqlFrom, $sqlWhere) = $this->buildOuterJoins($tables, $ptname);
 
         if($primarytable['name']!=$primarytable['realname'])
             $sqlFrom =$ptrealname.$this->aliasWord.$ptname.$sqlFrom;
@@ -487,11 +548,15 @@ class jDaoGenerator {
             }
         }
 
-        $sqlWhere=($sqlWhere !='') ? ' WHERE '.substr($sqlWhere,4) :'';
-        return array(' FROM '.$sqlFrom,$sqlWhere);
+        $this->sqlWhereClause = ($sqlWhere !='' ? ' WHERE '.substr($sqlWhere,4) :'');
+        $this->sqlFromClause = ' FROM '.$sqlFrom;
     }
 
-    protected function genOuterJoins(&$tables, $primaryTableName){
+    /**
+     * generates the part of the FROM clause for outer joins
+     * @return array  [0]=> the part of the FROM clause, [1]=> the part to add to the WHERE clause when needed
+     */
+    protected function buildOuterJoins(&$tables, $primaryTableName){
         $sqlFrom = '';
         foreach($this->_dataParser->getOuterJoins() as $tablejoin){
             $table= $tables[$tablejoin[0]];
@@ -518,9 +583,10 @@ class jDaoGenerator {
     }
 
     /**
-    * build SELECT clause for all SELECT queries
+    * build a SELECT clause for all SELECT queries
+    * @return string the select clause.
     */
-    protected function _getSelectClause ($distinct=false){
+    protected function buildSelectClause ($distinct=false){
         $result = array();
 
         $tables = $this->_dataParser->getTables();
@@ -529,24 +595,30 @@ class jDaoGenerator {
             $table = $this->_encloseName($tables[$prop->table]['name']) .'.';
 
             if ($prop->selectPattern !=''){
-                $result[]= $this->genSelectPattern($prop->selectPattern, $table, $prop->fieldName, $prop->name);
+                $result[]= $this->buildSelectPattern($prop->selectPattern, $table, $prop->fieldName, $prop->name);
             }
         }
 
         return 'SELECT '.($distinct?'DISTINCT ':'').(implode (', ',$result));
     }
 
-    protected function genSelectPattern ($pattern, $table, $fieldname, $propname ){
+    /**
+     * build an item for the select clause
+    */
+    protected function buildSelectPattern ($pattern, $table, $fieldname, $propname ){
         if ($pattern =='%s'){
+            $field = $table.$this->_encloseName($fieldname);
             if ($fieldname != $propname){
-                $field = $table.$this->_encloseName($fieldname).' as '.$this->_encloseName($propname);
-            }else{
-                $field = $table.$this->_encloseName($fieldname);
+                $field .= ' as '.$this->_encloseName($propname);    
             }
         }else{
             $field = str_replace(array("'", "%s"), array("\\'",$table.$this->_encloseName($fieldname)),$pattern).' as '.$this->_encloseName($propname);
         }
         return $field;
+    }
+
+    protected function buildEndOfClass() {
+        return '';
     }
 
     /**
@@ -633,10 +705,14 @@ class jDaoGenerator {
                 && ( $field->autoIncrement || ($field->updatePattern != '%s' && $field->selectPattern != '')));
     }
 
+    protected function _captureBinaryField(&$field) {
+        return ($field->unifiedType == 'binary' || $field->unifiedType == 'varbinary');
+    }
+
     /**
     * get autoincrement PK field
     */
-    protected function _getAutoIncrementPKField ($using = null){
+    protected function getAutoIncrementPKField ($using = null){
         if ($using === null){
             $using = $this->_dataParser->getProperties ();
         }
@@ -667,7 +743,7 @@ class jDaoGenerator {
      * @return string the WHERE clause (without the WHERE keyword)
      * @internal
      */
-    protected function _buildSimpleConditions (&$fields, $fieldPrefix='', $forSelect=true){
+    protected function buildSimpleConditions (&$fields, $fieldPrefix='', $forSelect=true){
         $r = ' ';
 
         $first = true;
@@ -685,7 +761,7 @@ class jDaoGenerator {
             }
 
             $var = '$'.$fieldPrefix.$field->name;
-            $value = $this->_preparePHPExpr($var,$field, !$field->requiredInConditions,'=' );
+            $value = $this->_preparePHPExpr($var, $field, !$field->requiredInConditions, '=');
 
             $r .= $condition.'\'.'.$value.'.\'';
         }
@@ -698,7 +774,7 @@ class jDaoGenerator {
         $values = $fields = array();
 
         foreach ((array)$fieldList as $fieldName=>$field) {
-            if ($pattern != '' && $field->$pattern == ''){
+            if ($pattern != '' && $field->$pattern == '') {
                 continue;
             }
 
@@ -726,9 +802,9 @@ class jDaoGenerator {
      * @return string a WHERE clause (without the WHERE keyword) with eventually an ORDER clause
      * @internal
      */
-    protected function _buildConditions ($cond, $fields, $params=array(), $withPrefix=true, $groupby=null){
+    protected function buildConditions ($cond, $fields, $params=array(), $withPrefix=true, $groupby=null){
         if($cond)
-            $sql = $this->_buildSQLCondition ($cond->condition, $fields, $params, $withPrefix, true);
+            $sql = $this->buildOneSQLCondition ($cond->condition, $fields, $params, $withPrefix, true);
         else
             $sql = '';
 
@@ -753,12 +829,12 @@ class jDaoGenerator {
                     $ord = $this->_encloseName($fields[$name]->table).'.'.$this->_encloseName($fields[$name]->fieldName);
                 else
                     $ord = $this->_encloseName($fields[$name]->fieldName);
-            }elseif($name{0} == '$'){
+            }elseif($name[0] == '$'){
                 $ord = '\'.'.$name.'.\'';
             }else{
                 continue;
             }
-            if($way{0} == '$'){
+            if($way[0] == '$'){
                 $order[]=$ord.' \'.( strtolower('.$way.') ==\'asc\'?\'asc\':\'desc\').\'';
             }else{
                 $order[]=$ord.' '.$way;
@@ -774,18 +850,18 @@ class jDaoGenerator {
     }
 
     /**
-     * build SQL WHERE clause
-     * Used by _buildConditions. And this method call itself recursively
+     * build a condition for the SQL WHERE clause.
+     * this method call itself recursively.
      * @param jDaoCondition $cond a condition object which contains conditions data
      * @param array $fields  array of jDaoProperty
      * @param array $params  list of parameters name of the method
      * @param boolean $withPrefix true if the field name should be preceded by the table name/table alias
      * @param boolean $principal  should be true for the first call, and false for recursive call
      * @return string a WHERE clause (without the WHERE keyword)
-     * @see jDaoGenerator::_buildConditions
+     * @see jDaoGenerator::buildConditions
      * @internal
      */
-    protected function _buildSQLCondition ($condition, $fields, $params, $withPrefix, $principal=false){
+    protected function buildOneSQLCondition ($condition, $fields, $params, $withPrefix, $principal=false){
 
         $r = ' ';
 
@@ -831,7 +907,7 @@ class jDaoGenerator {
                     // is = or <>, then we need to generate a thing like :
                     // - in case 1: ($foo === null ? 'IS NULL' : '='.$this->_conn->quote($foo))
                     // - in case 2: '= concat('.($foo === null ? 'NULL' : $this->_conn->quote($foo)).' ,\'bla\')'
-                    if(strpos($value, '$') === 0){
+                    if($value[0] == '$'){
                         $value = '\'.'.$this->_preparePHPExpr($value, $prop, !$prop->requiredInConditions,$cond['operator']).'.\'';
                     }else{
                         foreach($params as $param){
@@ -839,8 +915,13 @@ class jDaoGenerator {
                         }
                         $value = $cond['operator'].' '.$value;
                     }
-                }else{
-                    $value = $cond['operator'].' '.$this->tools->escapeValue($prop->unifiedType, $cond['value'], false, true);
+                } else {
+                    $value = $cond['operator'].' ';
+                    if ($cond['operator'] == 'LIKE' || $cond['operator'] == 'NOT LIKE') {
+                        $value .= $this->tools->escapeValue('varchar', $cond['value'], false, true);
+                    } else {
+                        $value .= $this->tools->escapeValue($prop->unifiedType, $cond['value'], false, true);
+                    }
                 }
                 $r.=$value;
             }
@@ -850,7 +931,7 @@ class jDaoGenerator {
             if (!$first){
                 $r .= ' '.$condition->glueOp.' ';
             }
-            $r .= $this->_buildSQLCondition ($conditionDetail, $fields, $params, $withPrefix);
+            $r .= $this->buildOneSQLCondition($conditionDetail, $fields, $params, $withPrefix);
             $first=false;
         }
 
@@ -862,7 +943,7 @@ class jDaoGenerator {
     }
 
     protected function _preparePHPExpr($expr, $field, $checknull=true, $forCondition=''){
-        $opnull=$opval='';
+        $opnull = $opval = '';
         if($checknull && $forCondition != ''){
             if($forCondition == '=')
                 $opnull = 'IS ';
@@ -871,10 +952,15 @@ class jDaoGenerator {
             else
                 $checknull=false;
         }
-        if($forCondition!='')
-            $forCondition = '\''.$forCondition.'\'.';
+        $type = '';
+        if ($forCondition != 'LIKE' && $forCondition != 'NOT LIKE')
+            $type = strtolower($field->unifiedType);
 
-        switch(strtolower($field->unifiedType)){
+        if ($forCondition != '') {
+            $forCondition = '\' '.$forCondition.' \'.'; // spaces for operators like LIKE
+        }
+
+        switch($type){
             case 'integer':
                 if($checknull){
                     $expr= '('.$expr.' === null ? \''.$opnull.'NULL\' : '.$forCondition.'intval('.$expr.'))';
@@ -906,10 +992,16 @@ class jDaoGenerator {
                 }
                 break;
             default:
-                if($checknull){
-                    $expr= '('.$expr.' === null ? \''.$opnull.'NULL\' : '.$forCondition.'$this->_conn->quote('.$expr.',false))';
-                }else{
-                    $expr= $forCondition.'$this->_conn->quote('.$expr.')';
+                if ($type=='varbinary' || $type=='binary')
+                    $qparam = ',true';
+                else
+                    $qparam = '';
+
+                if ($checknull) {
+                   $expr = '('.$expr.' === null ? \''.$opnull.'NULL\' : '.$forCondition.'$this->_conn->quote('.$expr.',false'.$qparam.'))';
+                }
+                else {
+                   $expr = $forCondition.'$this->_conn->quote('.$expr.($qparam?',true,true':'').')';
                 }
         }
         return $expr;
@@ -919,7 +1011,7 @@ class jDaoGenerator {
         return $this->tools->encloseName($name);
     }
 
-    protected function genUpdateAutoIncrementPK($pkai, $pTableRealName) {
+    protected function buildUpdateAutoIncrementPK($pkai) {
         return '       $record->'.$pkai->name.'= $this->_conn->lastInsertId();';
     }
 }

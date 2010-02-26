@@ -40,18 +40,18 @@ class jConfig {
             $file = JELIX_APP_TEMP_PATH.str_replace('/','~',$configFile).'.resultini.php';
         $compil=false;
         if(!file_exists($file)){
-            // pas de cache, on compile
+            // no cache, let's compile
             $compil=true;
         }else{
             $t = filemtime($file);
             $dc = JELIX_APP_CONFIG_PATH.'defaultconfig.ini.php';
             if( (file_exists($dc) && filemtime($dc)>$t)
                 || filemtime(JELIX_APP_CONFIG_PATH.$configFile)>$t){
-                // le fichier de conf ou le fichier defaultconfig.ini.php ont ete modifié : on compile
+                // one of the two config file have been modified: let's compile
                 $compil=true;
             }else{
 
-                // on lit le fichier de conf du cache
+                // let's read the cache file
                 if(BYTECODE_CACHE_EXISTS){
                     include($file);
                     $config = (object) $config;
@@ -59,7 +59,7 @@ class jConfig {
                     $config = parse_ini_file($file,true);
                     $config = (object) $config;
                 }
-                // on va verifier tous les chemins
+                // we check all directories to see if it has been modified
                 if($config->compilation['checkCacheFiletime']){
                     foreach($config->_allBasePath as $path){
                         if(!file_exists($path) || filemtime($path)>$t){
@@ -71,8 +71,8 @@ class jConfig {
             }
         }
         if($compil){
-            require(JELIX_LIB_CORE_PATH.'jConfigCompiler.class.php');
-            return jConfigCompiler::read($configFile);
+            require_once(JELIX_LIB_CORE_PATH.'jConfigCompiler.class.php');
+            return jConfigCompiler::readAndCache($configFile);
         }else
             return $config;
     }

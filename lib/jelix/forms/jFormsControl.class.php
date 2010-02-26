@@ -3,8 +3,9 @@
 * @package     jelix
 * @subpackage  forms
 * @author      Laurent Jouanneau
-* @contributor Dominique Papin
+* @contributor Dominique Papin, Olivier Demah
 * @copyright   2006-2008 Laurent Jouanneau, 2008 Dominique Papin
+* @copyright   2009 Olivier Demah
 * @link        http://www.jelix.org
 * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -86,6 +87,14 @@ abstract class jFormsControl {
         return $value;
     }
 
+    /**
+     * says if the content is html or not
+     * @since 1.2
+     */
+    public function isHtmlContent() {
+        return false;
+    }
+
     public function deactivate($deactivation=true) {
         $this->container->deactivate($this->ref, $deactivation);
     }
@@ -132,5 +141,6 @@ require(JELIX_LIB_PATH.'forms/controls/jFormsControlTextarea.class.php');
 require(JELIX_LIB_PATH.'forms/controls/jFormsControlUpload.class.php');
 require(JELIX_LIB_PATH.'forms/controls/jFormsControlDate.class.php');
 require(JELIX_LIB_PATH.'forms/controls/jFormsControlDatetime.class.php');
+require(JELIX_LIB_PATH.'forms/controls/jFormsControlWikiEditor.class.php');
 
 

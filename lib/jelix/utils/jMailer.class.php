@@ -2,7 +2,7 @@
 /**
 * jMailer : based on PHPMailer - PHP email class
 * Class for sending email using either
-* sendmail, PHP mail(), or SMTP.  Methods are
+* sendmail, PHP mail(), SMTP, or files for tests.  Methods are
 * based upon the standard AspEmail(tm) classes.
 *
 * @package     jelix
@@ -33,13 +33,18 @@ class jMailer extends PHPMailer {
 
     /**
      * the selector of the template used for the mail.
-     * Use the Tpl() method instead of this property
-     * @deprecated
+     * Use the Tpl() method to change this property
      * @var string
      */
-    public $bodyTpl = '';
+    protected $bodyTpl = '';
 
     protected $lang;
+
+    /**
+     * the path of the directory where to store mails
+     * if mailer is file.
+    */
+    public $filePath = '';
 
     /**
      * initialize some member
@@ -63,6 +68,16 @@ class jMailer extends PHPMailer {
             $this->From = $gJConfig->mailer['webmasterEmail'];
         }
         $this->FromName = $gJConfig->mailer['webmasterName'];
+        $this->filePath = JELIX_APP_VAR_PATH.$gJConfig->mailer['filesDir'];
+    }
+
+    /**
+     * Sets Mailer to store message into files instead of sending it
+     * useful for tests.
+     * @return void
+     */
+    public function IsFile() {
+        $this->Mailer = 'file';
     }
 
 
@@ -100,8 +115,6 @@ class jMailer extends PHPMailer {
      * @return bool
      */
     function Send() {
-        $header = "";
-        $body = "";
         $result = true;
 
         if( isset($this->bodyTpl) && $this->bodyTpl != "") {
@@ -152,7 +165,63 @@ class jMailer extends PHPMailer {
             $this->Body = $mailtpl->fetch( $this->bodyTpl, ($this->ContentType == 'text/html'?'html':'text'));
         }
 
-        return parent::Send();
+        // following lines are copied from the orginal file 
+        
+        if((count($this->to) + count($this->cc) + count($this->bcc)) < 1) {
+          $this->SetError($this->Lang('provide_address'));
+          return false;
+        }
+    
+        /* Set whether the message is multipart/alternative */
+        if(!empty($this->AltBody)) {
+          $this->ContentType = 'multipart/alternative';
+        }
+    
+        $this->error_count = 0; // reset errors
+        $this->SetMessageType();
+        $header = $this->CreateHeader();
+        $body = $this->CreateBody();
+    
+        if($body == '') {
+          return false;
+        }
+    
+        /* Choose the mailer */
+        switch($this->Mailer) {
+          case 'sendmail':
+            $result = $this->SendmailSend($header, $body);
+            break;
+          case 'smtp':
+            $result = $this->SmtpSend($header, $body);
+            break;
+          case 'file':
+            $result = $this->FileSend($header, $body);
+            break;
+          case 'mail':
+          default:
+            $result = $this->MailSend($header, $body);
+            break;
+        }
+    
+        return $result;
+    }
+    
+    /**
+     * store mail in file instead of sending it
+     * @access public
+     * @return bool
+     */
+    public function FileSend($header, $body) {
+      
+        if(!isset($_SERVER['REMOTE_ADDR'])){ // for CLI mode
+            $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        }
+
+        return jFile::write ($this->getStorageFile(), $header.$body);
+    }
+    
+    protected function getStorageFile() {
+        return rtrim($this->filePath,'/').'/mail.'.$_SERVER['REMOTE_ADDR'].'-'.date('Ymd-His').'-'.uniqid(mt_rand(), true);
     }
 
     function SetLanguage($lang_type = 'en_EN', $lang_path = 'language/') {
@@ -176,10 +245,10 @@ class jMailer extends PHPMailer {
             }
             $locale = 'jelix~errors.mail.'.$m[2];
             if ($arg !== null) {
-                throw new jException($locale, $arg, $this->lang, $this->CharSet);
+                throw new jException($locale, $arg, 1, $this->lang, $this->CharSet);
             }
             else
-                throw new jException($locale, array(), $this->lang, $this->CharSet);
+                throw new jException($locale, array(), 1, $this->lang, $this->CharSet);
         }
         else {
             throw new Exception($msg);

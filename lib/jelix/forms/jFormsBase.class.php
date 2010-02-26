@@ -5,9 +5,9 @@
 * @author      Laurent Jouanneau
 * @contributor Dominique Papin
 * @contributor Bastien Jaillot
-* @contributor Christophe Thiriot, Julien Issler
-* @copyright   2006-2009 Laurent Jouanneau, 2007 Dominique Papin, 2008 Bastien Jaillot
-* @copyright   2008 Julien Issler
+* @contributor Christophe Thiriot, Julien Issler, Olivier Demah
+* @copyright   2006-2010 Laurent Jouanneau, 2007 Dominique Papin, 2008 Bastien Jaillot
+* @copyright   2008-2009 Julien Issler, 2009 Olivier Demah
 * @link        http://www.jelix.org
 * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -34,7 +34,7 @@ class jExceptionForms extends jException {
  * @subpackage  forms
  */
 abstract class jFormsBase {
-    
+
     const SECURITY_LOW = 0;
     const SECURITY_CSRF = 1;
 
@@ -95,6 +95,15 @@ abstract class jFormsBase {
      * @see jFormsControl
      */
     protected $htmleditors = array();
+
+	/**
+     * List of wikieditorcontrols
+     * array of jFormsControl objects
+     * @var array
+     * @see jFormsControl
+     * @since 1.2
+     */
+    protected $wikieditors = array();
 
     /**
      * the data container
@@ -184,7 +193,7 @@ abstract class jFormsBase {
                 $properties[$n]=array('required'=>$r, 'defaultValue'=>$v, 'unifiedType'=>$t);
             }
         }
-        
+
         foreach($this->controls as $name=>$ctrl){
             if(!isset($properties[$name]))
                 continue;
@@ -478,16 +487,6 @@ abstract class jFormsBase {
     public function getAllData(){ return $this->container->data; }
 
     /**
-     * DEPRECATED, use getAllData() instead.
-     * @return array form data
-     * @deprecated since 1.1
-     */
-    public function getDatas(){
-        trigger_error('jFormsBase::getDatas is deprecated, use getAllData instead',E_USER_NOTICE);
-        return $this->container->data;
-    }
-
-    /**
      * deactivate (or reactivate) a control
      * When a control is deactivated, it is not displayes anymore in the output form
      * @param string $name  the name of the control
@@ -567,6 +566,18 @@ abstract class jFormsBase {
      */
     public function getHtmlEditors(){ return $this->htmleditors; }
 
+     /**
+     * @return array of jFormsControl objects
+     * @since 1.2
+     */
+    public function getWikiEditors(){ return $this->wikieditors; }
+
+    /**
+     * @return array of jFormsControl objects
+     * @since 1.2
+     */
+    public function getUploads(){ return $this->uploads; }
+
     /**
      * call this method after initilization of the form, in order to track
      * modified controls
@@ -586,14 +597,49 @@ abstract class jFormsBase {
     }
 
     /**
+     * returns the old values of the controls which have been modified since
+     * the call of the method initModifiedControlsList()
      * @return array key=control id,  value=old value
      * @since 1.1
      */
     public function getModifiedControls(){
-        if(count($this->container->originalData))
-            return array_diff_assoc($this->container->originalData, $this->container->data);
+        if (count($this->container->originalData)) {
+
+            // we musn't use array_diff_assoc because it convert array values
+            // to "Array" before comparison, so these values are always equal for it.
+            // We shouldn't use array_udiff_assoc  because it crashes PHP, at least on
+            // some PHP version.
+            // so we have to compare by ourself.
+
+            $result = array();
+            $orig = & $this->container->originalData;
+            foreach($this->container->data as $k=>$v1) {
+
+                if (!isset($orig[$k])) {
+                    continue;
+                }
+
+                if($this->_diffValues($orig[$k], $v1))  {
+                    $result[$k] = $orig[$k];
+                    continue;
+                }
+            }
+            return $result;
+        }
         else
             return $this->container->data;
+    }
+
+    protected function _diffValues(&$v1, &$v2) {
+        if (is_array($v1) && is_array($v2)) {
+            return (count(array_diff($v1,$v2)) > 0);
+        }
+        elseif (is_array($v1) || is_array($v2)) {
+            return true;
+        }
+        else {
+            return !($v1==$v2);
+        }
     }
 
     /**
@@ -737,6 +783,7 @@ abstract class jFormsBase {
         unset($this->uploads [$name]);
         unset($this->hiddens [$name]);
         unset($this->htmleditors [$name]);
+        unset($this->wikieditors [$name]);
         unset($this->container->data[$name]);
     }
 
@@ -747,17 +794,26 @@ abstract class jFormsBase {
     */
     public function addChildControl($control){
         $this->controls [$control->ref] = $control;
-        if($control->type =='submit')
-            $this->submits [$control->ref] = $control;
-        else if($control->type =='reset')
-            $this->reset = $control;
-        else if($control->type =='upload')
-            $this->uploads [$control->ref] = $control;
-        else if($control->type =='hidden')
-            $this->hiddens [$control->ref] = $control;
-        else if($control->type == 'htmleditor')
-            $this->htmleditors [$control->ref] = $control;
-
+        switch ($control->type) {
+            case 'submit':
+                $this->submits [$control->ref] = $control;
+                break;
+            case 'reset':
+                $this->reset = $control;
+                break;
+            case 'upload':
+                $this->uploads [$control->ref] = $control;
+                break;
+            case 'hidden':
+                $this->hiddens [$control->ref] = $control;
+                break;
+            case 'htmleditor':
+                $this->htmleditors [$control->ref] = $control;
+                break;
+            case 'wikieditor':
+                $this->wikieditors [$control->ref] = $control;
+                break;
+        }
         $control->setForm($this);
 
         if(!isset($this->container->data[$control->ref])){
@@ -771,7 +827,7 @@ abstract class jFormsBase {
             }
         }
     }
-    
+
     /**
      * generate a new token for security against CSRF
      * a builder should call it and create for example an hidden input

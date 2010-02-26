@@ -75,7 +75,7 @@ class ociDbTools extends jDbTools {
       'longblob'        =>array('longblob',   'blob',       null,       null,       0,     0),
       'bfile'           =>array('longblob',   'blob',       null,       null,       0,     0),
       
-      'bytea'           =>array('longblob',   'blob',       null,       null,       0,     0),
+      'bytea'           =>array('longblob',   'varbinary',  null,       null,       0,     0),
       'binary'          =>array('binary',     'binary',     null,       null,       0,     255),
       'varbinary'       =>array('varbinary',  'varbinary',  null,       null,       0,     255),
       'raw'             =>array('varbinary',  'varbinary',  null,       null,       0,     2000),
@@ -99,7 +99,6 @@ class ociDbTools extends jDbTools {
       'arrays'          =>array('varchar',    'varchar',    null,       null,       0,     65535),
       'complex types'   =>array('varchar',    'varchar',    null,       null,       0,     65535),
     );
-
 
     /**
     * returns the list of tables 

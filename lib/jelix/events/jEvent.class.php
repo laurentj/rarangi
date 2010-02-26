@@ -3,7 +3,7 @@
 * @package     jelix
 * @subpackage  events
 * @author      Croes Gérald, Patrice Ferlet
-* @contributor Laurent Jouanneau, Dominique Papin
+* @contributor Laurent Jouanneau, Dominique Papin, Catsoup
 * @copyright 2001-2005 CopixTeam, 2005-2009 Laurent Jouanneau, 2009 Dominique Papin
 * This classes were get originally from the Copix project
 * (CopixEvent*, CopixListener* from Copix 2.3dev20050901, http://www.copix.org)
@@ -129,10 +129,9 @@ class jEvent {
             self::loadListenersFor ($eventname);
         }
 
-        $methodName = 'on'.$event->getName ();
         $list = & self::$hashListened[$eventname];
         foreach (array_keys ($list) as $key) {
-            $list[$key]->$methodName ($event);
+            $list[$key]->performEvent ($event);
         }
 
         return $event;
@@ -166,6 +165,7 @@ class jEvent {
     */
     protected static function loadListenersFor ($eventName) {
         if (!isset($GLOBALS['JELIX_EVENTS'])) {
+            self::$compilerData[3] = $GLOBALS['gJConfig']->urlengine['urlScriptId'].'.'.self::$compilerData[3];
             jIncluder::incAll(self::$compilerData);
         }
 

@@ -4,7 +4,7 @@
 * @subpackage  dao
 * @author      Croes Gérald, Laurent Jouanneau
 * @contributor Laurent Jouanneau
-* @copyright   2001-2005 CopixTeam, 2005-2009 Laurent Jouanneau
+* @copyright   2001-2005 CopixTeam, 2005-2010 Laurent Jouanneau
 * This class was get originally from the Copix project (CopixDAODefinitionV1, Copix 2.3dev20050901, http://www.copix.org)
 * Few lines of code are still copyrighted 2001-2005 CopixTeam (LGPL licence).
 * Initial authors of this Copix class are Gerald Croes and Laurent Jouanneau,
@@ -111,7 +111,7 @@ class jDaoProperty {
         $tables = $parser->getTables();
 
         if(!isset( $tables[$this->table])){
-            throw new jDaoXmlException ($parser->selector, 'property.unknow.table', $this->name);
+            throw new jDaoXmlException ($parser->selector, 'property.unknown.table', $this->name);
         }
 
         $this->required   = $this->requiredInConditions = $parser->getBool ($params['required']);
@@ -159,9 +159,16 @@ class jDaoProperty {
         }
 
         if ($params['default'] !== null) {
-            $this->defaultValue = $tools->escapeValue($this->unifiedType, $params['default']);
+            $this->defaultValue = $tools->stringToPhpValue($this->unifiedType, $params['default']);
         }
 
+        // insertpattern is allowed on primary keys noy autoincremented
+        if ($this->isPK && !$this->autoIncrement && isset($aAttributes['insertpattern'])) {
+            $this->insertPattern=(string)$aAttributes['insertpattern'];
+        }
+        if ($this->isPK) {
+            $this->updatePattern = '';
+        }
         // we ignore *pattern attributes on PK and FK fields
         if (!$this->isPK && !$this->isFK) {
             if(isset($aAttributes['updatepattern'])) {

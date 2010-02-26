@@ -76,8 +76,9 @@ class htmllightJformsBuilder extends jFormsBuilderBase {
                     }
                     if(isset($gJConfig->htmleditors[$ed->config.'.config']))
                         $resp->addJSLink($bp.$gJConfig->htmleditors[$ed->config.'.config']);
-                    if(isset($gJConfig->htmleditors[$ed->config.'.skin.'.$ed->skin]))
-                        $resp->addCSSLink($bp.$gJConfig->htmleditors[$ed->config.'.skin.'.$ed->skin]);
+                    $skin = $ed->config.'.skin.'.$ed->skin;
+                    if(isset($gJConfig->htmleditors[$skin]) && $gJConfig->htmleditors[$skin] != '')
+                        $resp->addCSSLink($bp.$gJConfig->htmleditors[$skin]);
                 }
             }
         }
@@ -194,11 +195,12 @@ jForms.declareForm(jForms.tForm);
         if($ctrl->type == 'hidden') return;
         $ro = $ctrl->isReadOnly();
         $id = ' name="'.$ctrl->ref.'" id="'.$this->_name.'_'.$ctrl->ref.'"';
-        $class = ($ctrl->required == false || $ro?'':' jforms-required');
-        $class.= (isset($this->_form->getContainer()->errors[$ctrl->ref]) ?' jforms-error':'');
-        $class.= ($ro && $ctrl->type != 'captcha'?' jforms-readonly':'');
+        $class = 'jforms-ctrl-'.$ctrl->type;
+        $class .= ($ctrl->required == false || $ro?'':' jforms-required');
+        $class .= (isset($this->_form->getContainer()->errors[$ctrl->ref]) ?' jforms-error':'');
+        $class .= ($ro && $ctrl->type != 'captcha'?' jforms-readonly':'');
         $readonly = ($ro?' readonly="readonly"':'');
-        if($class !='') $class = ' class="'.$class.'"';
+        $class = ' class="'.$class.'"';
         $hint = ($ctrl->hint == ''?'':' title="'.htmlspecialchars($ctrl->hint).'"');
         $this->{'output'.$ctrl->type}($ctrl, $id, $class, $readonly, $hint);
         $this->{'js'.$ctrl->type}($ctrl);
@@ -399,9 +401,9 @@ jForms.declareForm(jForms.tForm);
         $minDate = $ctrl->datatype->getFacet('minValue');
         $maxDate = $ctrl->datatype->getFacet('maxValue');
         if($minDate)
-            $this->jsContent .= "c.minDate = '".$minDate->toString(jDateTime::BD_DFORMAT)."';\n";
+            $this->jsContent .= "c.minDate = '".$minDate->toString(jDateTime::DB_DFORMAT)."';\n";
         if($maxDate)
-            $this->jsContent .= "c.maxDate = '".$maxDate->toString(jDateTime::BD_DFORMAT)."';\n";
+            $this->jsContent .= "c.maxDate = '".$maxDate->toString(jDateTime::DB_DFORMAT)."';\n";
         $this->commonJs($ctrl);
     }
 
@@ -447,9 +449,9 @@ jForms.declareForm(jForms.tForm);
         $minDate = $ctrl->datatype->getFacet('minValue');
         $maxDate = $ctrl->datatype->getFacet('maxValue');
         if($minDate)
-            $this->jsContent .= "c.minDate = '".$minDate->toString(jDateTime::BD_DTFORMAT)."';\n";
+            $this->jsContent .= "c.minDate = '".$minDate->toString(jDateTime::DB_DTFORMAT)."';\n";
         if($maxDate)
-            $this->jsContent .= "c.maxDate = '".$maxDate->toString(jDateTime::BD_DTFORMAT)."';\n";
+            $this->jsContent .= "c.maxDate = '".$maxDate->toString(jDateTime::DB_DTFORMAT)."';\n";
         $this->commonJs($ctrl);
     }
 
@@ -783,7 +785,7 @@ jForms.declareForm(jForms.tForm);
                 // we remove readonly status so when a user change the choice and
                 // javascript is deactivated, it can still change the value of the control
                 $ro = $c->isReadOnly();
-                if($ro && $readonly != '') $c->setReadOnly(false);
+                if($ro && $readonly == '') $c->setReadOnly(false);
                 $this->outputControlLabel($c);
                 echo ' ';
                 $this->outputControl($c);

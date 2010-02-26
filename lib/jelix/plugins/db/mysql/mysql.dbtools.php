@@ -78,13 +78,13 @@ class mysqlDbTools extends jDbTools {
       'nclob'           =>array('longtext',   'text',       null,       null,       0,     0),
 
 
-      'tinyblob'        =>array('tinyblob',   'blob',       null,       null,       0,     255),
-      'blob'            =>array('blob',       'blob',       null,       null,       0,     65535),
-      'mediumblob'      =>array('mediumblob', 'blob',       null,       null,       0,     16777215),
-      'longblob'        =>array('longblob',   'blob',       null,       null,       0,     0),
-      'bfile'           =>array('longblob',   'blob',       null,       null,       0,     0),
+      'tinyblob'        =>array('tinyblob',   'varbinary',  null,       null,       0,     255),
+      'blob'            =>array('blob',       'varbinary',  null,       null,       0,     65535),
+      'mediumblob'      =>array('mediumblob', 'varbinary',  null,       null,       0,     16777215),
+      'longblob'        =>array('longblob',   'varbinary',  null,       null,       0,     0),
+      'bfile'           =>array('longblob',   'varbinary',  null,       null,       0,     0),
       
-      'bytea'           =>array('longblob',   'blob',       null,       null,       0,     0),
+      'bytea'           =>array('longblob',   'varbinary',  null,       null,       0,     0),
       'binary'          =>array('binary',     'binary',     null,       null,       0,     255),
       'varbinary'       =>array('varbinary',  'varbinary',  null,       null,       0,     255),
       'raw'             =>array('varbinary',  'varbinary',  null,       null,       0,     2000),
@@ -116,6 +116,7 @@ class mysqlDbTools extends jDbTools {
     /**
     * returns the list of tables 
     * @return   array    list of table names
+    * @deprecated since 1.2
     */
     public function getTableList () {
         $results = array ();
@@ -124,7 +125,7 @@ class mysqlDbTools extends jDbTools {
         }
         else if (isset($this->_conn->profile['dsn'])
                  && preg_match('/dbname=([a-z0-9_ ]*)/', $this->_conn->profile['dsn'], $m)){
-            $db = $m[1];  
+            $db = $m[1];
         }
         else {
             throw new jException("jelix~error.no.database.name", $this->_conn->profile['name']);
@@ -142,6 +143,7 @@ class mysqlDbTools extends jDbTools {
     /**
     * retrieve the list of fields of a table
     * @return   array    keys are field names and values are jDbFieldProperties objects
+    * @deprecated since 1.2
     */
     public function getFieldList ($tableName) {
         $tableName = $this->_conn->prefixTable($tableName);
@@ -185,7 +187,12 @@ class mysqlDbTools extends jDbTools {
     }
     
     public function execSQLScript ($file) {
-        $queries = $this->parseSQLScript(file_get_contents($file));
+        if(!isset($this->_conn->profile['table_prefix']))
+            $prefix = '';
+        else
+            $prefix = $this->_conn->profile['table_prefix'];
+        $sqlQueries = str_replace('%%PREFIX%%', $prefix, file_get_contents($file));
+        $queries = $this->parseSQLScript($sqlQueries);
         foreach($queries as $query)
             $this->_conn->exec($query);
         return count($queries);

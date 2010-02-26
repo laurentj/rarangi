@@ -24,16 +24,15 @@
  */
 
 class wr3_to_docbook  extends WikiRendererConfig  {
-  /**
-    * @var array   liste des tags inline
-   */
-   public $inlinetags= array( 'wr3dbk_strong','wr3dbk_emphasis','wr3dbk_code','wr3dbk_q',
-    'wr3dbk_cite','wr3dbk_acronym','wr3dbk_link', 'wr3dbk_image',
-    'wr3dbk_anchor', 'wr3dbk_footnote');
+
 
    public $defaultTextLineContainer = 'WikiHtmlTextLine';
 
-   public $availabledTextLineContainers = array('WikiHtmlTextLine');
+   public $textLineContainers = array(
+            'WikiHtmlTextLine'=>array( 'wr3dbk_strong','wr3dbk_emphasis','wr3dbk_code','wr3dbk_q',
+    'wr3dbk_cite','wr3dbk_acronym','wr3dbk_link', 'wr3dbk_image',
+    'wr3dbk_anchor', 'wr3dbk_footnote')
+    );
 
    /**
    * liste des balises de type bloc reconnus par WikiRenderer.
@@ -223,7 +222,7 @@ class wr3dbk_list extends WikiRendererBloc {
       $str='';
 
       for($i=strlen($t); $i >= $this->_firstTagLen; $i--){
-          $str.=($t{$i-1}== '#'?"</listitem></orderedlist>\n":"</listitem></itemizedlist>\n");
+          $str.=($t[$i-1]== '#'?"</listitem></orderedlist>\n":"</listitem></itemizedlist>\n");
       }
       return $str;
    }
@@ -236,7 +235,7 @@ class wr3dbk_list extends WikiRendererBloc {
       if( $d > 0 ){ // on remonte d'un ou plusieurs cran dans la hierarchie...
          $l=strlen($this->_detectMatch[1]);
          for($i=strlen($t); $i>$l; $i--){
-            $str.=($t{$i-1}== '#'?"</listitem></orderedlist>\n":"</listitem></itemizedlist>\n");
+            $str.=($t[$i-1]== '#'?"</listitem></orderedlist>\n":"</listitem></itemizedlist>\n");
          }
          $str.="</listitem>\n<listitem>";
          $this->_previousTag=substr($this->_previousTag,0,-$d); // pour �tre sur...
@@ -406,7 +405,14 @@ class wr3dbk_pre extends WikiRendererBloc {
 
         }else{
             if(preg_match('/^\s*<code>(.*)/',$string,$m)){
-                $this->_detectMatch=$m[1];
+                if(preg_match('/(.*)<\/code>\s*$/',$m[1],$m2)){
+                    $this->_closeNow = true;
+                    $this->_detectMatch=$m2[1];
+                }
+                else {
+                    $this->_closeNow = false;
+                    $this->_detectMatch=$m[1];
+                }
                 return true;
             }else{
                 return false;

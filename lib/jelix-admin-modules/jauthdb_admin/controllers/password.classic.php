@@ -22,12 +22,20 @@ class passwordCtrl extends jController {
     }
 
     function index(){
-        $id = $this->param('id');
+        $id = $this->param('j_user_login');
         if($id === null){
             $rep = $this->getResponse('redirect');
             $rep->action = 'master_admin~default:index';
             return $rep;
         }
+        
+        if ($this->personalView && $id != jAuth::getUserSession()->login) {
+            jMessage::add(jLocale::get('jelix~errors.acl.action.right.needed'), 'error');
+            $rep = $this->getResponse('redirect');
+            $rep->action = 'master_admin~default:index';
+            return $rep;
+        }
+        
         $rep = $this->getResponse('html');
 
         $tpl = new jTpl();
@@ -46,15 +54,21 @@ class passwordCtrl extends jController {
      * 
      */
     function update(){
-        $id = $this->param('id');
+        $id = $this->param('j_user_login');
         $pwd = $this->param('pwd');
         $pwdconf = $this->param('pwd_confirm');
         $rep = $this->getResponse('redirect');
 
+        if ($this->personalView && $id != jAuth::getUserSession()->login) {
+            jMessage::add(jLocale::get('jelix~errors.acl.action.right.needed'), 'error');
+            $rep->action = 'master_admin~default:index';
+            return $rep;
+        }
+
         if (trim($pwd) == '' || $pwd != $pwdconf) {
             jMessage::add(jLocale::get('crud.message.bad.password'), 'error');
             $rep->action = 'password:index';
-            $rep->params['id'] = $id;
+            $rep->params['j_user_login'] = $id;
             return $rep;
         }
         
@@ -64,13 +78,13 @@ class passwordCtrl extends jController {
                 $rep->action = 'user:index';
             else
                 $rep->action = 'default:view';
-            $rep->params['id'] = $id;
+            $rep->params['j_user_login'] = $id;
             return $rep;
         }
         else{
             jMessage::add(jLocale::get('crud.message.change.password.notok'), 'error');
             $rep->action = 'password:index';
-            $rep->params['id'] = $id;
+            $rep->params['j_user_login'] = $id;
         }
         return $rep;
     }

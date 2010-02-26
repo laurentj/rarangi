@@ -4,11 +4,11 @@
 * @subpackage forms
 * @author     Laurent Jouanneau
 * @contributor Loic Mathaud, Dominique Papin, Julien Issler
-* @contributor Uriel Corfa Emotic SARL, Thomas
-* @copyright   2006-2008 Laurent Jouanneau
+* @contributor Uriel Corfa Emotic SARL, Thomas, Olivier Demah
+* @copyright   2006-2009 Laurent Jouanneau
 * @copyright   2007 Loic Mathaud, 2007-2008 Dominique Papin
 * @copyright   2007 Emotic SARL
-* @copyright   2008 Julien Issler, 2009 Thomas
+* @copyright   2008 Julien Issler, 2009 Thomas, 2009 Olivier Demah
 * @link        http://www.jelix.org
 * @licence    GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
@@ -24,7 +24,7 @@ class jFormsCompiler_jf_1_1 extends jFormsCompiler_jf_1_0 {
 
     protected $allowedType = array('string','boolean','decimal','integer','hexadecimal',
                                       'datetime','date','time','localedatetime','localedate','localetime',
-                                      'url','email','ipv4','ipv6','html');
+                                      'url','email','ipv4','ipv6','html','xhtml');
 
     protected function _compile ($xml, &$source) {
         if(isset($xml['allowAnyOrigin']) && $xml['allowAnyOrigin'] == 'true') {
@@ -95,10 +95,11 @@ class jFormsCompiler_jf_1_1 extends jFormsCompiler_jf_1_0 {
 
     protected function generateTextarea(&$source, $control, &$attributes) {
         if(isset($attributes['type'])){
-            if ( $attributes['type'] != 'html') {
-                throw new jException('jelix~formserr.datatype.unknow',array($attributes['type'],'textarea',$this->sourceFile));
+            if ($attributes['type'] != 'html' && $attributes['type'] != 'xhtml') {
+                throw new jException('jelix~formserr.datatype.unknown',
+                                     array($attributes['type'], 'textarea', $this->sourceFile));
             }
-            $source[]='$ctrl->datatype= new jDatatypeHtml();';
+            $source[] = '$ctrl->datatype= new jDatatypeHtml('.($attributes['type'] == 'xhtml'?'true':'').');';
             unset($attributes['type']);
         }
         return $this->_generateTextareaHtmlEditor($source, $control, $attributes);
@@ -148,6 +149,11 @@ class jFormsCompiler_jf_1_1 extends jFormsCompiler_jf_1_0 {
     }
 
     protected function generateHtmleditor(&$source, $control, &$attributes) {
+        if (isset($attributes['xhtml'])) {
+            $source[] = '$ctrl->datatype= new jDatatypeHtml('.($attributes['xhtml'] == 'true'?'true':'').');';
+            unset($attributes['xhtml']);
+        }
+
         $this->_generateTextareaHtmlEditor($source, $control, $attributes);
 
         if (isset($attributes['config'])) {
@@ -157,6 +163,16 @@ class jFormsCompiler_jf_1_1 extends jFormsCompiler_jf_1_0 {
         if (isset($attributes['skin'])) {
             $source[]='$ctrl->skin=\''.str_replace("'","\\'",$attributes['skin']).'\';';
             unset($attributes['skin']);
+        }
+        return false;
+    }
+
+    protected function generateWikieditor(&$source, $control, &$attributes) {
+        $this->_generateTextareaHtmlEditor($source, $control, $attributes);
+
+        if (isset($attributes['config'])) {
+            $source[]='$ctrl->config=\''.str_replace("'","\\'",$attributes['config']).'\';';
+            unset($attributes['config']);
         }
         return false;
     }
@@ -185,6 +201,7 @@ class jFormsCompiler_jf_1_1 extends jFormsCompiler_jf_1_0 {
     }
 
     protected function generateChoice(&$source, $control, &$attributes) {
+        $this->attrRequired($source, $attributes);
         $this->readLabel($source, $control, 'choice');
         $this->attrReadOnly($source, $attributes);
         $this->readHelpHintAlert($source, $control);
@@ -251,7 +268,7 @@ class jFormsCompiler_jf_1_1 extends jFormsCompiler_jf_1_0 {
             if(in_array($ctrltype, $ignore))
                 continue;
             if(!in_array($ctrltype, array('input','textarea', 'output','checkbox','checkboxes','radiobuttons',
-                        'menulist','listbox','secret', 'upload', 'hidden','htmleditor','date','datetime'))) {
+                        'menulist','listbox','secret', 'upload', 'hidden','htmleditor','date','datetime','wikieditor'))) {
                 throw new jException('jelix~formserr.control.not.allowed',array($ctrltype, $controltype,$this->sourceFile));
             }
             $ctrlcount++;

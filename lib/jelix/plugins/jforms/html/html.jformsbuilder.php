@@ -3,9 +3,10 @@
 * @package     jelix
 * @subpackage  forms
 * @author      Laurent Jouanneau
-* @contributor Julien Issler, Dominique Papin
-* @copyright   2006-2009 Laurent Jouanneau
+* @contributor Julien Issler, Dominique Papin, Olivier Demah
+* @copyright   2006-2010 Laurent Jouanneau
 * @copyright   2008 Julien Issler, 2008 Dominique Papin
+* @copyright   2009 Olivier Demah
 * @link        http://www.jelix.org
 * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -79,8 +80,9 @@ class htmlJformsBuilder extends jFormsBuilderBase {
                 }
                 if(isset($gJConfig->htmleditors[$ed->config.'.config']))
                     $resp->addJSLink($bp.$gJConfig->htmleditors[$ed->config.'.config']);
-                if(isset($gJConfig->htmleditors[$ed->config.'.skin.'.$ed->skin]))
-                    $resp->addCSSLink($bp.$gJConfig->htmleditors[$ed->config.'.skin.'.$ed->skin]);
+                $skin = $ed->config.'.skin.'.$ed->skin;
+                if(isset($gJConfig->htmleditors[$skin]) && $gJConfig->htmleditors[$skin] != '')
+                    $resp->addCSSLink($bp.$gJConfig->htmleditors[$skin]);
             }
             $datepicker_default_config = $gJConfig->forms['datepicker'];
             foreach($v->getControls() as $ctrl){
@@ -88,6 +90,18 @@ class htmlJformsBuilder extends jFormsBuilderBase {
                     $config = isset($ctrl->datepickerConfig)?$ctrl->datepickerConfig:$datepicker_default_config;
                     $resp->addJSLink($bp.$gJConfig->datepickers[$config]);
                 }
+            }
+
+            foreach($v->getWikiEditors() as $ed) {
+                if(isset($gJConfig->wikieditors[$ed->config.'.engine.file']))
+                    $resp->addJSLink($bp.$gJConfig->wikieditors[$ed->config.'.engine.file']);
+                if(isset($gJConfig->wikieditors[$ed->config.'.config.path'])) {
+                    $p = $bp.$gJConfig->wikieditors[$ed->config.'.config.path'];
+                    $resp->addJSLink($p.$GLOBALS['gJConfig']->locale.'.js');
+                    $resp->addCSSLink($p.'style.css');
+                }
+                if(isset($gJConfig->wikieditors[$ed->config.'.skin']))
+                    $resp->addCSSLink($bp.$gJConfig->wikieditors[$ed->config.'.skin']);
             }
         }
     }
@@ -203,11 +217,12 @@ jFormsJQ.declareForm(jFormsJQ.tForm);
         if($ctrl->type == 'hidden') return;
         $ro = $ctrl->isReadOnly();
         $id = ' name="'.$ctrl->ref.'" id="'.$this->_name.'_'.$ctrl->ref.'"';
-        $class = ($ctrl->required == false || $ro?'':' jforms-required');
-        $class.= (isset($this->_form->getContainer()->errors[$ctrl->ref]) ?' jforms-error':'');
-        $class.= ($ro && $ctrl->type != 'captcha'?' jforms-readonly':'');
+        $class = 'jforms-ctrl-'.$ctrl->type;
+        $class .= ($ctrl->required == false || $ro?'':' jforms-required');
+        $class .= (isset($this->_form->getContainer()->errors[$ctrl->ref]) ?' jforms-error':'');
+        $class .= ($ro && $ctrl->type != 'captcha'?' jforms-readonly':'');
         $readonly = ($ro?' readonly="readonly"':'');
-        if($class !='') $class = ' class="'.$class.'"';
+        $class = ' class="'.$class.'"';
         $hint = ($ctrl->hint == ''?'':' title="'.htmlspecialchars($ctrl->hint).'"');
         $this->{'output'.$ctrl->type}($ctrl, $id, $class, $readonly, $hint);
         $this->{'js'.$ctrl->type}($ctrl);
@@ -413,9 +428,9 @@ jFormsJQ.declareForm(jFormsJQ.tForm);
         $minDate = $ctrl->datatype->getFacet('minValue');
         $maxDate = $ctrl->datatype->getFacet('maxValue');
         if($minDate)
-            $this->jsContent .= "c.minDate = '".$minDate->toString(jDateTime::BD_DFORMAT)."';\n";
+            $this->jsContent .= "c.minDate = '".$minDate->toString(jDateTime::DB_DFORMAT)."';\n";
         if($maxDate)
-            $this->jsContent .= "c.maxDate = '".$maxDate->toString(jDateTime::BD_DFORMAT)."';\n";
+            $this->jsContent .= "c.maxDate = '".$maxDate->toString(jDateTime::DB_DFORMAT)."';\n";
         $this->commonJs($ctrl);
     }
 
@@ -461,9 +476,9 @@ jFormsJQ.declareForm(jFormsJQ.tForm);
         $minDate = $ctrl->datatype->getFacet('minValue');
         $maxDate = $ctrl->datatype->getFacet('maxValue');
         if($minDate)
-            $this->jsContent .= "c.minDate = '".$minDate->toString(jDateTime::BD_DTFORMAT)."';\n";
+            $this->jsContent .= "c.minDate = '".$minDate->toString(jDateTime::DB_DTFORMAT)."';\n";
         if($maxDate)
-            $this->jsContent .= "c.maxDate = '".$maxDate->toString(jDateTime::BD_DTFORMAT)."';\n";
+            $this->jsContent .= "c.maxDate = '".$maxDate->toString(jDateTime::DB_DTFORMAT)."';\n";
         $this->commonJs($ctrl);
     }
 
@@ -657,6 +672,18 @@ jFormsJQ.declareForm(jFormsJQ.tForm);
         $this->jsContent .= 'jelix_'.$engine.'_'.$ctrl->config.'("'.$this->_name.'_'.$ctrl->ref.'","'.$this->_name."\");\n";
     }
 
+    protected function outputWikieditor($ctrl, $id, $class, $readonly, $hint) {
+        $value = $this->_form->getData($ctrl->ref);
+        $rows = ' rows="'.$ctrl->rows.'" cols="'.$ctrl->cols.'"';
+        echo '<textarea',$id,$readonly,$hint,$class,$rows,'>',htmlspecialchars($value),'</textarea>';
+    }
+
+    protected function jsWikieditor($ctrl) {
+        $this->jsTextarea($ctrl);
+        $engine = $GLOBALS['gJConfig']->wikieditors[$ctrl->config.'.engine.name'];
+		$this->jsContent .= '$("#'.$this->_name.'_'.$ctrl->ref.'").markItUp(markitup_'.$engine.'_settings);'."\n";
+    }
+
     protected function outputSecret($ctrl, $id, $class, $readonly, $hint) {
         $size = ($ctrl->size == 0?'': ' size="'.$ctrl->size.'"');
         $maxl = $ctrl->datatype->getFacet('maxLength');
@@ -797,7 +824,7 @@ jFormsJQ.declareForm(jFormsJQ.tForm);
                 // we remove readonly status so when a user change the choice and
                 // javascript is deactivated, it can still change the value of the control
                 $ro = $c->isReadOnly();
-                if($ro && $readonly != '') $c->setReadOnly(false);
+                if($ro && $readonly == '') $c->setReadOnly(false);
                 $this->outputControlLabel($c);
                 echo ' ';
                 $this->outputControl($c);
