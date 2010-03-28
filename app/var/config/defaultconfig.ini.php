@@ -8,19 +8,19 @@ charset = "UTF-8"
 ; see http://www.php.net/manual/en/timezones.php for supported values
 timeZone = "Europe/Paris"
 
-checkTrustedModules = off
+checkTrustedModules = on
 
 ; list of modules : module,module,module
-trustedModules =
+trustedModules = rarangi, rarangi_web
 
 pluginsPath =
-modulesPath = lib:jelix-modules/,app:modules/
+modulesPath = app:modules/
 
 theme = default
 
 ; list of modules which are not used by the application
 ; or not installed.
-unusedModules=jacldb
+unusedModules=
 
 [coordplugins]
 ;nom = nom_fichier_ini

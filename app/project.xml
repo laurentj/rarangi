@@ -3,22 +3,22 @@
     <info id="rarangi@forge.jelix.org" name="rarangi" createdate="2008-11-25">
         <version stability="pre-alpha" date="">0.1pre</version>
         <label lang="en_EN">Rarangi</label>
-        <description lang="en_EN"></description>
+        <description lang="en_EN"/>
         <licence URL="http://www.gnu.org/licenses/gpl.html">GNU General Public Licence</licence>
         <copyright>2008-2009 Laurent Jouanneau</copyright>
-        <creator name="Laurent Jouanneau" email="laurent@jelix.org" active="true" />
+        <creator name="Laurent Jouanneau" email="laurent@jelix.org" active="true"/>
         <contributor name="Loic Mathaud" active="true"/>
         <homepageURL>http://forge.jelix.org/projects/rarangi</homepageURL>
     </info>
     <dependencies>
-        <jelix minversion="1.1" maxversion="1.2.*" />
+        <jelix minversion="1.1" maxversion="1.2.*"/>
     </dependencies>
     <directories>
-        <config></config>
-        <log></log>
-        <var></var>
-        <www></www>
-        <temp></temp>
+        <config/>
+        <log/>
+        <var/>
+        <www/>
+        <temp/>
     </directories>
     <entrypoints>
         <entry file="index.php" config="index/config.ini.php" type="classic"/>
