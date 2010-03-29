@@ -11,7 +11,7 @@
         <homepageURL>http://forge.jelix.org/projects/rarangi</homepageURL>
     </info>
     <dependencies>
-        <jelix minversion="1.1" maxversion="1.2.*"/>
+        <jelix minversion="1.1" maxversion="1.1.*"/>
     </dependencies>
     <directories>
         <config/>

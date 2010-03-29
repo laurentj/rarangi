@@ -14,7 +14,7 @@ checkTrustedModules = on
 trustedModules = rarangi, rarangi_web
 
 pluginsPath =
-modulesPath = app:modules/
+modulesPath = lib:jelix-modules/,app:modules/
 
 theme = default
 
