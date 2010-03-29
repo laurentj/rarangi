@@ -6,11 +6,11 @@
         <description lang="en-EN">WSDL generator for SOAP web services</description>
         <license URL="http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html">LGPL 2.1</license>
         <copyright>2008 Sylvain de Vathaire</copyright>
-        <creator name="Sylvain de Vathaire" />
+        <creator name="Sylvain de Vathaire"/>
         <!--<contributor name="hisname" email="hisemail@yoursite.undefined" active="true" since="" role=""/>-->
         <homepageURL>http://jelix.org</homepageURL>
     </info>
     <dependencies>
-       <jelix minversion="1.2b1pre.1474" maxversion="1.2b1pre.*" />
+       <jelix minversion="1.2b1pre.1474" maxversion="1.2b1pre.*"/>
     </dependencies>
 </module>

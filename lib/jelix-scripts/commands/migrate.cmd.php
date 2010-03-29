@@ -55,8 +55,10 @@ class migrateCommand extends JelixScriptCommand {
         $this->updateProjectXml();
 
         // lancement de jInstaller
-        // TODO
-
+        require_once (JELIXS_LIB_PATH.'jelix/installer/jInstaller.class.php');
+        $reporter = new textInstallReporter();
+        $install = new jInstaller($reporter);
+        $install->installApplication(true);
     }
 
     
@@ -225,31 +227,71 @@ class migrateCommand extends JelixScriptCommand {
  
     protected function updateProjectXml() {
         
-        $this->updateJelixDependency($this->projectXml);
-        $this->projectXml->save();
+        $doc = $this->projectXml;
+        
+        $this->updateInfo($doc, '', '');
+
+        $this->updateJelixDependency($doc);
+        
+        $dep = $this->nextElementSibling($this->firstElementChild($doc->documentElement));
+        $dir = $this->nextElementSibling($dep, 'directories');
+        
+        $this->checkPath($dir, 'config', JELIX_APP_CONFIG_PATH);
+        $this->checkPath($dir, 'log', JELIX_APP_LOG_PATH);
+        $this->checkPath($dir, 'var', JELIX_APP_VAR_PATH);
+        $this->checkPath($dir, 'www', JELIX_APP_WWW_PATH);
+        $this->checkPath($dir, 'temp', JELIX_APP_REAL_TEMP_PATH);
+
+        $this->projectXml->save(JELIX_APP_PATH.'project.xml');
+    }
+    
+    protected function checkPath($dir, $localName, $path) {
+        $config = $dir->getElementsByTagName($localName);
+        if (!$config || $config->length == 0) {
+            $config = $dir->ownerDocument->createElement($localName);
+            $dir->appendChild($config);
+        }
+        else {
+            $config = $config->item(0);
+        }
+        if (trim($config->textContent) == '') {
+            $config->textContent = jxs_getRelativePath(JELIX_APP_PATH, $path, true);
+        }
+    }
+
+    protected function updateInfo($doc, $id, $name) {
+        $info = $this->firstElementChild($doc->documentElement, 'info');
+
+        if ($info->getAttribute('id') == '')
+            $info->setAttribute('id',$id);
+        if ($info->getAttribute('name') == '')
+            $info->setAttribute('name', $name);
+
+        $version = $this->firstElementChild($info, 'version');
+
+        if (!$version->hasAttribute('stability')) {
+            $version->setAttribute('stability', 'stable');
+        }
+        if ($version->textContent == '')
+            $version->textContent = '1.0';
+        
+        return $info;
     }
     
     
     protected function updateJelixDependency($doc) {
-        $deps = $doc->getElementsByTagName('dependencies');
-        if (!$deps || $deps->length ==0) {
-            $dep = $doc->createElement('dependencies');
-            $doc->documentElement->appendChild($dep);
-        }
-        else
-            $dep = $deps->item(0);
-
-        $jelix = $dep->getElementsByTagName('jelix');
         
-        if (!$jelix || $jelix->length == 0) {
-            $jelix = $doc->createElement('jelix');
-            $dep->appendChild($jelix);
-        }
-        else
-            $jelix = $jelix->item(0);
+        $info = $this->firstElementChild($doc->documentElement);
+        $dep = $this->nextElementSibling($info, 'dependencies');
+        $jelix = $this->firstElementChild($dep, 'jelix');
 
-        $jelix->setAttribute('minversion', JELIX_VERSION);
-        $jelix->setAttribute('maxversion', jVersionComparator::getBranchVersion(JELIX_VERSION).'.*');
+        if (!$jelix->hasAttribute('minversion')) {
+            $jelix->setAttribute('minversion', JELIX_VERSION);
+        }
+
+        if (!$jelix->hasAttribute('maxversion') || jVersionComparator::compareVersion($jelix->getAttribute('maxversion'), JELIX_VERSION) == -1) {
+            $jelix->setAttribute('maxversion', jVersionComparator::getBranchVersion(JELIX_VERSION).'.*');
+        }
     }
     
     protected function updateModuleXml(migrateModule $module) {
@@ -270,39 +312,42 @@ class migrateCommand extends JelixScriptCommand {
            throw new Exception("cannot load $modulexml");
         }
 
-        if ($doc->documentElement->namespaceURI != JELIX_NAMESPACE_BASE.'project/1.0'){
-            throw new Exception("bad namespace in project.xml");
+        $this->updateInfo($doc, $module->name.JELIXS_INFO_DEFAULT_IDSUFFIX, $module->name);
+        $this->updateJelixDependency($doc);
+        $doc->save($modulexml);
+    }
+    
+    
+    protected function firstElementChild($elt, $name = '') {
+        $child = $elt->firstChild;
+        while ($child && $child->nodeType != 1)
+            $child = $child->nextSibling;
+
+        if ($name != '' && (!$child || $child->localName != $name)) {
+            $doc = $elt->ownerDocument;
+            $new = $doc->createElement($name);
+            if ($child)
+                $child = $doc->documentElement->insertBefore($new, $child);
+            else
+                $child = $doc->appendChild($new);
         }
-        
-        $infos = $doc->getElementsByTagName('info');
-        if (!$infos || $infos->length ==0) {
-            $info = $doc->createElement('info');
-            $doc->documentElement->appendChild($info);
-        }
-        else {
-            $info = $infos->item(0);
-            if ($info->getAttribute('id') == '')
-                $info->setAttribute('id',$module->name.JELIXS_INFO_DEFAULT_IDSUFFIX);
-            if ($info->getAttribute('module') == '')
-                $info->setAttribute('module', $module->name);
-        }
-        
-        $versions = $info->getElementsByTagName('version');
-        if (!$versions || $versions->length == 0) {
-            $version = $doc->createElement('version');
-            $version->setAttribute('stability', 'stable');
-            $version->textContent = '1.0';
-        }
-        else {
-            $version = $versions->item(0);
-            if (!$version->hasAttribute('stability')) {
-                $version->setAttribute('stability', 'stable');
-            }
-            if ($version->textContent == '')
-                $version->textContent = '1.0';
+        return $child;
+    }
+    
+    protected function nextElementSibling($elt, $name = '') {
+        $child = $elt->nextSibling;
+        while ($child && $child->nodeType != 1)
+            $child = $child->nextSibling;
+
+        if ($name != '' && (!$child || $child->localName != $name)) {
+            $doc = $elt->ownerDocument;
+            $new = $doc->createElement($name);
+            if ($child)
+                $child = $doc->documentElement->insertBefore($new, $child);
+            else
+                $child = $doc->appendChild($new);
         }
 
-        $this->updateJelixDependency($doc);
-        $doc->save();
+        return $child;
     }
 }

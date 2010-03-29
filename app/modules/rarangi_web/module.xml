@@ -6,12 +6,12 @@
         <description lang="en_EN">Web interface for Rarangi</description>
         <licence URL="http://www.gnu.org/licenses/gpl.html">GNU General Public Licence</licence>
         <copyright>2008-2009 Laurent Jouanneau</copyright>
-        <creator name="Laurent Jouanneau" email="laurent@jelix.org" active="true" />
+        <creator name="Laurent Jouanneau" email="laurent@jelix.org" active="true"/>
         <!--<contributor name="hisname" email="hisemail@yoursite.undefined" active="true" since="" role=""/>-->
         <homepageURL>http://forge.jelix.org/projects/rarangi</homepageURL>
         <!--<updateURL>http://www.yourwebsite.undefined/update.xml</updateURL>-->
     </info>
     <dependencies>
-        <jelix minversion="1.1b2pre.1179" maxversion="1.2" />
+        <jelix minversion="1.1b2pre.1179" maxversion="1.2"/>
     </dependencies>
 </module>

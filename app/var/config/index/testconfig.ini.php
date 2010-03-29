@@ -2,12 +2,12 @@
 ;for security reasons , don't remove or modify the first line
 
 startModule=junittests
-startAction=default:index
+startAction="default:index"
 
 ; for junittests module
-enableTests = on
+enableTests=on
 
-dbProfils = dbprofilstests.ini.php
+dbProfils=dbprofilstests.ini.php
 
 [coordplugins]
 ;nom = file_ini_name or 1
@@ -16,5 +16,6 @@ dbProfils = dbprofilstests.ini.php
 
 [urlengine]
 ; name of url engine :  "simple" or "significant"
-engine        = simple
+engine=simple
+
 
