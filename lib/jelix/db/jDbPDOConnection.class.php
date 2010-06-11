@@ -39,11 +39,21 @@ class jDbPDOConnection extends PDO {
      */
     function __construct($profile) {
         $this->profile = $profile;
-        $this->dbms = substr($profile['dsn'],0,strpos($profile['dsn'],':'));
         $prof = $profile;
         $user = '';
         $password = '';
-        unset($prof['dsn']);
+        $dsn = '';
+        if (isset($profile['dsn'])) {
+            $this->dbms = substr($profile['dsn'],0,strpos($profile['dsn'],':'));
+            $dsn = $profile['dsn'];
+            unset($prof['dsn']);
+        }
+        else {
+            $this->dbms = $profile['driver'];
+            $dsn = $this->dbms.':host='.$profile['host'].';dbname='.$profile['database'];
+        }
+        if(isset($prof['usepdo']))
+            unset($prof['usepdo']);
 
         // we check user and password because some db like sqlite doesn't have user/password
         if (isset($prof['user'])) {
@@ -58,9 +68,9 @@ class jDbPDOConnection extends PDO {
 
         unset($prof['driver']);
         if ($this->dbms == 'sqlite')
-            $profile['dsn'] = str_replace(array('app:','lib:'), array(JELIX_APP_PATH, LIB_PATH), $profile['dsn']);
+            $dsn = str_replace(array('app:','lib:'), array(JELIX_APP_PATH, LIB_PATH), $dsn);
 
-        parent::__construct($profile['dsn'], $user, $password, $prof);
+        parent::__construct($dsn, $user, $password, $prof);
 
         $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('jDbPDOResultSet'));
         $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -189,7 +199,23 @@ class jDbPDOConnection extends PDO {
             default: return $fieldName;
         }
     }
-    
+
+    /**
+    * Escape and quotes strings. if null, will only return the text "NULL"
+    * @param string $text   string to quote
+    * @param boolean $checknull if true, check if $text is a null value, and then return NULL
+    * @param boolean $binary  set to true if $text contains a binary string
+    * @return string escaped string
+    * @since 1.2
+    * @todo $binary parameter is not really supported, check if PDOConnection::quote supports binary strings
+    */
+    public function quote2 ($text, $checknull=true, $binary=false) {
+        if ($checknull)
+            return (is_null ($text) ? 'NULL' : "'".$this->quote($text)."'");
+        else
+            return "'".$this->quote($text)."'";
+    }
+
     /**
      * @var jDbTools
      */

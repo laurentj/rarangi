@@ -221,7 +221,7 @@ abstract class jDbTools {
             default:
                 if ($toPhpSource) {
                     if ($unifiedType == 'varbinary' || $unifiedType == 'binary') {
-                        return '\'.$this->_conn->quote(\''.str_replace('\'','\\\'',$value).'\',true,true).\'';
+                        return '\'.$this->_conn->quote2(\''.str_replace('\'','\\\'',$value).'\',true,true).\'';
                     }
                     else if(strpos($value,"'") !== false) {
                         return '\'.$this->_conn->quote(\''.str_replace('\'','\\\'',$value).'\').\'';
@@ -245,7 +245,7 @@ abstract class jDbTools {
     public function getBooleanValue($value) {
       if(is_string($value))
           $value = strtolower($value);
-      if ($value =='true' || $value === true || $value =='1'|| $value=='t')
+      if ($value === 'true' || $value === true || intval($value) === 1 || $value === 't' || $value === 'on')
           return $this->trueValue;
       else
           return $this->falseValue;

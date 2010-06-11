@@ -195,6 +195,7 @@ Olivier Gambier (aka d-m-p)
 Geekbay
  - fixed bug in jMailer about the support of html plugins into the template (#898)
  - fixed bug in jImageModifier (#945)
+ - improved the simple url engine (#917)
 
 Gildas Givaja (aka Giviz)
  - testor, bug fixes
@@ -302,8 +303,10 @@ Sylvain de Vathaire (aka sylvain261)
  - jCache (#540)
  - additional generated events by jAuth (#1051)
 
-Brice Tence (aka brayce)
+Brice Tence (aka brayce/bricet)
  - small testapp bug solved about missing tables (#1064)
+ - fixed bug in jInstallChecker (#1087)
+ - introduced optional jMinifier for jResponseHtml for JS/CSS concatenation and minification (#860)
 
 Thanks for all users, especially those who reported bugs. :-)
 

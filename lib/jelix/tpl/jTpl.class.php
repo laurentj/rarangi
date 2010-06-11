@@ -298,4 +298,5 @@ class jTpl {
     public static function getEncoding () {
         return $GLOBALS['gJConfig']->charset;
     }
+
 }

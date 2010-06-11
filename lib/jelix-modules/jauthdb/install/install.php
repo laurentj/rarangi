@@ -9,20 +9,9 @@
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
 
+require_once(dirname(__FILE__).'/_installclass.php');
 
-class jauthdbModuleInstaller extends jInstallerModule {
-
-    public function setEntryPoint($ep, $config, $dbProfile) {
-        parent::setEntryPoint($ep, $config, $dbProfile);
-        $authconfig = $this->config->getValue('auth','coordplugins');
-        $profile = '';
-        if ($authconfig) {
-            $conf = new jIniFileModifier(JELIX_APP_CONFIG_PATH.$authconfig);
-            if ($conf->getValue('driver'))
-                $profile = $conf->getValue('profile', 'Db');
-        }
-        return md5('-' . $authconfig.'-'.$profile);
-    }
+class jauthdbModuleInstaller extends jauthdbModuleInstallerBase {
 
     function install() {
         //if ($this->entryPoint->type == 'cmdline')
