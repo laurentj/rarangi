@@ -1,5 +1,5 @@
 
-CREATE TABLE IF NOT EXISTS `globals` (
+CREATE TABLE `%%PREFIX%%globals` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(150) NOT NULL,
   `project_id` int(11) NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `globals` (
 
 
 
-CREATE TABLE IF NOT EXISTS `globals_authors` (
+CREATE TABLE `%%PREFIX%%globals_authors` (
   `global_id` int(11) NOT NULL,
   `author_id` int(11) NOT NULL,
   `as_contributor` tinyint(1) NOT NULL default '0',

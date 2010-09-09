@@ -1,26 +1,7 @@
--- phpMyAdmin SQL Dump
--- version 2.10.3deb1ubuntu0.2
--- http://www.phpmyadmin.net
--- 
--- Serveur: localhost
--- Généré le : Lun 19 Janvier 2009 à 00:13
--- Version du serveur: 5.0.45
--- Version de PHP: 5.2.3-1ubuntu6.4
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
--- 
--- Base de données: `rarangi_tests`
--- 
-
--- --------------------------------------------------------
-
--- 
--- Structure de la table `authors`
--- 
-
-DROP TABLE IF EXISTS `authors`;
-CREATE TABLE IF NOT EXISTS `authors` (
+CREATE TABLE `%%PREFIX%%authors` (
   `id` int(11) NOT NULL auto_increment,
   `project_id` int(11) NOT NULL,
   `name` varchar(150) NOT NULL,
@@ -31,12 +12,7 @@ CREATE TABLE IF NOT EXISTS `authors` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `classes`
--- 
-
-DROP TABLE IF EXISTS `classes`;
-CREATE TABLE IF NOT EXISTS `classes` (
+CREATE TABLE `%%PREFIX%%classes` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(255) NOT NULL,
   `project_id` int(11) NOT NULL,
@@ -72,12 +48,7 @@ CREATE TABLE IF NOT EXISTS `classes` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `classes_authors`
--- 
-
-DROP TABLE IF EXISTS `classes_authors`;
-CREATE TABLE IF NOT EXISTS `classes_authors` (
+CREATE TABLE `%%PREFIX%%classes_authors` (
   `class_id` int(11) NOT NULL,
   `author_id` int(11) NOT NULL,
   `as_contributor` tinyint(1) NOT NULL default '0',
@@ -86,12 +57,7 @@ CREATE TABLE IF NOT EXISTS `classes_authors` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `class_methods`
--- 
-
-DROP TABLE IF EXISTS `class_methods`;
-CREATE TABLE IF NOT EXISTS `class_methods` (
+CREATE TABLE `%%PREFIX%%class_methods` (
   `name` varchar(150) NOT NULL,
   `class_id` int(11) NOT NULL,
   `project_id` int(11) NOT NULL,
@@ -124,9 +90,7 @@ CREATE TABLE IF NOT EXISTS `class_methods` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
-
-DROP TABLE IF EXISTS `method_parameters`;
-CREATE TABLE `method_parameters` (
+CREATE TABLE `%%PREFIX%%method_parameters` (
 `class_id` INT NOT NULL ,
 `method_name` VARCHAR( 150 ) NOT NULL ,
 `arg_number` MEDIUMINT NOT NULL ,
@@ -141,12 +105,7 @@ PRIMARY KEY ( `class_id` , `method_name` , `arg_number` )
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `class_properties`
--- 
-
-DROP TABLE IF EXISTS `class_properties`;
-CREATE TABLE IF NOT EXISTS `class_properties` (
+CREATE TABLE `%%PREFIX%%class_properties` (
   `name` varchar(150) NOT NULL,
   `class_id` int(11) NOT NULL,
   `project_id` int(11) NOT NULL,
@@ -177,12 +136,7 @@ CREATE TABLE IF NOT EXISTS `class_properties` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `files`
--- 
-
-DROP TABLE IF EXISTS `files`;
-CREATE TABLE IF NOT EXISTS `files` (
+CREATE TABLE `%%PREFIX%%files` (
   `id` int(11) NOT NULL auto_increment,
   `package_id` int(11) default NULL,
   `project_id` int(11) NOT NULL,
@@ -216,12 +170,7 @@ CREATE TABLE IF NOT EXISTS `files` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `files_authors`
--- 
-
-DROP TABLE IF EXISTS `files_authors`;
-CREATE TABLE IF NOT EXISTS `files_authors` (
+CREATE TABLE `%%PREFIX%%files_authors` (
   `file_id` int(11) NOT NULL,
   `author_id` int(11) NOT NULL,
   `as_contributor` tinyint(1) NOT NULL default '0',
@@ -230,12 +179,7 @@ CREATE TABLE IF NOT EXISTS `files_authors` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `files_content`
--- 
-
-DROP TABLE IF EXISTS `files_content`;
-CREATE TABLE IF NOT EXISTS `files_content` (
+CREATE TABLE `%%PREFIX%%files_content` (
   `file_id` int(11) NOT NULL,
   `linenumber` int(11) NOT NULL,
   `project_id` int(11) NOT NULL,
@@ -246,12 +190,7 @@ CREATE TABLE IF NOT EXISTS `files_content` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `functions`
--- 
-
-DROP TABLE IF EXISTS `functions`;
-CREATE TABLE IF NOT EXISTS `functions` (
+CREATE TABLE `%%PREFIX%%functions` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(150) NOT NULL,
   `project_id` int(11) NOT NULL,
@@ -284,12 +223,7 @@ CREATE TABLE IF NOT EXISTS `functions` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `functions_authors`
--- 
-
-DROP TABLE IF EXISTS `functions_authors`;
-CREATE TABLE IF NOT EXISTS `functions_authors` (
+CREATE TABLE `%%PREFIX%%functions_authors` (
   `function_id` int(11) NOT NULL,
   `author_id` int(11) NOT NULL,
   `as_contributor` tinyint(1) NOT NULL default '0',
@@ -297,8 +231,7 @@ CREATE TABLE IF NOT EXISTS `functions_authors` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
-DROP TABLE IF EXISTS `function_parameters`;
-CREATE TABLE `function_parameters` (
+CREATE TABLE `%%PREFIX%%function_parameters` (
 `function_id` INT NOT NULL ,
 `arg_number` MEDIUMINT NOT NULL ,
 `type` VARCHAR( 255 ) NULL ,
@@ -310,12 +243,7 @@ PRIMARY KEY ( `function_id`, `arg_number` )
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `interface_class`
--- 
-
-DROP TABLE IF EXISTS `interface_class`;
-CREATE TABLE IF NOT EXISTS `interface_class` (
+CREATE TABLE `%%PREFIX%%interface_class` (
   `class_id` int(11) NOT NULL,
   `interface_id` int(11) NOT NULL,
   `project_id` int(11) NOT NULL,
@@ -324,12 +252,7 @@ CREATE TABLE IF NOT EXISTS `interface_class` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `methods_authors`
--- 
-
-DROP TABLE IF EXISTS `methods_authors`;
-CREATE TABLE IF NOT EXISTS `methods_authors` (
+CREATE TABLE `%%PREFIX%%methods_authors` (
   `name` varchar(150) NOT NULL,
   `class_id` int(11) NOT NULL,
   `author_id` int(11) NOT NULL,
@@ -339,12 +262,7 @@ CREATE TABLE IF NOT EXISTS `methods_authors` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `globals`
--- 
-
-DROP TABLE IF EXISTS `globals`;
-CREATE TABLE IF NOT EXISTS `globals` (
+CREATE TABLE `%%PREFIX%%globals` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(150) NOT NULL,
   `project_id` int(11) NOT NULL,
@@ -376,12 +294,7 @@ CREATE TABLE IF NOT EXISTS `globals` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `globals_authors`
--- 
-
-DROP TABLE IF EXISTS `globals_authors`;
-CREATE TABLE IF NOT EXISTS `globals_authors` (
+CREATE TABLE `%%PREFIX%%globals_authors` (
   `global_id` int(11) NOT NULL,
   `author_id` int(11) NOT NULL,
   `as_contributor` tinyint(1) NOT NULL default '0',
@@ -390,12 +303,7 @@ CREATE TABLE IF NOT EXISTS `globals_authors` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `packages`
--- 
-
-DROP TABLE IF EXISTS `packages`;
-CREATE TABLE IF NOT EXISTS `packages` (
+CREATE TABLE `%%PREFIX%%packages` (
   `id` int(11) NOT NULL auto_increment,
   `project_id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
@@ -405,12 +313,7 @@ CREATE TABLE IF NOT EXISTS `packages` (
 
 -- --------------------------------------------------------
 
--- 
--- Structure de la table `projects`
--- 
-
-DROP TABLE IF EXISTS `projects`;
-CREATE TABLE IF NOT EXISTS `projects` (
+CREATE TABLE `%%PREFIX%%projects` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(50) NOT NULL,
   PRIMARY KEY  (`id`)

@@ -1,5 +1,6 @@
 ^app/var/config/dbprofils.ini.php
 ^app/var/config/dbprofilstests.ini.php
+^app/var/config/installer.ini.php
 ^app/var/log/*
 ^temp/rarangi/[a-z]
 ^temp/rarangi-cli/[a-z]
