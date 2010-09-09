@@ -160,21 +160,59 @@
         <div class="relationship">
         <ul>
             {if $class->is_interface}
-            <li><strong>Implemented by:</strong> </li>
+            <li><strong>Implemented by:</strong> 
             {else}
             <li><strong>Implements:</strong>
-            {/if}
+            {/if}{foreach $rel_implementation as $impl}
+                {if $class->is_interface}
+            <a href="{jurl 'rarangi_web~components:classdetails', array('project'=>$project->name,'package'=>$impl->package,'classname'=>$impl->name)}">{$impl->name}</a>
+                {else}
+            <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$impl->package,'interfacename'=>$impl->name)}">{$impl->name}</a>
+                {/if}
+            {/foreach}
+            </li>
             <li><strong>Inherits from: </strong>
-            {if $class->mother_class}
-            {if $class->is_interface}
-            <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$package,'interfacename'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
-            {else}
-            <a href="{jurl 'rarangi_web~components:classdetails', array('project'=>$project->name,'package'=>$package,'classname'=>$class->mother_class_name)}">{$class->mother_class_name}</a>
-            {/if}
+            {if $mother_class}
+                {if $mother_class->is_interface}
+            <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$mother_class->package,'interfacename'=>$mother_class->name)}">{$mother_class->name}</a>
+                {else}
+            <a href="{jurl 'rarangi_web~components:classdetails', array('project'=>$project->name,'package'=>$mother_class->package,'classname'=>$mother_class->name)}">{$mother_class->name}</a>
+                {/if}
             {/if}</li>
-            <li><strong>Inherited by: </strong> </li>
-            <li><strong>Returned by: </strong> </li>
-            <li><strong>As parameter for: </strong> </li>
+            <li><strong>Inherited by: </strong>
+            {foreach $descendants as $desc}
+                {if $class->is_interface}
+            <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$desc->package,'interfacename'=>$desc->name)}">{$desc->name}</a>
+                {else}
+            <a href="{jurl 'rarangi_web~components:classdetails', array('project'=>$project->name,'package'=>$desc->package,'classname'=>$desc->name)}">{$desc->name}</a>
+                {/if}
+            {/foreach}
+            </li>
+            <li><strong>Returned by: </strong>
+            {foreach $asfunctionreturn as $fct}
+            <a href="{jurl 'rarangi_web~components:functiondetails', array('project'=>$project->name,'package'=>$fct->package,'functionname'=>$fct->name)}">{$fct->name}()</a>
+            {/foreach}
+            {foreach $asmethodreturn as $meth}
+                {if $meth->is_interface}
+            <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$meth->package,'interfacename'=>$meth->name)}#m-{$meth->method_name}">{$meth->name}::{$meth->method_name}()</a>
+                {else}
+            <a href="{jurl 'rarangi_web~components:classdetails', array('project'=>$project->name,'package'=>$meth->package,'classname'=>$meth->name)}#m-{$meth->method_name}">{$meth->name}::{$meth->method_name}()</a>
+                {/if}
+            {/foreach}
+
+            </li>
+            <li><strong>As parameter for: </strong>
+            {foreach $asfunctionparameter as $fct}
+            <a href="{jurl 'rarangi_web~components:functiondetails', array('project'=>$project->name,'package'=>$fct->package,'functionname'=>$fct->name)}">{$fct->name}()</a>
+            {/foreach}
+            {foreach $asmethodparameter as $meth}
+                {if $meth->is_interface}
+            <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$meth->package,'interfacename'=>$meth->name)}#m-{$meth->method_name}">{$meth->name}::{$meth->method_name}()</a>
+                {else}
+            <a href="{jurl 'rarangi_web~components:classdetails', array('project'=>$project->name,'package'=>$meth->package,'classname'=>$meth->name)}#m-{$meth->method_name}">{$meth->name}::{$meth->method_name}()</a>
+                {/if}
+            {/foreach}
+            </li>
         </ul>
         </div>
 

@@ -2,8 +2,8 @@
 <dao xmlns="http://jelix.org/ns/dao/1.0">
     <datasources>
         <primarytable name="c" realname="classes" primarykey="id" />
+        <foreigntable name="p" realname="packages" primarykey="id" onforeignkey="package_id"/>
         <optionalforeigntable name="f" realname="files" primarykey="id" onforeignkey="file_id"/>
-        <optionalforeigntable name="c2" realname="classes" primarykey="id" onforeignkey="mother_class"/>
     </datasources>
     <record>
         <property name="id" fieldname="id" datatype="autoincrement"/>
@@ -36,8 +36,7 @@
         
         <property name="fullpath" fieldname="fullpath" table="f" datatype="string"/>
         <property name="filename" fieldname="filename" table="f" datatype="string"/>
-
-        <property name="mother_class_name" fieldname="name" table="c2" datatype="string" />
+        <property name="package" fieldname="name" table="p" datatype="string"/>
     </record>
     <factory>
         <method name="getByName" type="selectfirst">

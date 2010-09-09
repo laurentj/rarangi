@@ -22,7 +22,7 @@
     </directories>
     <entrypoints>
         <entry file="index.php" config="index/config.ini.php" type="classic"/>
-        <entry file="test.php" config="index/testconfig.ini.php" type="classic"/>
+        <entry file="unittests.php" config="index/testconfig.ini.php" type="classic"/>
         <entry file="rarangi.php" config="cmdline/config.ini.php" type="cmdline"/>
     </entrypoints>
 </project>

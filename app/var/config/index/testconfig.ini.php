@@ -19,3 +19,8 @@ dbProfils=dbprofilstests.ini.php
 engine=simple
 
 
+[modules]
+jelix.access=2
+rarangi.access=2
+rarangi_web.access=2
+junittests.access=2

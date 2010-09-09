@@ -307,4 +307,74 @@ abstract class raPHPParser_base {
 
         return array($name, $value);
     }
+
+    protected function skipParenthesis() {
+        $this->toNextSpecificPhpToken('(');
+        $tok = $this->toNextPhpToken();
+        $parenthesislevel = 1;
+        $doExit = false;
+        // jump to the end of the parenthesis block
+        while(!$doExit &&  ($tok = $this->toNextPhpToken()) !== false ) {
+            if (is_array($tok)) {
+                /*switch($tok[0]){
+                case T_:
+                    break;
+                }*/
+            } else {
+                switch($tok){
+                case '(':
+                    $parenthesislevel++;
+                    break;
+                case ')':
+                    $parenthesislevel--;
+                    $doExit = ($parenthesislevel == 0);
+                    break;
+                default:
+                }
+            }
+        }
+    }
+
+    protected function skipBlock($onlyBrackets = false) {
+        if (!$onlyBrackets) {
+            $tok = $this->toNextPhpToken();
+            if ($tok != '{') {
+                if (is_array($tok)) {
+                    if ($tok[0] == T_FOR) {
+                        $this->skipParenthesis();
+                        $this->skipBlock();
+                    }
+                    else
+                        $this->jumpToSpecificPhpToken(';');
+                }
+                else {
+                    $this->jumpToSpecificPhpToken(';');
+                }
+                return;
+            }
+        }
+
+        $bracketlevel = 1;
+        $doExit = false;
+        // jump to the end of the function block
+        while(!$doExit &&  ($tok = $this->toNextPhpToken()) !== false ) {
+            if (is_array($tok)) {
+                /*switch($tok[0]){
+                case T_:
+                    break;
+                }*/
+            } else {
+                switch($tok){
+                case '{':
+                    $bracketlevel++;
+                    break;
+                case '}':
+                    $bracketlevel--;
+                    $doExit = ($bracketlevel == 0);
+                    break;
+                default:
+                }
+            }
+        }
+    }
 }

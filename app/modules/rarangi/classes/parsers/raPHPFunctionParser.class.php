@@ -96,29 +96,7 @@ class raPHPFunctionParser extends raPHPParser_base {
             return;
         }
 
-        $this->toNextSpecificPhpToken('{');
-        $bracketlevel = 1;
-        $doExit = false;
-        // jump to the end of the function block
-        while(!$doExit &&  ($tok = $this->toNextPhpToken()) !== false ) {
-            if (is_array($tok)) {
-                /*switch($tok[0]){
-                case T_:
-                    break;
-                }*/
-            } else {
-                switch($tok){
-                case '{':
-                    $bracketlevel++;
-                    break;
-                case '}':
-                    $bracketlevel--;
-                    $doExit = ($bracketlevel == 0);
-                    break;
-                default:
-                }
-            }
-        }
+        $this->skipBlock(false);
         $this->descriptor->lineEnd = $this->parserInfo->currentLine();
         if(!$this->isMethod) $this->descriptor->save();
     }

@@ -31,7 +31,7 @@ class raMethodDescriptor  extends raBaseDescriptor {
     
     public $parameters = array();
 
-    public $returnType='';
+    public $returnType=array();
     
     public $returnDescription='';
 
@@ -51,18 +51,18 @@ class raMethodDescriptor  extends raBaseDescriptor {
     protected function parseSpecificTag($tag, $content) {
         if($tag == 'return') {
             if(preg_match("/^([^\s]+)(?:\s+(.+))?$/", $content, $m)) {
-                $this->returnType = $m[1];
+                $this->returnType = preg_split("/,|\|/", $m[1]);
                 $this->returnDescription = (isset($m[2])?$m[2]:'');
             }
             else {
-                $this->returnType = '';
+                $this->returnType = array();
                 $this->returnDescription = '';
             }
             return true;
         }
         else if($tag == 'param') {
             if (preg_match("/^([^\s]+)\s+\\$([a-zA-Z_0-9]+)(?:\s+(.+))?$/", $content, $m)) {
-                $this->docParameters[$m[2]] = array($m[1], (isset($m[3])?$m[3]:''));
+                $this->docParameters[$m[2]] = array(preg_split("/,|\|/", $m[1]), (isset($m[3])?$m[3]:''));
                 $this->currentParam = $m[2];
             }
             else {
@@ -108,7 +108,10 @@ class raMethodDescriptor  extends raBaseDescriptor {
             $record->accessibility = 'PRI';
         else
             $record->accessibility = 'PUB';
-        $record->return_datatype = $this->returnType;
+        if (count($this->returnType))
+            $record->return_datatype = "|".implode("|",$this->returnType)."|";
+        else
+            $record->return_datatype = "";
         $record->return_description = $this->returnDescription;
 
         $record->line_start = $this->line;
@@ -132,7 +135,18 @@ class raMethodDescriptor  extends raBaseDescriptor {
         foreach ($this->parameters as $k=>$p) {
             $param->arg_number = $k+1;
             list($param->type, $param->name, $param->defaultvalue, $param->documentation) = $p;
+            if (is_array($param->type)) {
+                if (count($param->type))
+                    $param->type = '|'.implode('|',$param->type).'|';
+                else
+                    $param->type = '';
+            }
+            elseif ($param->type !='')
+                $param->type = '|'.$param->type.'|';
+            else
+                $param->type = '';
             $parameters->insert($param);
+
         }
     }
 }

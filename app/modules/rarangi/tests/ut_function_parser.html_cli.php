@@ -196,7 +196,7 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertEqual($p->getDescriptor()->name , 'foo');
         
         $this->assertEqual($p->getDescriptor()->parameters,
-                           array(array('string','aaa','','this is a parameter')));
+                           array(array(array('string'),'aaa','','this is a parameter')));
         
         $records = array(array(
             'id'=>$p->getDescriptor()->functionId,
@@ -228,7 +228,7 @@ class ut_function_parser extends jUnitTestCaseDb {
         $records = array(array(
             'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>1,
-            'type'=>'string',
+            'type'=>'|string|',
             'name'=>'aaa',
             'defaultvalue'=>null,
             'documentation'=>'this is a parameter',
@@ -297,7 +297,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             array(
             'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>2,
-            'type'=>'Iterator',
+            'type'=>'|Iterator|',
             'name'=>'bbb',
             'defaultvalue'=>null,
             'documentation'=>'',
@@ -313,7 +313,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             array(
             'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>4,
-            'type'=>'Plop',
+            'type'=>'|Plop|',
             'name'=>'ddd',
             'defaultvalue'=>'null',
             'documentation'=>'',
@@ -325,7 +325,7 @@ class ut_function_parser extends jUnitTestCaseDb {
 
     function testFunctionParametersWithdoc() {
         $doc = '/**
- *  @param integer $aaa first parameter
+ *  @param integer|double $aaa first parameter
  *  @param array $ccc third parameter
    * @param Iteratoooooooor $bbb second parameter
    * with a long documentation
@@ -349,9 +349,9 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertEqual($p->getDescriptor()->name , 'foo');
         
         $this->assertEqual($p->getDescriptor()->parameters,
-                           array(array('integer','aaa','','first parameter'),
+                           array(array(array('integer', 'double'),'aaa','','first parameter'),
                                  array('Iterator','bbb','', "second parameter\nwith a long documentation\nand a bad type"),
-                                 array('array','ccc',"array('pipo')", 'third parameter'),
+                                 array(array('array'),'ccc',"array('pipo')", 'third parameter'),
                                  array('Plop','ddd','null', 'what?'),));
         
         $records = array(array(
@@ -364,7 +364,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             'line_end'=>3,
             'short_description'=>'',
             'description'=>'',
-            'return_datatype'=>'string',
+            'return_datatype'=>'|string|',
             'return_description'=>'the result',
             'copyright'=>'',
             'internal'=>'',
@@ -384,7 +384,7 @@ class ut_function_parser extends jUnitTestCaseDb {
         $records = array(array(
             'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>1,
-            'type'=>'integer',
+            'type'=>'|integer|double|',
             'name'=>'aaa',
             'defaultvalue'=>null,
             'documentation'=>'first parameter',
@@ -392,7 +392,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             array(
             'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>2,
-            'type'=>'Iterator',
+            'type'=>'|Iterator|',
             'name'=>'bbb',
             'defaultvalue'=>null,
             'documentation'=>"second parameter\nwith a long documentation\nand a bad type",
@@ -400,7 +400,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             array(
             'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>3,
-            'type'=>'array',
+            'type'=>'|array|',
             'name'=>'ccc',
             'defaultvalue'=>"array('pipo')",
             'documentation'=>'third parameter',
@@ -408,7 +408,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             array(
             'function_id'=>$p->getDescriptor()->functionId,
             'arg_number'=>4,
-            'type'=>'Plop',
+            'type'=>'|Plop|',
             'name'=>'ddd',
             'defaultvalue'=>'null',
             'documentation'=>'what?',

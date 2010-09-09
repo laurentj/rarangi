@@ -290,7 +290,7 @@ class ut_doccomment extends jUnitTestCase {
         $desc->initFromPhpDoc($c);
         $this->assertEqual($desc->shortDescription, 'lorem ipsum');
         $this->assertEqual($desc->description, "Praesent at ante. Maecenas condimentum congue sapien. In vehicula arcu dictum enim.\nQuisque mi. Nunc mauris. Suspendisse vitae quam quis odio semper scelerisque.");
-        $this->assertEqual($desc->returnType, 'void');
+        $this->assertEqual($desc->returnType, array('void'));
         $this->assertEqual($desc->returnDescription, '');
         
         $desc = new raMethodDescriptor($this->project, 1, 1);
@@ -301,7 +301,7 @@ class ut_doccomment extends jUnitTestCase {
 * @return string Praesent at ante. Maecenas condimentum
 */';
         $desc->initFromPhpDoc($c);
-        $this->assertEqual($desc->returnType, 'string');
+        $this->assertEqual($desc->returnType, array('string'));
         $this->assertEqual($desc->returnDescription, 'Praesent at ante. Maecenas condimentum');
 
         $desc = new raMethodDescriptor($this->project, 1, 1);
@@ -313,7 +313,7 @@ class ut_doccomment extends jUnitTestCase {
 *   Quisque mi. Nunc mauris. Suspendisse vitae quam
 */';
         $desc->initFromPhpDoc($c);
-        $this->assertEqual($desc->returnType, 'string');
+        $this->assertEqual($desc->returnType, array('string'));
         $this->assertEqual($desc->returnDescription, "Praesent at ante. Maecenas condimentum\nQuisque mi. Nunc mauris. Suspendisse vitae quam");
     }
 

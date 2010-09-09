@@ -43,6 +43,8 @@ class dummyParser extends raPHPParser_base {
         return $this->readConstAndValue($endToken);
     }
     
+    public function skipParenthesis2() { $this->skipParenthesis(); }
+    public function skipBlock2($a=false) { $this->skipBlock($a); }
 }
 
 
@@ -247,6 +249,77 @@ c="toto"; ?>';
         $this->assertEqual($parser->readConstAndValue2(array(',',';')), array('b','5'));
         $parser->toNextPhpToken2();
         $this->assertEqual($parser->readConstAndValue2(array(',',';')), array('c','"toto"'));
+    }
+
+    function testSkipParenthesis() {
+        $content = '<?php if ($a == 2) echo "floo"; ?> oooo ';
+        $tokens = new ArrayObject(token_get_all($content));
+        $tokeniter = $tokens->getIterator();
+
+        $parser = new dummyParser($tokeniter);
+        
+        $parser->toNextPhpSection2();
+        $parser->toNextPhpToken2();
+        $tok = $tokeniter->current();
+        $this->assertIdentical($tok , array(T_IF, 'if', 1));
+
+        $parser->skipParenthesis2();
+        $tok = $tokeniter->current();
+        $this->assertIdentical($tok , ')');
+        
+        $tok = $parser->toNextPhpToken2();
+        $this->assertIdentical($tok , array(T_ECHO, 'echo',1));
+
+        $content = '<?php
+if (!defined(\'T_GOTO\'))
+    define(\'T_GOTO\',333);
+
+class toto { }
+?>';
+        $tokens = new ArrayObject(token_get_all($content));
+        $tokeniter = $tokens->getIterator();
+
+        $parser = new dummyParser($tokeniter);
+        $parser->toNextPhpSection2();
+        $parser->toNextPhpToken2();
+        $tok = $tokeniter->current();
+        $this->assertIdentical($tok , array(T_IF, 'if', 2));
+
+        $parser->skipParenthesis2();
+        $tok = $tokeniter->current();
+        $this->assertIdentical($tok , ')');
+        $tok = $parser->toNextPhpToken2();
+        $this->assertIdentical($tok , array(T_STRING, 'define', 3));
+    }
+
+    function testSkipBlock() {
+        $content = '<?php if ($a == 2) echo "floo"; ?> oooo ';
+        $tokens = new ArrayObject(token_get_all($content));
+        $tokeniter = $tokens->getIterator();
+
+        $parser = new dummyParser($tokeniter);
+        
+        $parser->toNextPhpSection2();
+        $parser->toNextPhpToken2();
+        $parser->skipParenthesis2();
+
+        $parser->skipBlock2();
+        $tok = $tokeniter->current();
+        $this->assertIdentical($tok , ';');
+
+        $content = '<?php if ($a == 2) { echo "floo"; } ?> oooo ';
+        $tokens = new ArrayObject(token_get_all($content));
+        $tokeniter = $tokens->getIterator();
+
+        $parser = new dummyParser($tokeniter);
+        
+        $parser->toNextPhpSection2();
+        $parser->toNextPhpToken2();
+        $parser->skipParenthesis2();
+        $parser->skipBlock2();
+        $tok = $tokeniter->current();
+        $this->assertIdentical($tok , '}');
+
     }
 }
 ?>

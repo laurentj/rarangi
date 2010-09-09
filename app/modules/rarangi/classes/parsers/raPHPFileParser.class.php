@@ -138,6 +138,33 @@ class raPHPFileParser extends raPHPParser_base {
                 case T_INLINE_HTML:
                     $this->toNextPhpSection();
                     break;
+                case T_ECHO;
+                case T_EXIT:
+                //case T_GOTO:
+                //case T_NAMESPACE:
+                    $this->jumpToSpecificPhpToken(array(';', T_CLOSE_TAG));
+                    break;
+                case T_ELSE:
+                case T_ELSEIF:
+                case T_FINAL:
+                case T_TRY:
+                case T_DO:
+                    $this->skipBlock();
+                    break;
+                case T_EVAL:
+                case T_PRINT:
+                    $this->skipParenthesis();
+                    $this->jumpToSpecificPhpToken(array(';', T_CLOSE_TAG));
+                    break;
+                case T_IF:
+                case T_FOR:
+                case T_FOREACH:
+                case T_WHILE:
+                case T_SWITCH:
+                case T_CATCH:
+                    $this->skipParenthesis();
+                    $this->skipBlock();
+                    break;
                 default:
                     $this->jumpToSpecificPhpToken(array(';', T_CLOSE_TAG));
                 }

@@ -289,6 +289,93 @@ class ut_class_parser extends jUnitTestCaseDb {
         $this->assertTableContainsRecords('interface_class', $records);
     }
 
+    function testEmptyImplementingClass3() {
+        $content = " <?php class \nfoo \nimplements bar, \nbaz {\n }\n ?>";
+        $p = new ut_class_parser_test($content,1,$this->parserInfo);
+        $p->parse();
+        $this->assertEqual($p->getParserInfo()->currentLine(), 5);
+        
+        if($this->assertTrue($p->getIterator()->valid())) {
+            $tok = $p->getIterator()->current();
+            $this->assertEqual($tok, '}');
+        }
+        $log = $this->logger->getLog();
+        $this->assertEqual(count($log['error']),0);
+        $this->assertEqual(count($log['warning']),0);
+        $this->assertEqual(count($log['notice']),0);
+        
+        $this->assertEqual($p->getDescriptor()->name , 'foo');
+        $this->assertEqual($p->getDescriptor()->mother , '');
+        $this->assertEqual($p->getDescriptor()->interfaces , array('bar', 'baz'));
+
+        $db = jDb::getConnection();
+        $rs = $db->query("SELECT id, name FROM classes");
+        $this->assertNotEqual($rs, false);
+        $barId = $bazId = null;
+        $n = 0;
+        while ($rec = $rs->fetch()) {
+            if ($rec->name == 'bar')
+                $barId = $rec->id;
+            else if ($rec->name == 'baz')
+                $bazId = $rec->id;
+            $n++;
+        }
+        $this->assertEqual($n, 3);
+        $this->assertNotNull($barId);
+        $this->assertNotNull($bazId);
+        $rs = null;
+
+
+        $records = array(array(
+            'id'=>$p->getDescriptor()->classId,
+            'name'=>'foo',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            'file_id'=>1,
+            'line_start'=>1,
+            'line_end'=>5,
+            'package_id'=>null,
+            'mother_class'=>null,
+            'is_abstract'=>0,
+            'is_interface'=>0,
+            ),
+            array(
+            'id'=>$barId,
+            'name'=>'bar',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            'file_id'=>null,
+            'line_start'=>0,
+            'line_end'=>0,
+            'package_id'=>null,
+            'mother_class'=>null,
+            'is_abstract'=>0,
+            'is_interface'=>1,
+            ),
+            array(
+            'id'=>$bazId,
+            'name'=>'baz',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            'file_id'=>null,
+            'line_start'=>0,
+            'line_end'=>0,
+            'package_id'=>null,
+            'mother_class'=>null,
+            'is_abstract'=>0,
+            'is_interface'=>1,
+            )
+            );
+        $this->assertTableContainsRecords('classes', $records);
+        
+        $records = array(
+            array('class_id'=>$p->getDescriptor()->classId,
+                  'interface_id'=>$barId,
+                  'project_id'=>$this->parserInfo->getProjectId()),
+            array('class_id'=>$p->getDescriptor()->classId,
+                  'interface_id'=>$bazId,
+                  'project_id'=>$this->parserInfo->getProjectId())
+
+        );
+        $this->assertTableContainsRecords('interface_class', $records);
+    }
 
     function testSimpleClass() {
         $content = " <?php
