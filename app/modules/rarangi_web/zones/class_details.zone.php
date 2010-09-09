@@ -34,7 +34,7 @@ class class_detailsZone extends jZone {
             $this->param('toReturn')->classRecord = $class;
         if ($class) {
             if ($class->mother_class) {
-                $this->_tpl->assign('mother_class',$dao->getByName($project->id, $class->mother_class, ($isInterface?1:0)));
+                $this->_tpl->assign('mother_class',$dao->get($class->mother_class));
             }
             else {
                 $this->_tpl->assign('mother_class',null);
