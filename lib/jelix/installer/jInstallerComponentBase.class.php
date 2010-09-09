@@ -100,10 +100,10 @@ abstract class jInstallerComponentBase {
     /**
      * @param jInstallerModuleInfos $module module infos
      */
-    public function addModuleInfos ($module) {
-        $this->moduleInfos[$module->entryPoint->getEpId()] = $module;
+    public function addModuleInfos ($epId, $module) {
+        $this->moduleInfos[$epId] = $module;
     }
-    
+
     public function getAccessLevel($epId) {
         return $this->moduleInfos[$epId]->access;
     }
@@ -125,18 +125,24 @@ abstract class jInstallerComponentBase {
         $this->moduleInfos[$epId]->version = $version;
     }
 
+    public function setInstallParameters($epId, $parameters) {
+        $this->moduleInfos[$epId]->parameters = $parameters;
+    }
+
+    public function getInstallParameters($epId) {
+        return $this->moduleInfos[$epId]->parameters;
+    }
 
     /**
      * get the object which is responsible to install the component. this
      * object should implement jIInstallerComponent.
      *
-     * @param jIniMultiFilesModifier $config the configuration of the entry point
-     * @param string $epId the entry point id
+     * @param jInstallerEntryPoint $ep the entry point
      * @param boolean $installWholeApp true if the installation is done during app installation
      * @return jIInstallerComponent the installer, or null if there isn't any installer
      *         or false if the installer is useless for the given parameter
      */
-    abstract function getInstaller($config, $epId, $installWholeApp);
+    abstract function getInstaller($ep, $installWholeApp);
 
     /**
      * return the list of objects which are responsible to upgrade the component
@@ -146,12 +152,15 @@ abstract class jInstallerComponentBase {
      * dependencies. Needed components (modules or plugins) should be
      * installed/upgraded before calling this method
      * 
-     * @param jIniMultiFilesModifier $config the configuration of the entry point
-     * @param string $epId the entry point id
+     * @param jInstallerEntryPoint $ep the entry point
      * @throw jInstallerException  if an error occurs during the install.
      * @return array   array of jIInstallerComponent
      */
-    abstract function getUpgraders($config, $epId);
+    abstract function getUpgraders($ep);
+
+    public function installFinished($ep) { }
+
+    public function upgradeFinished($ep, $upgrader) { }
 
     /**
      * @var boolean  indicate if the identify file has already been readed
@@ -164,7 +173,7 @@ abstract class jInstallerComponentBase {
     public function init () {
         if ($this->identityReaded)
             return;
-        $this->identityReaded = true;        
+        $this->identityReaded = true;
         $this->readIdentity();
     }
     
@@ -214,9 +223,21 @@ abstract class jInstallerComponentBase {
 
         if (isset($xml->dependencies)) {
             foreach ($xml->dependencies->children() as $type=>$dependency) {
+                $minversion = isset($dependency['minversion'])?(string)$dependency['minversion']:'*';
+                if (trim($minversion) == '')
+                    $minversion = '*';
+                $maxversion = isset($dependency['maxversion'])?(string)$dependency['maxversion']:'*';
+                if (trim($maxversion) == '')
+                    $maxversion = '*';
+
+                $name = (string)$dependency['name'];
+                if (trim($name) == '' && $type != 'jelix')
+                    throw new Exception('Name is missing in a dependency declaration in module '.$this->name);
+                $id = (string)$dependency['id'];
+
                 if ($type == 'jelix') {
-                    $this->jelixMinVersion = isset($dependency['minversion'])?(string)$dependency['minversion']:'*';
-                    $this->jelixMaxVersion = isset($dependency['maxversion'])?(string)$dependency['maxversion']:'*';
+                    $this->jelixMinVersion = $minversion;
+                    $this->jelixMaxVersion = $maxversion;
                     if ($this->name != 'jelix') {
                         $this->dependencies[] = array(
                             'type'=> 'module',
@@ -231,20 +252,20 @@ abstract class jInstallerComponentBase {
                 else if ($type == 'module') {
                     $this->dependencies[] = array(
                             'type'=> 'module',
-                            'id' => (string)$dependency['id'],
-                            'name' => (string)$dependency['name'],
-                            'minversion' => isset($dependency['minversion'])?(string)$dependency['minversion']:'*',
-                            'maxversion' => isset($dependency['maxversion'])?(string)$dependency['maxversion']:'*',
+                            'id' => $id,
+                            'name' => $name,
+                            'minversion' => $minversion,
+                            'maxversion' => $maxversion,
                             ''
                             );
                 }
                 else if ($type == 'plugin') {
                     $this->dependencies[] = array(
                             'type'=> 'plugin',
-                            'id' => (string)$dependency['id'],
-                            'name' => (string)$dependency['name'],
-                            'minversion' => isset($dependency['minversion'])?(string)$dependency['minversion']:'*',
-                            'maxversion' => isset($dependency['maxversion'])?(string)$dependency['maxversion']:'*',
+                            'id' => $id,
+                            'name' => $name,
+                            'minversion' => $minversion,
+                            'maxversion' => $maxversion,
                             ''
                             );
                 }

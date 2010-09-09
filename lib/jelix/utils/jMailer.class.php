@@ -9,7 +9,7 @@
 * @subpackage  utils
 * @author      Laurent Jouanneau
 * @contributor Kévin Lepeltier, GeekBay
-* @copyright   2006-2009 Laurent Jouanneau
+* @copyright   2006-2010 Laurent Jouanneau
 * @copyright   2008 Kévin Lepeltier, 2009 Geekbay
 * @link        http://jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
@@ -179,7 +179,14 @@ class jMailer extends PHPMailer {
     
         $this->error_count = 0; // reset errors
         $this->SetMessageType();
-        $header = $this->CreateHeader();
+        if ($this->Mailer == 'file') {
+            // to have all headers in the file, like cc, bcc...
+            $this->Mailer = 'sendmail';
+            $header = $this->CreateHeader();
+            $this->Mailer = 'file';
+        }
+        else
+            $header = $this->CreateHeader();
         $body = $this->CreateBody();
     
         if($body == '') {
@@ -212,16 +219,11 @@ class jMailer extends PHPMailer {
      * @return bool
      */
     public function FileSend($header, $body) {
-      
-        if(!isset($_SERVER['REMOTE_ADDR'])){ // for CLI mode
-            $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        }
-
         return jFile::write ($this->getStorageFile(), $header.$body);
     }
     
     protected function getStorageFile() {
-        return rtrim($this->filePath,'/').'/mail.'.$_SERVER['REMOTE_ADDR'].'-'.date('Ymd-His').'-'.uniqid(mt_rand(), true);
+        return rtrim($this->filePath,'/').'/mail.'.$GLOBALS['gJCoord']->request->getIP().'-'.date('Ymd-His').'-'.uniqid(mt_rand(), true);
     }
 
     function SetLanguage($lang_type = 'en_EN', $lang_path = 'language/') {

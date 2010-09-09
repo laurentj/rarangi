@@ -96,7 +96,7 @@ abstract class jFormsBase {
      */
     protected $htmleditors = array();
 
-	/**
+    /**
      * List of wikieditorcontrols
      * array of jFormsControl objects
      * @var array
@@ -615,7 +615,7 @@ abstract class jFormsBase {
             $orig = & $this->container->originalData;
             foreach($this->container->data as $k=>$v1) {
 
-                if (!isset($orig[$k])) {
+                if (!array_key_exists($k, $orig)) {
                     continue;
                 }
 
@@ -639,6 +639,7 @@ abstract class jFormsBase {
         }
         else {
             return !($v1==$v2);
+            //return !($v2== (string)$v1);
         }
     }
 

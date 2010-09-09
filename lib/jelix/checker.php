@@ -65,6 +65,7 @@ class jHtmlInstallChecker implements jIInstallReporter {
 
 $reporter = new jHtmlInstallChecker();
 $check = new jInstallCheck($reporter);
+$check->addDatabaseCheck(array('mysql','sqlite','pgsql'), false);
 $reporter->messageProvider = $check->messages;
 
 header("Content-type:text/html;charset=UTF-8");

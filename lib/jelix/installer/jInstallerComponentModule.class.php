@@ -39,20 +39,17 @@ class jInstallerComponentModule extends jInstallerComponentBase {
     /**
      * list of sessions Id of the component
      */
-    protected $installerSessionsId = array();
+    protected $installerContexts = array();
 
-    protected $upgradersSessionsId = array();
-
+    protected $upgradersContexts = array();
 
     function __construct($name, $path, $mainInstaller) {
         parent::__construct($name, $path, $mainInstaller);
         if ($mainInstaller) {
             $ini = $mainInstaller->installerIni;
-            foreach($ini->getSectionList() as $section) {
-                $sessid = $ini->getValue($this->name.'.sessionid',$section);
-                if ($sessid !== null && $sessid !== "") {
-                    $this->installerSessionsId = array_merge($this->installerSessionsId, explode(',', $sessid));
-                }
+            $contexts = $ini->getValue($this->name.'.contexts','__modules_data');
+            if ($contexts !== null && $contexts !== "") {
+                $this->installerContexts = explode(',', $contexts);
             }
         }
     }
@@ -63,27 +60,34 @@ class jInstallerComponentModule extends jInstallerComponentBase {
             $config->setValue($this->name.'.access', 2, 'modules');
             $config->save();
         }
+        else if ($access == 3) {
+            $config->setValue($this->name.'.access', 1, 'modules');
+            $config->save();
+        }
     }
 
     /**
      * get the object which is responsible to install the component. this
      * object should implement jIInstallerComponent.
      *
-     * @param jIniMultiFilesModifier $config the configuration of the entry point
-     * @param string $epId the entry point id
+     * @param jInstallerEntryPoint $ep the entry point
      * @param boolean $installWholeApp true if the installation is done during app installation
      * @return jIInstallerComponent the installer, or null if there isn't any installer
      *         or false if the installer is useless for the given parameter
      */
-    function getInstaller($config, $epId, $installWholeApp) {
-        $this->_setAccess($config);
+    function getInstaller($ep, $installWholeApp) {
 
+        $this->_setAccess($ep->configIni);
+
+        // false means that there isn't an installer for the module
         if ($this->moduleInstaller === false) {
             return null;
         }
 
+        $epId = $ep->getEpId();
+
         if ($this->moduleInstaller === null) {
-            if (!file_exists($this->path.'install/install.php')) {
+            if (!file_exists($this->path.'install/install.php') || $this->moduleInfos[$epId]->skipInstaller) {
                 $this->moduleInstaller = false;
                 return null;
             }
@@ -99,31 +103,21 @@ class jInstallerComponentModule extends jInstallerComponentBase {
                                                 );
         }
 
-        // retrieve the session id for the installer
-        // if there is already the same session Id in the list of session
-        // it means that the installer has been already called for the same context
-        // so we don't need to call it again
-        $sessionId = $this->moduleInstaller->setEntryPoint($this->moduleInfos[$epId]->entryPoint,
-                                                           $config,
-                                                           $this->moduleInfos[$epId]->dbProfile);
-        if (is_array($sessionId)) {
-            // if no given session id are in the list of session ids, so let's install it.
-            if (count(array_intersect($sessionId, $this->installerSessionsId)) != 0) {
-                return false;
-            }
-            else {
-                $this->installerSessionsId = array_merge($this->installerSessionsId, $sessionId);
-                $sessionId = implode(',', $sessionId);
-            }
-        }
-        else if (in_array($sessionId, $this->installerSessionsId)) {
-            return false;
-        }
-        else
-            $this->installerSessionsId[] = $sessionId;
+        $this->moduleInstaller->setParameters($this->moduleInfos[$epId]->parameters);
 
-        if ($this->mainInstaller)
-            $this->mainInstaller->installerIni->setValue($this->name.'.sessionid', $sessionId, $epId);
+        $sparam = $ep->configIni->getValue($this->name.'.installparam','modules');
+        if ($sparam === null)
+            $sparam = '';
+        $sp = $this->moduleInfos[$epId]->serializeParameters();
+        if ($sparam != $sp) {
+            $ep->configIni->setValue($this->name.'.installparam', $sp, 'modules');
+        }
+
+        $this->moduleInstaller->setEntryPoint($ep,
+                                              $ep->configIni,
+                                              $this->moduleInfos[$epId]->dbProfile,
+                                              $this->installerContexts);
+
         return $this->moduleInstaller;
     }
 
@@ -135,19 +129,20 @@ class jInstallerComponentModule extends jInstallerComponentBase {
      * dependencies. Needed components (modules or plugins) should be
      * installed/upgraded before calling this method
      *
-     * @param jIniMultiFilesModifier $config the configuration of the entry point
-     * @param string $epId the entry point id
+     * @param jInstallerEntryPoint $ep the entry point
      * @throw jInstallerException  if an error occurs during the install.
      * @return array   array of jIInstallerComponent
      */
-    function getUpgraders($config, $epId) {
+    function getUpgraders($ep) {
+
+        $epId = $ep->getEpId();
 
         if ($this->moduleUpgraders === null) {
 
             $this->moduleUpgraders = array();
 
             $p = $this->path.'install/';
-            if (!file_exists($p))
+            if (!file_exists($p)  || $this->moduleInfos[$epId]->skipInstaller)
                 return array();
 
             // we get the list of files for the upgrade
@@ -189,26 +184,19 @@ class jInstallerComponentModule extends jInstallerComponentBase {
                 continue;
             }
 
+            $upgrader->setParameters($this->moduleInfos[$epId]->parameters);
             $class = get_class($upgrader);
-            $sessionId = $upgrader->setEntryPoint($this->moduleInfos[$epId]->entryPoint,
-                                                  $config,
-                                                  $this->moduleInfos[$epId]->dbProfile);
 
-            if (!isset($this->upgradersSessionsId[$class])) {
-                $this->upgradersSessionsId[$class] = array();
+            if (!isset($this->upgradersContexts[$class])) {
+                $this->upgradersContexts[$class] = array();
             }
 
-            if (is_array($sessionId)) {
-                // if no given session id are in the list of session ids, so let's upgrade.
-                if (count(array_intersect($sessionId, $this->upgradersSessionsId[$class])) == 0) {
-                    $this->upgradersSessionsId[$class] = array_merge($this->upgradersSessionsId[$class], $sessionId);
-                    $list[] = $upgrader;
-                }
-            }
-            else if (!in_array($sessionId, $this->upgradersSessionsId[$class])) {
-                $this->upgradersSessionsId[$class][] = $sessionId;
-                $list[] = $upgrader;
-            }
+            $upgrader->setEntryPoint($ep,
+                                    $ep->configIni,
+                                    $this->moduleInfos[$epId]->dbProfile,
+                                    $this->upgradersContexts[$class]);
+
+            $list[] = $upgrader;
         }
 
         return $list;
@@ -222,5 +210,16 @@ class jInstallerComponentModule extends jInstallerComponentBase {
      */
     function sortFileList($fileA, $fileB) {
         return jVersionComparator::compareVersion($fileA[1], $fileB[1]);
+    }
+
+    public function installFinished($ep) {
+        $this->installerContexts = $this->moduleInstaller->getContexts();
+        if ($this->mainInstaller)
+            $this->mainInstaller->installerIni->setValue($this->name.'.contexts', implode(',',$this->installerContexts), '__modules_data');
+    }
+
+    public function upgradeFinished($ep, $upgrader) {
+        $class = get_class($upgrader);
+        $this->upgradersContexts[$class] = $upgrader->getContexts();
     }
 }

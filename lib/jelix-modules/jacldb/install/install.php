@@ -12,22 +12,7 @@
 
 class jacldbModuleInstaller extends jInstallerModule {
 
-    
-    public function setEntryPoint($ep, $config, $dbProfile) {
-        $dbProfilesFile = $config->getValue('dbProfils');
-        if ($dbProfilesFile == '')
-            $dbProfilesFile = 'dbprofils.ini.php';
-        $dbprofiles = parse_ini_file(JELIX_APP_CONFIG_PATH.$dbProfilesFile);
-        if (isset($dbprofiles['jacl_profile'])) {
-            if (is_string($dbprofiles['jacl_profile']))
-                $dbProfile = $dbprofiles['jacl_profile'];
-            else
-                $dbProfile = 'jacl_profile';
-        }
-        parent::setEntryPoint($ep, $config, $dbProfile);
-
-        return md5($ep->configFile.'-'.$dbProfile);
-    }
+    protected $defaultDbProfile = 'jacl_profile';
 
     function install() {
         if ($this->entryPoint->type != 'cmdline')
@@ -38,33 +23,39 @@ class jacldbModuleInstaller extends jInstallerModule {
         $forWS = (in_array($this->entryPoint->type, array('json', 'jsonrpc', 'soap', 'xmlrpc')));
 
         $ownConfig = false;
+
         if (!$aclconfig || ($forWS && $aclconfigMaster == $aclconfig)) {
 
-            $pluginIni = 'jacl.coord.ini.php';            
+            $pluginIni = 'jacl.coord.ini.php';
             $configDir = dirname($this->entryPoint->configFile).'/';
-            
-            // no configuration, let's install the plugin for the entry point
-            $this->config->setValue('jacl', $configDir.$pluginIni,'coordplugins');
             $ownConfig = true;
-            if (!file_exists(JELIX_APP_CONFIG_PATH.$configDir.$pluginIni)) {
-                $this->copyFile('var/config/'.$pluginIni , JELIX_APP_CONFIG_PATH.$configDir.$pluginIni);
-            }
             $aclconfig = $configDir.$pluginIni;
+
+            if ($this->firstExec('jacl:'.$aclconfig)) {
+                // no configuration, let's install the plugin for the entry point
+                $this->config->setValue('jacl', $aclconfig,'coordplugins');
+                if (!file_exists(JELIX_APP_CONFIG_PATH.$aclconfig)) {
+                    $this->copyFile('var/config/'.$pluginIni , JELIX_APP_CONFIG_PATH.$aclconfig);
+                }
+            }
         }
 
-        if ($forWS && $ownConfig) {
+        if ($forWS && $ownConfig  && $this->firstExec('jacl:'.$aclconfig)) {
             $cf = new jIniFileModifier(JELIX_APP_CONFIG_PATH.$aclconfig);
             $cf->setValue('on_error', 1);
             $cf->save();
         }
 
+        if (!$this->firstDbExec())
+            return;
+
         $this->declareDbProfile('jacl_profile', null, false);
         $driver = $this->config->getValue('driver','acl');
         if ($driver != 'db')
             $this->config->setValue('driver','db','acl');
-        $this->execSQLScript('install_jacl.schema', 'jacl_profile');
+        $this->execSQLScript('install_jacl.schema');
         try {
-            $this->execSQLScript('install_jacl.data', 'jacl_profile');
+            $this->execSQLScript('install_jacl.data');
         }
         catch (Exception $e) {
         }

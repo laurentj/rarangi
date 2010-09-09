@@ -6,7 +6,7 @@
 * @contributor Loic Mathaud
 * @contributor Thibault PIRONT < nuKs >
 * @contributor Thiriot Christophe
-* @copyright   2005-2008 Laurent Jouanneau, 2006-2007 Loic Mathaud
+* @copyright   2005-2010 Laurent Jouanneau, 2006-2007 Loic Mathaud
 * @copyright   2007 Thibault PIRONT
 * @copyright   2008 Thiriot Christophe
 * @link        http://www.jelix.org
@@ -41,8 +41,7 @@ class jCmdLineRequest extends jRequest {
         return ('jResponseCmdline' == $respclass);
     }
 
-    protected function _initUrlData(){ 
-        global $gJConfig; 
+    protected function _initUrlData(){
         $this->urlScriptPath = '/'; 
         $this->urlScriptName = $this->urlScript = $_SERVER['SCRIPT_NAME']; 
         $this->urlPathInfo = ''; 
@@ -88,6 +87,14 @@ class jCmdLineRequest extends jRequest {
         $this->params = $argv;
         $this->params['module'] = $mod;
         $this->params['action'] = $act;
+    }
+
+    /**
+     * return the ip address of the user
+     * @return string the ip
+     */
+    function getIP() {
+        return '127.0.0.1';
     }
 }
 

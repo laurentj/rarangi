@@ -14,6 +14,7 @@ require_once(JELIX_LIB_PATH.'installer/jIInstallerComponent.iface.php');
 require_once(JELIX_LIB_PATH.'installer/jInstallerException.class.php');
 require_once(JELIX_LIB_PATH.'installer/jInstallerBase.class.php');
 require_once(JELIX_LIB_PATH.'installer/jInstallerModule.class.php');
+require_once(JELIX_LIB_PATH.'installer/jInstallerModuleInfos.class.php');
 require_once(JELIX_LIB_PATH.'installer/jInstallerComponentBase.class.php');
 require_once(JELIX_LIB_PATH.'installer/jInstallerComponentModule.class.php');
 require_once(JELIX_LIB_PATH.'installer/jInstallerEntryPoint.class.php');
@@ -211,6 +212,12 @@ class jInstaller {
     public $nbNotice = 0;
 
     /**
+     * the defaultconfig.ini.php content
+     * @var jIniFileModifier
+     */
+    public $defaultConfig;
+
+    /**
      * initialize the installation
      *
      * it reads configurations files of all entry points, and prepare object for
@@ -221,6 +228,7 @@ class jInstaller {
     function __construct ($reporter, $lang='') {
         $this->reporter = $reporter;
         $this->messages = new jInstallerMessageProvider($lang);
+        $this->defaultConfig = new jIniFileModifier(JELIX_APP_CONFIG_PATH.'defaultconfig.ini.php');
         $this->installerIni = $this->getInstallerIni();
         $this->readEntryPointData(simplexml_load_file(JELIX_APP_PATH.'project.xml'));
         $this->installerIni->save();
@@ -232,11 +240,12 @@ class jInstaller {
      */
     protected function getInstallerIni() {
         if (!file_exists(JELIX_APP_CONFIG_PATH.'installer.ini.php'))
-            file_put_contents(JELIX_APP_CONFIG_PATH.'installer.ini.php', ";<?php die(''); ?>
+            if (false === @file_put_contents(JELIX_APP_CONFIG_PATH.'installer.ini.php', ";<?php die(''); ?>
 ; for security reasons , don't remove or modify the first line
 ; don't modify this file if you don't know what you do. it is generated automatically by jInstaller
 
-");
+"))
+                throw new Exception('impossible to create var/config/installer.ini.php');
         return new jIniFileModifier(JELIX_APP_CONFIG_PATH.'installer.ini.php');
     }
 
@@ -261,6 +270,7 @@ class jInstaller {
                 $type = "classic";
 
             // ignore entry point which have the same config file of an other one
+            // FIXME: what about installer.ini ?
             if (isset($configFileList[$configFile]))
                 continue;
 
@@ -280,14 +290,13 @@ class jInstaller {
 
                 $this->installerIni->setValue($name.'.installed', $module->isInstalled, $epId);
                 $this->installerIni->setValue($name.'.version', $module->version, $epId);
-                $this->installerIni->setValue($name.'.sessionid', $module->sessionId, $epId);
 
                 if (!isset($this->allModules[$path])) {
                     $this->allModules[$path] = $this->getComponentModule($name, $path, $this);
                 }
 
                 $m = $this->allModules[$path];
-                $m->addModuleInfos($module);
+                $m->addModuleInfos($epId, $module);
                 $this->modules[$epId][$name] = $m;
             }
         }
@@ -297,7 +306,7 @@ class jInstaller {
      * @internal for tests
      */
     protected function getEntryPointObject($configFile, $file, $type) {
-        return new jInstallerEntryPoint($configFile, $file, $type);
+        return new jInstallerEntryPoint($this->defaultConfig, $configFile, $file, $type);
     }
 
     /**
@@ -332,6 +341,32 @@ class jInstaller {
     }
 
     /**
+     * set parameters for the installer of a module
+     * @param string $moduleName the name of the module
+     * @param array $parameters  parameters
+     * @param string $entrypoint  the entry point for which parameters will be applied when installing the module.
+     *                     if null, parameters are valid for all entry points
+     */
+    public function setModuleParameters($moduleName, $parameters, $entrypoint = null) {
+        if ($entrypoint !== null) {
+            if (!isset($this->epId[$entrypoint]))
+                return;
+            $epId = $this->epId[$entrypoint];
+            if (isset($this->entryPoints[$epId]) && isset($this->modules[$epId][$moduleName])) {
+                $this->modules[$epId][$moduleName]->setInstallParameters($epId, $parameters);
+            }
+        }
+        else {
+            foreach(array_keys($this->entryPoints) as $epId) {
+                $modules = array();
+                if (isset($this->modules[$epId][$moduleName])) {
+                    $this->modules[$epId][$moduleName]->setInstallParameters($epId, $parameters);
+                }
+            }
+        }
+    }
+
+    /**
      * install and upgrade if needed, all modules for each
      * entry point. Only modules which have an access property > 0
      * are installed. Errors appeared during the installation are passed
@@ -352,7 +387,8 @@ class jInstaller {
         foreach(array_keys($this->entryPoints) as $epId) {
             $modules = array();
             foreach($this->modules[$epId] as $name => $module) {
-                if ($module->getAccessLevel($epId) == 0)
+                $access = $module->getAccessLevel($epId);
+                if ($access != 1 && $access != 2)
                     continue;
                 $modules[$name] = $module;
             }
@@ -386,7 +422,8 @@ class jInstaller {
 
         $modules = array();
         foreach($this->modules[$epId] as $name => $module) {
-            if ($module->getAccessLevel($epId) == 0)
+            $access = $module->getAccessLevel($epId);
+            if ($access != 1 && $access != 2)
                 continue;
             $modules[$name] = $module;
         }
@@ -458,10 +495,6 @@ class jInstaller {
         $ep = $this->entryPoints[$epId];
         $GLOBALS['gJConfig'] = $ep->config;
 
-        // load the main configuration
-        $epConfig = new jIniMultiFilesModifier(JELIX_APP_CONFIG_PATH.'defaultconfig.ini.php',
-                                               JELIX_APP_CONFIG_PATH.$ep->configFile);
-
         // first, check dependencies of the component, to have the list of component
         // we should really install. It fills $this->_componentsToInstall, in the right
         // order
@@ -489,7 +522,7 @@ class jInstaller {
                     $this->installerIni->setValue($component->getName().'.version',
                                                    $component->getSourceVersion(), $epId);
 
-                    $upgraders = $component->getUpgraders($epConfig, $epId);
+                    $upgraders = $component->getUpgraders($ep);
                     if (count($upgraders) == 0) {
                         $this->ok('install.module.installed', $component->getName());
                         continue;
@@ -503,7 +536,7 @@ class jInstaller {
 
                 }
                 else if ($toInstall) {
-                    $installer = $component->getInstaller($epConfig, $epId, $installWholeApp);
+                    $installer = $component->getInstaller($ep, $installWholeApp);
                     if ($installer === null || $installer === false) {
                         // no installer, so we assume that nothing has to be done to
                         // install the module.
@@ -519,7 +552,7 @@ class jInstaller {
                         $installer->preInstall();
                 }
                 else {
-                    $upgraders = $component->getUpgraders($epConfig, $epId);
+                    $upgraders = $component->getUpgraders($ep);
 
                     if (count($upgraders) == 0) {
                         $this->installerIni->setValue($component->getName().'.version',
@@ -591,7 +624,7 @@ class jInstaller {
                     $installedModules[] = array($installer, $component, false);
                 }
                 // we always save the configuration, so it invalidates the cache
-                $epConfig->save();
+                $ep->configIni->save();
                 // we re-load configuration file for each module because
                 // previous module installer could have modify it.
                 $GLOBALS['gJConfig'] = $ep->config =
@@ -618,17 +651,20 @@ class jInstaller {
                 list($installer, $component, $toInstall) = $item;
 
                 if ($toInstall) {
-                    if ($installer && ($flags & self::FLAG_INSTALL_MODULE))
+                    if ($installer && ($flags & self::FLAG_INSTALL_MODULE)) {
                         $installer->postInstall();
+                        $component->installFinished($ep);
+                    }
                 }
                 else if ($flags & self::FLAG_UPGRADE_MODULE){
                     foreach($installer as $upgrader) {
                         $upgrader->postInstall();
+                        $component->upgradeFinished($ep, $upgrader);
                     }
                 }
 
                 // we always save the configuration, so it invalidates the cache
-                $epConfig->save();
+                $ep->configIni->save();
                 // we re-load configuration file for each module because
                 // previous module installer could have modify it.
                 $GLOBALS['gJConfig'] = $ep->config =
@@ -684,7 +720,7 @@ class jInstaller {
                     $this->error ($e->getLocaleKey(), $e->getLocaleParameters());
                 } catch (Exception $e) {
                     $result = false;
-                    $this->error ($e->getMessage(), null, true);
+                    $this->error ($e->getMessage(). " comp=".$component->getName(), null, true);
                 }
             }
         }

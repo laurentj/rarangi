@@ -147,6 +147,7 @@ class migrateCommand extends JelixScriptCommand {
             $defaultconfig->removeValue('checkTrustedModules');
             $defaultconfig->removeValue('trustedModules');
             $defaultconfig->removeValue('unusedModules');
+            $defaultconfig->removeValue('hiddenModules');
 
             $configList['defaultconfig.ini.php'] = $defaultconfig;
 
@@ -220,7 +221,7 @@ class migrateCommand extends JelixScriptCommand {
                 $config->removeValue('checkTrustedModules');
                 $config->removeValue('trustedModules');
                 $config->removeValue('unusedModules');
-
+                $config->removeValue('hiddenModules');
                 $configList[$ep['config']] = $config;
             }
 

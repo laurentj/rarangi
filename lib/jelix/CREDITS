@@ -18,6 +18,8 @@ Olivier Demah (aka FoxMaSk)
  - tpl plugin hook (#1019)
  - tpl plugin gravatar (#993) 
  - meta supplementaires (author,generator) (#1063)
+ - install jacl2db sans prefix de table (#1119)
+ - $ should not be allowed in parameters of dao methods  (#1129)
 
 Mickaël Fradin (aka mike/kewix)
  - improvements in the jtpl plugin: formcontrols (#223)
@@ -185,6 +187,9 @@ dsdenes
  - added a native modifier in jtpl (#845)
  - little improvement in formdatafull (#847)
 
+ Thibaud Fabre (aka fatbeard)
+  - little improvements to ldap auth driver (#1145)
+
 F. Fernandez (aka e-media)
  - little improvement in jLog.(#344)
  - little improvement in formcontrols plugin (#353)
@@ -240,11 +245,14 @@ Hadrien Lanneau
 Nicolas Lassalle
  - bug fix in jResponseBinary (#188)
 
-Hugues Magnier (aka BaGroN)
- - tpl plugin stripws (#140)
-
 Yann Lecommandoux (aka YannL)
  - mssql driver for jDb (#799)
+
+Litchi
+ - bug fix in jforms_jquery.js (#1132)
+
+Hugues Magnier (aka BaGroN)
+ - tpl plugin stripws (#140)
 
 Alexis Métaireau
  - improvements on jtpl plugin formcontrol (#652)
@@ -277,6 +285,11 @@ Philippe Schelte (aka dubphil)
 Warren Seine (aka SooW)
  - <script /> tags don't end with a newline (#536)
 
+Brice Tence (aka brayce/bricet)
+ - small testapp bug solved about missing tables (#1064)
+ - fixed bug in jInstallChecker (#1087)
+ - introduced optional jMinifier for jResponseHtml for JS/CSS concatenation and minification (#860)
+
 Thomas
  - fixed bugs in jDao (#576, #643)
  - jDaoFactoryBase::countBy : allowing to do count on distinct fields (#580)
@@ -303,10 +316,8 @@ Sylvain de Vathaire (aka sylvain261)
  - jCache (#540)
  - additional generated events by jAuth (#1051)
 
-Brice Tence (aka brayce/bricet)
- - small testapp bug solved about missing tables (#1064)
- - fixed bug in jInstallChecker (#1087)
- - introduced optional jMinifier for jResponseHtml for JS/CSS concatenation and minification (#860)
+Zeffyr
+  - fixed jFormsControlDate and jFormsControlDatetime (#1139)
 
 Thanks for all users, especially those who reported bugs. :-)
 

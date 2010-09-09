@@ -12,14 +12,6 @@
 
 class master_adminModuleInstaller extends jInstallerModule {
 
-    /**
-     * @param jInstallerEntryPoint $ep
-     */
-    public function setEntryPoint($ep, $config, $dbProfile) {
-        parent::setEntryPoint($ep, $config, $dbProfile);
-        return md5('-' . $ep->file);
-    }
-
     function install() {
 
     }
