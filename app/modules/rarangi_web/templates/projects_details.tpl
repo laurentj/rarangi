@@ -6,6 +6,7 @@
     <ul>
         <li>{$files_counter} files</li>
         <li>{$lines_counter} lines of code</li>
+        {if $errors_counter}<li><a href="{jurl 'rarangi_web~default:errors', array('project'=>$projectname)}">{$errors_counter} errors/warnings</a> found during the parsing</li>{/if}
     </ul>
     </div>
     

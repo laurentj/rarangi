@@ -318,3 +318,17 @@ CREATE TABLE `%%PREFIX%%projects` (
   `name` varchar(50) NOT NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+-- --------------------------------------------------------
+
+CREATE TABLE `%%PREFIX%%errors` (
+`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+`type` VARCHAR( 20 )  NOT NULL ,
+`message` TEXT NOT NULL ,
+`file` VARCHAR( 255 ) NULL ,
+`line` INT NULL ,
+`project_id` INT NOT NULL ,
+INDEX ( `project_id` )
+) ENGINE = MYISAM  DEFAULT CHARSET=utf8;
+

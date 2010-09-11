@@ -80,13 +80,49 @@ class defaultCtrl extends jController {
             $dao_packages = jDao::get('rarangi~packages');
             $packages_counter = $dao_packages->countByProject($project->id);
             $tpl->assign('packages_counter', $packages_counter);
+
+            $tpl->assign('errors_counter', jDao::get('rarangi~errors')->countByProject($project->id));
+
         }
         
         $resp->body->assign('MAIN', $tpl->fetch('projects_details'));
 
         return $resp;
     }
-    
+
+    function errors() {
+        $resp = $this->getResponse('html');
+
+        $projectname = $this->param('project');
+        $resp->title = jLocale::get('default.page.project.errors.title', array($projectname));
+
+        // Get project
+        $dao = jDao::get('rarangi~projects');
+        $project = $dao->getByName($projectname);
+
+        $tpl = new jTpl();
+        $tpl->assign('project',$project);
+        $tpl->assign('projectname',$projectname);
+        
+        if (!$project) {
+            $resp->setHttpStatus('404','Not found');
+        } else {
+            $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
+                    'mode' => 'projecthome',
+                    'projectname' => $projectname));
+            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
+                    'project' => $project,
+                    'mode' => 'browse'));
+
+            $dao_errors = jDao::get('rarangi~errors');
+            $tpl->assign('errors', $dao_errors->findByProject($project->id));
+        }
+        
+        $resp->body->assign('MAIN', $tpl->fetch('errors'));
+
+        return $resp;
+    }
+
     /**
     * Display the help page
     */

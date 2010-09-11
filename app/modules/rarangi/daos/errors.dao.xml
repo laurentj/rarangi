@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dao xmlns="http://jelix.org/ns/dao/1.0">
+    <datasources>
+        <primarytable name="errors" realname="errors" primarykey="id" />
+    </datasources>
+    <record>
+        <property name="id" fieldname="id" datatype="autoincrement"/>
+        <property name="message" fieldname="message" datatype="string" required="true"/>
+        <property name="file" fieldname="file" datatype="string" maxlength="150"/>
+        <property name="line" fieldname="line" datatype="int" />
+        <property name="type" fieldname="type" datatype="string" required="true"/>
+        <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
+    </record>
+    <factory>
+        <method name="deleteByProject" type="delete">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+        <method name="findByProject" type="select">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+        <method name="countByProject" type="count">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+            </conditions>
+        </method>
+    </factory>
+</dao>

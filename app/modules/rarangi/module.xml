@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module xmlns="http://jelix.org/ns/module/1.0">
     <info id="rarangi-module@forge.jelix.org" name="rarangi" createdate="2008-11-25">
-        <version stability="pre-alpha" date="">0.0.3</version>
+        <version stability="pre-alpha" date="">0.0.4</version>
         <label lang="en_EN">Rarangi</label>
         <description lang="en_EN"/>
         <licence URL="http://www.gnu.org/licenses/gpl.html">GNU General Public Licence</licence>

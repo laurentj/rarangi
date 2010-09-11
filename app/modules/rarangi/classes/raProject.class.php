@@ -72,6 +72,9 @@ class raProject {
             jDao::get('globals')->deleteByProject($this->projectRec->id);
             jDao::get('packages')->deleteByProject($this->projectRec->id);
         }
+        $dbLogger = new raInDaoLogger($this->projectRec->id);
+        $dbLogger->clear();
+        $this->_logger->addLogger($dbLogger);
     }
 
     public function id() {

@@ -25,6 +25,11 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
                 return $urlact;
             }
 
+            if($match[3] == 'errors') {
+                $urlact->setParam('action', 'default:errors');
+                return $urlact;
+            }
+
             if(preg_match('!^sources(/(.*))?$!', $match[3], $m)) {
                 $urlact->setParam('action', 'sources:index');
                 $urlact->setParam('path', $m[2]);
@@ -73,6 +78,9 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
         $url->delParam('project');
 
         switch($action) {
+            case 'default:errors':
+                $url->pathInfo .= 'errors';
+                break;
             case 'sources:index':
                 $url->pathInfo .= 'sources/';
                 $path = $url->getParam('path');

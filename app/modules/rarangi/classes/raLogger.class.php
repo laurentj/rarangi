@@ -228,3 +228,32 @@ class raInMemoryLogger implements raILoggerDriver {
     public function getLog(){ return $this->log; }
 }
 
+/**
+ * a logger which stores messages in a SQL table
+ */
+class raInDaoLogger implements raILoggerDriver {
+
+    protected $projectId;
+
+    function __construct($project_id) {
+        $this->projectId = $project_id;
+    }
+
+    public function message($str, $f, $l){}
+    public function notice($str, $f, $l){ $this->save('notice', $str, $f, $l);}
+    public function warning($str, $f, $l){ $this->save('warning', $str, $f, $l);}
+    public function error($str, $f, $l){ $this->save('error', $str, $f, $l);}
+    protected function save($typeerr, $msg, $file, $line) {
+        $rec = jDao::createRecord('rarangi~errors');
+        $rec->message = $msg;
+        $rec->type = $typeerr;
+        $rec->file = $file;
+        $rec->line = $line;
+        $rec->project_id = $this->projectId;
+        jDao::get('rarangi~errors')->insert($rec);
+    }
+    
+    public function clear(){ jDao::get('rarangi~errors')->deleteByProject($this->projectId); }
+
+    public function getLog(){ return array(); }
+}

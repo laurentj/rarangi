@@ -42,7 +42,7 @@ This script parses PHP files according to setting indicated in the given ini fil
         $memBegin = memory_get_usage();
 
         $logger = jClasses::create("raLogger");
-        $logger->addLogger(new raInMemoryLogger());
+        //$logger->addLogger(new raInMemoryLogger());
         $logger->addLogger(new raConsoleLogger($rep, isset($this->_options['-v'])));
 
         jClasses::inc("raDocGenerator");
