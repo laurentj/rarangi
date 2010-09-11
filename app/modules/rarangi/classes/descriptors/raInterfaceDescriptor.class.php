@@ -52,8 +52,14 @@ class raInterfaceDescriptor extends raBaseDescriptor {
                 $mother = jDao::createRecord('rarangi~classes');
                 $mother->name = $this->mother;
                 $mother->project_id = $this->project->id();
-                if ($this->isInterface)
+                if ($this->isInterface) {
                     $mother->is_interface = true;
+                    $package = $this->guessInterfacePackage($this->mother);
+                }
+                else {
+                    $package = $this->guessClassPackage($this->mother);
+                }
+                $mother->package_id = $this->project->getPackageId($package);
                 $dao->insert($mother);
             }
             $mother_id = $mother->id;

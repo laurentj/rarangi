@@ -12,6 +12,9 @@
  * 
  */
 class raBaseDescriptor {
+
+    const UNKNOWN_PACKAGE = '_unknown';
+
     /**
      * short description of the component (label)
      * @var string
@@ -171,6 +174,7 @@ class raBaseDescriptor {
         $this->project = $project;
         $this->fileId = $fileId;
         $this->line = $line;
+        $this->package = self::UNKNOWN_PACKAGE;
     }
 
     /**
@@ -219,7 +223,7 @@ class raBaseDescriptor {
                         case 'subpackage':
                             if ($this->acceptPackage) {
                                 if ($content !='') {
-                                    if ($this->package == '') {
+                                    if ($this->package == self::UNKNOWN_PACKAGE) {
                                         $this->project->logger()->error('@subpackage shouldn\'t be defined because @package is not define');
                                     }
                                     else
@@ -390,7 +394,6 @@ class raBaseDescriptor {
                             }
                         }
                     }
-                    
                 }
             }
             else { // invalid line
@@ -596,6 +599,69 @@ class raBaseDescriptor {
         }
         return $authorId;
     }
+
+    protected static $KNOWN_CLASS_PACKAGES = array(
+        'PHP'=> array('stdClass', 'Exception', 'ErrorException', 'Closure',
+                'DateTime', 'DateTimeZone', 'DateInterval', 'DatePeriod',
+                'finfo', '__PHP_Incomplete_Class', 'php_user_filter', 'Directory', 'PharException',
+                'Phar','PharData', 'PharFileInfo', 'SimpleXMLElement', 'XMLReader', 'XMLWriter', 'ZipArchive',
+        ),
+        'PHP:SPL' => array(
+                'RecursiveIteratorIterator', 'IteratorIterator', 'FilterIterator', 'RecursiveFilterIterator', 'ParentIterator',
+                'LimitIterator', 'CachingIterator', 'RecursiveCachingIterator', 'NoRewindIterator', 'AppendIterator', 'InfiniteIterator',
+                'RegexIterator', 'RecursiveRegexIterator', 'EmptyIterator', 'RecursiveTreeIterator', 'DirectoryIterator', 'FilesystemIterator',
+                'RecursiveDirectoryIterator', 'GlobIterator', 'SimpleXMLIterator', 'MultipleIterator', 'ArrayIterator', 'RecursiveArrayIterator',
+                'LogicException', 'BadFunctionCallException', 'BadMethodCallException', 'DomainException', 'InvalidArgumentException',
+                'LengthException', 'OutOfRangeException', 'RuntimeException', 'OutOfBoundsException', 'OverflowException',
+                'RangeException',  'UnderflowException', 'UnexpectedValueException','ArrayObject'
+        )
+    );
+
+    protected function guessClassPackage($className) {
+        foreach(self::$KNOWN_CLASS_PACKAGES as $pack=>$list) {
+            if (in_array($className, $list))
+                return $pack;
+        }
+        if (substr($className, 0, 3) == 'DOM')
+            return 'PHP:DOM';
+        if (substr($className, 0, 3) == 'PDO')
+            return 'PHP:PDO';
+        if (substr($className, 0, 3) == 'Spl')
+            return 'PHP:SPL';
+        if (substr($className, 0, 10) == 'Reflection')
+            return 'PHP:Reflection';
+        if (substr($className, 0, 4) == 'Phar')
+            return 'PHP:Phar';
+        if (substr($className, 0, 4) == 'Soap')
+            return 'PHP:Soap';
+        return self::UNKNOWN_PACKAGE;
+    }
+
+    protected static $KNOWN_IFACE_PACKAGES = array(
+        'PHP'=> array('Traversable','IteratorAggregate','Iterator','ArrayAccess','Serializable'
+        ),
+        'PHP:SPL' => array(
+                'Countable', 'OuterIterator','RecursiveIterator','SeekableIterator',
+                'SplObserver', 'SplSubject'
+        )
+    );
+
+    protected function guessInterfacePackage($className) {
+        foreach(self::$KNOWN_IFACE_PACKAGES as $pack=>$list) {
+            if (in_array($className, $list))
+                return $pack;
+        }
+        
+        if ($className == 'Reflector')
+            return 'PHP:Reflection';
+        return self::UNKNOWN_PACKAGE;
+    }
+
+    protected function guessFunctionPackage($fctName) {
+        $list = get_defined_functions();
+        if (in_array($fctName, $list['user']))
+            return self::UNKNOWN_PACKAGE;
+        else
+            return 'PHP';
+    }
 }
-
-

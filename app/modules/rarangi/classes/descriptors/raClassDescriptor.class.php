@@ -32,6 +32,7 @@ class raClassDescriptor extends raInterfaceDescriptor {
                 $iface->name = $interface;
                 $iface->project_id = $this->project->id();
                 $iface->is_interface = true;
+                $iface->package_id = $this->project->getPackageId($this->guessInterfacePackage($interface));
                 $dao->insert($iface);
             }
             $class_iface = jDao::createRecord('rarangi~interface_class');

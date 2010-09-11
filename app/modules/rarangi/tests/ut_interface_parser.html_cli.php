@@ -27,6 +27,9 @@ class ut_interface_parser extends jUnitTestCaseDb {
 
         $this->emptyTable('classes');
         $this->emptyTable('interface_class');
+        $this->emptyTable('packages');
+        jDb::getConnection($this->dbProfile)->exec('ALTER TABLE `packages`  AUTO_INCREMENT =1');
+        jDb::getConnection($this->dbProfile)->exec('ALTER TABLE `classes`  AUTO_INCREMENT =1');
     }
 
     function tearDown() {
@@ -69,7 +72,7 @@ class ut_interface_parser extends jUnitTestCaseDb {
             'file_id'=>1,
             'line_start'=>2,
             'line_end'=>3,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>1,
@@ -111,7 +114,7 @@ class ut_interface_parser extends jUnitTestCaseDb {
             'file_id'=>1,
             'line_start'=>1,
             'line_end'=>2,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>$barId,
             'is_abstract'=>0,
             'is_interface'=>1,
@@ -123,7 +126,7 @@ class ut_interface_parser extends jUnitTestCaseDb {
             'file_id'=>null,
             'line_start'=>0,
             'line_end'=>0,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>1,

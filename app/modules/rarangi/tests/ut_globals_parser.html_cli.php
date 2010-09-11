@@ -27,6 +27,8 @@ class ut_globals_parser extends jUnitTestCaseDb {
         
         $this->emptyTable('globals');
         $this->emptyTable('globals_authors');
+        $this->emptyTable('packages');
+        jDb::getConnection($this->dbProfile)->exec('ALTER TABLE `packages`  AUTO_INCREMENT =1');
     }
 
     function tearDown() {
@@ -62,7 +64,7 @@ class ut_globals_parser extends jUnitTestCaseDb {
             array(
                 'name'=>'bar',
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'package_id'=>null,
+                'package_id'=>1,
                 'file_id'=>$p->getDescriptor()->fileId,
                 'line_start'=>8,
                 'datatype'=>'',
@@ -72,6 +74,12 @@ class ut_globals_parser extends jUnitTestCaseDb {
                 'description'=>''
             )
         ), false);
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $this->assertTableContainsRecords('packages', $records);
     }
 
     function testGlobalVariable() {
@@ -100,7 +108,7 @@ class ut_globals_parser extends jUnitTestCaseDb {
             array(
                 'name'=>'bar',
                 'project_id'=>$this->parserInfo->getProjectId(),
-                'package_id'=>null,
+                'package_id'=>1,
                 'file_id'=>$p->getDescriptor()->fileId,
                 'line_start'=>8,
                 'datatype'=>'',
@@ -276,7 +284,5 @@ define('zoop', myfunc ( 'toto' ) );
                 'description'=>''
             )
         ), false);
-
     }
-
 }

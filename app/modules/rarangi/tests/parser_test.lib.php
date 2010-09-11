@@ -20,10 +20,6 @@ class ut_project_test extends raProject {
         $this->_logger = $logger;
         $this->init('test');
     }
-    
-    function emptyPackageCache() {
-        self::$_packages = array();
-    }
 }
 
 class ut_file_parser_test extends raPHPFileParser {

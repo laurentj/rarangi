@@ -186,7 +186,7 @@ class packagesCtrl extends jController {
         $package = $tpl->get('package');
 
         if (!$package) {
-            $tpl->assign('classes', null);
+            $tpl->assign('functions', null);
         } else {
             // Get functions
             $dao_functions = jDao::get('rarangi~functions');

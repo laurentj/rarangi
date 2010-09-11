@@ -104,6 +104,16 @@ class ut_doccomment extends jUnitTestCase {
     function testPackage(){
         $desc = new raBaseDescriptor($this->project, 1, 1);
         $c = '/**
+* 
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->shortDescription,'');
+        $this->assertEqual($desc->description,'');
+        $this->assertEqual($desc->package,'_unknown');
+
+
+        $desc = new raBaseDescriptor($this->project, 1, 1);
+        $c = '/**
 * @package jDoc
 */';
         $desc->initFromPhpDoc($c);

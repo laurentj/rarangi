@@ -81,7 +81,7 @@ class raProject {
     /**
      * @var array  list of id of packages. used by getPackageId as a cache
      */
-    protected static $_packages = array();
+    protected $_packages = array();
 
     /**
      * return the package id corresponding to the given name. If the package
@@ -93,8 +93,8 @@ class raProject {
         if ($packageName == '')
             return null;
 
-        if (isset(self::$_packages[$packageName]))
-            return self::$_packages[$packageName];
+        if (isset($this->_packages[$packageName]))
+            return $this->_packages[$packageName];
 
         $package = jDao::get('rarangi~packages')->getByName($this->projectRec->id, $packageName);
         if (!$package) {
@@ -103,7 +103,7 @@ class raProject {
             $package->name = $packageName;
             jDao::get('rarangi~packages')->insert($package);
         }
-        self::$_packages[$packageName] = $package->id;
+        $this->_packages[$packageName] = $package->id;
         return $package->id;
     }
 }

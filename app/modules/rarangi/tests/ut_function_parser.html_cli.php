@@ -29,6 +29,8 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->emptyTable('functions');
         $this->emptyTable('functions_authors');
         $this->emptyTable('function_parameters');
+        $this->emptyTable('packages');
+        jDb::getConnection($this->dbProfile)->exec('ALTER TABLE `packages`  AUTO_INCREMENT =1');
     }
 
     function tearDown() {
@@ -97,7 +99,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             'id'=>$p->getDescriptor()->functionId,
             'name'=>'foo',
             'project_id'=>$this->parserInfo->getProjectId(),
-            'package_id'=>null,
+            'package_id'=>1,
             'file_id'=>1,
             'line_start'=>2,
             'line_end'=>3,
@@ -120,6 +122,12 @@ class ut_function_parser extends jUnitTestCaseDb {
         $this->assertTableContainsRecords('functions', $records);
         $this->assertTableIsEmpty('functions_authors');
         $this->assertTableIsEmpty('function_parameters');
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $this->assertTableContainsRecords('packages', $records);
     }
 
     function testOneFunctionParameter() {
@@ -145,7 +153,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             'id'=>$p->getDescriptor()->functionId,
             'name'=>'foo',
             'project_id'=>$this->parserInfo->getProjectId(),
-            'package_id'=>null,
+            'package_id'=>1,
             'file_id'=>1,
             'line_start'=>2,
             'line_end'=>3,
@@ -177,6 +185,12 @@ class ut_function_parser extends jUnitTestCaseDb {
             'documentation'=>''
         ));
         $this->assertTableContainsRecords('function_parameters', $records);
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $this->assertTableContainsRecords('packages', $records);
     }
 
     function testOneFunctionParameterWithDoc() {
@@ -202,7 +216,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             'id'=>$p->getDescriptor()->functionId,
             'name'=>'foo',
             'project_id'=>$this->parserInfo->getProjectId(),
-            'package_id'=>null,
+            'package_id'=>1,
             'file_id'=>1,
             'line_start'=>2,
             'line_end'=>3,
@@ -234,6 +248,12 @@ class ut_function_parser extends jUnitTestCaseDb {
             'documentation'=>'this is a parameter',
         ));
         $this->assertTableContainsRecords('function_parameters', $records);
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $this->assertTableContainsRecords('packages', $records);
     }
 
 
@@ -263,7 +283,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             'id'=>$p->getDescriptor()->functionId,
             'name'=>'foo',
             'project_id'=>$this->parserInfo->getProjectId(),
-            'package_id'=>null,
+            'package_id'=>1,
             'file_id'=>1,
             'line_start'=>2,
             'line_end'=>3,
@@ -319,6 +339,12 @@ class ut_function_parser extends jUnitTestCaseDb {
             'documentation'=>'',
         ));
         $this->assertTableContainsRecords('function_parameters', $records);
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $this->assertTableContainsRecords('packages', $records);
     }
 
 
@@ -358,7 +384,7 @@ class ut_function_parser extends jUnitTestCaseDb {
             'id'=>$p->getDescriptor()->functionId,
             'name'=>'foo',
             'project_id'=>$this->parserInfo->getProjectId(),
-            'package_id'=>null,
+            'package_id'=>1,
             'file_id'=>1,
             'line_start'=>2,
             'line_end'=>3,
@@ -414,5 +440,11 @@ class ut_function_parser extends jUnitTestCaseDb {
             'documentation'=>'what?',
         ));
         $this->assertTableContainsRecords('function_parameters', $records);
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $this->assertTableContainsRecords('packages', $records);
     }
 }

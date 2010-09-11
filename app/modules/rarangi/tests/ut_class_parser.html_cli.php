@@ -31,6 +31,9 @@ class ut_class_parser extends jUnitTestCaseDb {
         $this->emptyTable('class_methods');
         $this->emptyTable('interface_class');
         $this->emptyTable('classes');
+        $this->emptyTable('packages');
+        jDb::getConnection($this->dbProfile)->exec('ALTER TABLE `packages`  AUTO_INCREMENT =1');
+        jDb::getConnection($this->dbProfile)->exec('ALTER TABLE `classes`  AUTO_INCREMENT =1');
     }
 
     function tearDown() {
@@ -49,6 +52,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             $this->assertEqual($e->getMessage(),"invalid syntax. token expected : T_STRING, got a string :\"{\"");
         }
         $this->assertTableIsEmpty('classes');
+        $this->assertTableIsEmpty('packages');
     }
     
     function testEmptyClass() {
@@ -66,7 +70,7 @@ class ut_class_parser extends jUnitTestCaseDb {
         $this->assertEqual(count($log['warning']),0);
         $this->assertEqual(count($log['notice']),0);
         $this->assertEqual($p->getDescriptor()->name , 'foo');
-        
+
         $records = array(array(
             'id'=>$p->getDescriptor()->classId,
             'name'=>'foo',
@@ -74,12 +78,18 @@ class ut_class_parser extends jUnitTestCaseDb {
             'file_id'=>1,
             'line_start'=>2,
             'line_end'=>3,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>0,
             ));
         $this->assertTableContainsRecords('classes', $records);
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $rep=$this->assertTableContainsRecords('packages', $records);
     }
 
     function testEmptyInheritingClass() {
@@ -117,7 +127,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             'file_id'=>1,
             'line_start'=>1,
             'line_end'=>2,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>$barId,
             'is_abstract'=>0,
             'is_interface'=>0,
@@ -129,13 +139,18 @@ class ut_class_parser extends jUnitTestCaseDb {
             'file_id'=>null,
             'line_start'=>0,
             'line_end'=>0,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>0,
             )
             );
-        $this->assertTableContainsRecords('classes', $records);
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $this->assertTableContainsRecords('packages', $records);
     }
 
     function testEmptyImplementingClass() {
@@ -173,7 +188,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             'file_id'=>1,
             'line_start'=>1,
             'line_end'=>2,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>0,
@@ -185,7 +200,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             'file_id'=>null,
             'line_start'=>0,
             'line_end'=>0,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>1,
@@ -199,6 +214,13 @@ class ut_class_parser extends jUnitTestCaseDb {
                   'project_id'=>$this->parserInfo->getProjectId())
         );
         $this->assertTableContainsRecords('interface_class', $records);
+
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $this->assertTableContainsRecords('packages', $records);
     }
 
     function testEmptyImplementingClass2() {
@@ -245,7 +267,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             'file_id'=>1,
             'line_start'=>1,
             'line_end'=>2,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>0,
@@ -257,7 +279,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             'file_id'=>null,
             'line_start'=>0,
             'line_end'=>0,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>1,
@@ -269,7 +291,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             'file_id'=>null,
             'line_start'=>0,
             'line_end'=>0,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>1,
@@ -287,6 +309,12 @@ class ut_class_parser extends jUnitTestCaseDb {
 
         );
         $this->assertTableContainsRecords('interface_class', $records);
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $this->assertTableContainsRecords('packages', $records);
     }
 
     function testEmptyImplementingClass3() {
@@ -325,7 +353,6 @@ class ut_class_parser extends jUnitTestCaseDb {
         $this->assertNotNull($bazId);
         $rs = null;
 
-
         $records = array(array(
             'id'=>$p->getDescriptor()->classId,
             'name'=>'foo',
@@ -333,7 +360,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             'file_id'=>1,
             'line_start'=>1,
             'line_end'=>5,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>0,
@@ -345,7 +372,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             'file_id'=>null,
             'line_start'=>0,
             'line_end'=>0,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>1,
@@ -357,7 +384,7 @@ class ut_class_parser extends jUnitTestCaseDb {
             'file_id'=>null,
             'line_start'=>0,
             'line_end'=>0,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>1,
@@ -375,6 +402,13 @@ class ut_class_parser extends jUnitTestCaseDb {
 
         );
         $this->assertTableContainsRecords('interface_class', $records);
+
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $this->assertTableContainsRecords('packages', $records);
     }
 
     function testSimpleClass() {
@@ -440,13 +474,20 @@ class ut_class_parser extends jUnitTestCaseDb {
             'file_id'=>1,
             'line_start'=>2,
             'line_end'=>40,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>0,
             ));
         $this->assertTableContainsRecords('classes', $records);
-        
+
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $this->assertTableContainsRecords('packages', $records);
+
         $this->assertTableHasNRecords('class_properties', 8);
         $this->assertTableContainsRecords('class_properties', array(
             array(
@@ -611,13 +652,20 @@ class foo {
             'file_id'=>1,
             'line_start'=>2,
             'line_end'=>28,
-            'package_id'=>null,
+            'package_id'=>1,
             'mother_class'=>null,
             'is_abstract'=>0,
             'is_interface'=>0,
             ));
         $this->assertTableContainsRecords('classes', $records);
-        
+
+        $records = array(array(
+            'id'=>1,
+            'name'=>'_unknown',
+            'project_id'=>$this->parserInfo->getProjectId(),
+            ));
+        $this->assertTableContainsRecords('packages', $records);
+
         $this->assertTableHasNRecords('class_properties',10);
         $this->assertTableContainsRecords('class_properties', array(
             array(

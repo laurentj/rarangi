@@ -37,6 +37,7 @@ class raFileDescriptor extends raBaseDescriptor  {
 
         jDao::get('rarangi~files')->insert($this->record);
         $this->fileId = $this->record->id;
+        $this->package = self::UNKNOWN_PACKAGE;
     }
 
     public function save() {

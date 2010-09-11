@@ -227,9 +227,10 @@
                 <ul class="see">{foreach $class->see as $s}
                     <li>{$s|eschtml}</li>{/foreach}
                 </ul></li>{/if}
+            {if $class->user_tags}
             {foreach $class->user_tags as $t=>$c}
             <li><strong>{$t|eschtml}{if $c}: {/if}</strong>{$c|eschtml}</li>
-            {/foreach}
+            {/foreach}{/if}
         </ul>
 
   </div>
