@@ -220,6 +220,31 @@ body#home #menubar {
     background-color:blue;
 }
 
+#errors-criterias {
+	background-color: #dfe4e0;
+    padding:5px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius:4px;
+    -moz-box-shadow:3px 3px 12px 0 #999;
+    -webkit-box-shadow:3px 3px 12px #999;
+    color: #474747;
+}
+
+#errors-criterias a {
+	display:inline-block;
+	padding:3px;
+	margin:2px;
+	-moz-border-radius: 4px;
+    -webkit-border-radius:4px;
+	border-radius: 4px;
+}
+#errors-criterias a.active {
+	background-color: #cfe2a1;
+
+}
+
+
+
 #authors li {
     display: inline;
     margin-right: 1em;

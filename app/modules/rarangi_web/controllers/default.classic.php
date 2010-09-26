@@ -93,6 +93,7 @@ class defaultCtrl extends jController {
     function errors() {
         $resp = $this->getResponse('html');
 
+        $criteria = $this->param('criteria');
         $projectname = $this->param('project');
         $resp->title = jLocale::get('default.page.project.errors.title', array($projectname));
 
@@ -115,7 +116,21 @@ class defaultCtrl extends jController {
                     'mode' => 'browse'));
 
             $dao_errors = jDao::get('rarangi~errors');
-            $tpl->assign('errors', $dao_errors->findByProject($project->id));
+            switch($criteria) {
+                case 'all':
+                    $list = $dao_errors->findByProject($project->id);
+                    break;
+                case 'error':
+                case 'warning':
+                case 'notice':
+                    $list= $dao_errors->findByType($project->id, $criteria);
+                    break;
+                default:
+                    $list= $dao_errors->findErrorWarningByProject($project->id);
+                    $criteria = '';
+            }
+            $tpl->assign('criteria', $criteria);
+            $tpl->assign('errors', $list);
         }
         
         $resp->body->assign('MAIN', $tpl->fetch('errors'));

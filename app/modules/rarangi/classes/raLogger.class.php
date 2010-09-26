@@ -109,6 +109,7 @@ class raLogger {
         if ($this->parserInfo) {
             $f = $this->parserInfo->currentFile();
             $l = $this->parserInfo->currentLine();
+            $f = substr($f, strlen($this->parserInfo->getFullSourcePath())+1);
         }
         else {
             $f = '';

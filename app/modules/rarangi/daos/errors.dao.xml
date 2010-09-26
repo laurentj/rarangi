@@ -24,6 +24,26 @@
                 <eq property="project_id" expr="$project" />
             </conditions>
         </method>
+        <method name="findErrorWarningByProject" type="select">
+            <parameter name="project" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+                <conditions logic="or">
+                    <eq property="type" value="error" />
+                    <eq property="type" value="warning" />
+                </conditions>
+            </conditions>
+        </method>
+        <method name="findByType" type="select">
+            <parameter name="project" />
+            <parameter name="type" />
+            <conditions>
+                <eq property="project_id" expr="$project" />
+                <eq property="type" expr="$type" />
+            </conditions>
+        </method>
+
+
         <method name="countByProject" type="count">
             <parameter name="project" />
             <conditions>
