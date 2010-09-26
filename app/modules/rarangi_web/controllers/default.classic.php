@@ -17,8 +17,8 @@ class defaultCtrl extends jController {
         $resp->title = jLocale::get('default.page.home.title');
         $resp->bodyTagAttributes = array('id' => 'home');
         
-        $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array('mode' => 'home'));
-        $resp->body->assign('MENUBAR', '<h1>'. jLocale::get('default.app.title') .'</h1>');
+        $resp->body->assignZone('BREADCRUMB', 'rarangi_web~location_breadcrumb', array('mode' => 'home'));
+        $resp->body->assign('MENUBAR', '');
 
         $tpl = new jTpl();
         $tpl->assign('projectslist', jDao::get('rarangi~projects')->findAll());
@@ -138,33 +138,4 @@ class defaultCtrl extends jController {
         return $resp;
     }
 
-    /**
-    * Display the help page
-    */
-    function help() {
-        $resp = $this->getResponse('html');
-        $resp->title = jLocale::get('default.page.help.title');
-
-        $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
-                    'mode' => 'help'));
-        $tpl = new jTpl();
-        $resp->body->assign('MAIN', $tpl->fetch('help'));
-        
-        return $resp;
-    }
-
-    /**
-    * Display the about rarangi page
-    */
-    function about() {
-        $resp = $this->getResponse('html');
-        $resp->title = jLocale::get('default.page.about.title');
-
-        $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
-                    'mode' => 'about'));
-        $tpl = new jTpl();
-        $resp->body->assign('MAIN', $tpl->fetch('about'));
-        
-        return $resp;
-    }
 }

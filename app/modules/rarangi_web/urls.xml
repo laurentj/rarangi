@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<suburls xmlns="http://jelix.org/ns/suburls/1.0">
+    <url handler="project" action="default:project"
+            actionoverride="default:errors,sources:index,packages:index,packages:details,packages:subpackdetails,packages:classes,packages:functions,components:functiondetails,components:classdetails,components:interfacedetails,components:globaldetails,components:constantdetails,packages:constants,packages:globals"/>
+
+</suburls>
