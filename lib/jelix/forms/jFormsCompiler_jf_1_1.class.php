@@ -13,14 +13,6 @@
 * @licence    GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
 require_once(JELIX_LIB_PATH.'forms/jFormsCompiler_jf_1_0.class.php');
-
-
-class jFormsCompilerControl {
-    public $name;
-    public $dependencies = array();
-}
-
-
 /**
  * generates form class from an xml file describing the form
  * @package     jelix
@@ -34,90 +26,11 @@ class jFormsCompiler_jf_1_1 extends jFormsCompiler_jf_1_0 {
                                       'datetime','date','time','localedatetime','localedate','localetime',
                                       'url','email','ipv4','ipv6','html','xhtml');
 
-    /**
-     * list of controls which have dependencies
-     * array of jFormsCompilerControl
-     */
-    protected $dependantControls = array();
-    /**
-     * list of controls ordered depending of the dependencies
-     */
-    protected $orderedControls = array();
-    /**
-     * controls already check during dependencies checks
-     */
-    protected $checkedControls = array();
-    /**
-     * controls already check during circular dependencies checks
-     */
-    protected $checkedCircularDependency = array();
-
     protected function _compile ($xml, &$source) {
         if(isset($xml['allowAnyOrigin']) && $xml['allowAnyOrigin'] == 'true') {
             $source[]='$this->securityLevel=0;';
         }
-        $this->checkDependencies();
-        $list = array();
-        foreach($this->orderedControls as $control) {
-            $list[] = $control->name;
-        }
-        if (count($list))
-            $source[]='$this->controlsDependencies = '.var_export($list, true).';';
     }
-
-    /**
-     * check dependencies of controls
-     */
-    protected function checkDependencies () {
-        $this->checkedControls = array();
-        $this->orderedControls = array();
-        foreach($this->dependantControls as $control) {
-            $this->checkedCircularDependency = array();
-            if (!isset($this->checkedControls[$control->name])) {
-                $this->_checkDependencies($control);
-                $this->orderedControls[] = $control;
-            }
-        }
-    }
-
-    /**
-     * check dependencies of a module
-     * @param $component
-     * @param string $epId
-     */
-    protected function _checkDependencies($control) {
-
-        if (isset($this->checkedCircularDependency[$control->name])) {
-            throw new jException ('jforms.circular.dependency', $control->name);
-        }
-
-        $this->checkedCircularDependency[$control->name] = true;
-
-        $compNeeded = '';
-        foreach ($control->dependencies as $ctrlname) {
-            $name = $compInfo['name'];
-            $comp = $this->modules[$epId][$name];
-            if (!$comp)
-                $compNeeded .= $name.', ';
-            else {
-                if (!isset($this->checkedControls[$comp->getName()])) {
-                    $this->_checkDependencies($comp);
-                    $this->orderedControls[] = $comp;
-                }
-            }
-        }
-
-        $this->checkedControls[$control->name] = true;
-        unset($this->checkedCircularDependency[$control->name]);
-
-        if ($compNeeded) {
-            $component->inError = self::INSTALL_ERROR_MISSING_DEPENDENCIES;
-            throw new jInstallerException ('module.needed', array($component->getName(), $compNeeded));
-        }
-    }
-
-
-
 
     protected function generateInput(&$source, $control, &$attributes) {
         if(isset($attributes['pattern'])){
@@ -420,6 +333,10 @@ class jFormsCompiler_jf_1_1 extends jFormsCompiler_jf_1_0 {
 
                 $source[]='$ctrl->datasource = new jFormsDaoDatasource(\''.$attrs['dao'].'\',\''.
                                 $attrs['method'].'\',\''.$attrs['labelproperty'].'\',\''.$daovalue.'\''.$profile.$criteria.$labelSeparator.');';
+                if(isset($attrs['labelmethod'])) {
+                    $source[]='$ctrl->datasource->labelMethod=\''.$attrs['labelmethod'].'\';';
+                }
+
                 if($controltype == 'submit'){
                     $source[]='$ctrl->standalone=false;';
                 }
