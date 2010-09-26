@@ -10,6 +10,7 @@
 class rarangiModuleUpgrader_tagsdep extends jInstallerModule {
 
     function install() {
-      $this->execSQLScript('update_0.0.2');
+        if ($this->firstDbExec())
+            $this->execSQLScript('update_0.0.2');
     }
 }

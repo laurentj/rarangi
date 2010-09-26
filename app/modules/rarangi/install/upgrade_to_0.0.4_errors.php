@@ -10,6 +10,7 @@
 class rarangiModuleUpgrader_errors extends jInstallerModule {
 
     function install() {
-      $this->execSQLScript('update_0.0.4');
+        if ($this->firstDbExec())
+            $this->execSQLScript('update_0.0.4');
     }
 }

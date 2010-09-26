@@ -10,6 +10,7 @@
 class rarangiModuleUpgrader_globals extends jInstallerModule {
 
     function install() {
-      $this->execSQLScript('update_0.0.3');
+        if ($this->firstDbExec())
+            $this->execSQLScript('update_0.0.3');
     }
 }

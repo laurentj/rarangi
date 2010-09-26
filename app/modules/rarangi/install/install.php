@@ -10,6 +10,7 @@
 class rarangiModuleInstaller extends jInstallerModule {
 
     function install() {
-      $this->execSQLScript('install');
+        if ($this->firstDbExec())
+            $this->execSQLScript('install');
     }
 }
