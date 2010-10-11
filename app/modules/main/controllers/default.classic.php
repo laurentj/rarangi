@@ -14,6 +14,7 @@ class defaultCtrl extends jController {
     */
     function index() {
         $rep = $this->getResponse('html');
+        $rep->body->assign('MAIN', 'toto');
         return $rep;
     }
 

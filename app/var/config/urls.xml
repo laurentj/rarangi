@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <urls xmlns="http://jelix.org/ns/urls/1.0">
     <classicentrypoint name="index" default="true">
+        <url pathinfo="/rarangi" module="main"  include="urls.xml"/>
         <url pathinfo="/" module="rarangi_web" action="default:index" />
-        <url pathinfo="/" module="main"  include="urls.xml"/>
         <url pathinfo="/projects" module="rarangi_web" include="urls.xml" />
     </classicentrypoint>
 
