@@ -1,4 +1,4 @@
-<div id="location-breadcrumb">
+<div id="ra-location-breadcrumb">
     <a href="{jurl 'rarangi_web~default:index'}" title="{@rarangi_web~default.breadcrumb.projects@}">{@rarangi_web~default.breadcrumb.projects@}</a> &gt;
     {if $mode =='home'}{@rarangi_web~default.breadcrumb.home@}
     {elseif $mode == 'help'}{@rarangi_web~default.breadcrumb.help@}

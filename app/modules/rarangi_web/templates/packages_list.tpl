@@ -1,7 +1,8 @@
+<div id="ra-page">
 {if $project}
     <h2>{jlocale 'rarangi_web~default.packages.title', array($project->name)}</h2>
 
-    <div class="block">
+    <div class="ra-block">
     {if $packages}
         <ul>
         {foreach $packages as $package}
@@ -14,7 +15,8 @@
     </div>
 {else}
     <h2>Project: {$projectname}</h2>
-    <div class="blockcontent">
+    <div class="ra-block">
         <p>Error, unknow project</p>
     </div>
 {/if}
+</div>

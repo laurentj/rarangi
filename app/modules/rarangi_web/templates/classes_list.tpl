@@ -1,9 +1,9 @@
-<div class="monbloc">
+<div id="ra-page">
 {if $project}
     {if $package}
         <h2>Project: {$project->name|eschtml} - Package: {$package->name|eschtml}</h2>
         {if !$forInterfaces}
-            <div id="classes" class="block">
+            <div id="ra-classes" class="ra-block">
             <h3>{@rarangi_web~default.classes.list@}</h3>
             {if $classes && $classes->rowCount()}
                 <ul>
@@ -16,7 +16,7 @@
             {/if}
             </div>
         {else}
-            <div id="interfaces" class="block">
+            <div id="ra-interfaces" class="ra-block">
             <h3>{@rarangi_web~default.interfaces.list@}</h3>
             {if $interfaces && $interfaces->rowCount()}
                 <ul>
@@ -31,13 +31,13 @@
         {/if}
     {else}
         <h2>Project: {$project->name|eschtml} - Package: {$packagename|eschtml}</h2>
-        <div class="blockcontent">
+        <div class="ra-block">
             <p>Error, unknow package</p>
         </div>
     {/if}
 {else}
     <h2>Project: {$projectname}</h2>
-    <div class="blockcontent">
+    <div class="ra-block">
         <p>Error, unknow project</p>
     </div>
 {/if}

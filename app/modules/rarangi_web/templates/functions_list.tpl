@@ -1,8 +1,8 @@
-<div class="monbloc">
+<div id="ra-page">
 {if $project}
     {if $package}
         <h2>Project: {$project->name|eschtml} - Package: {$package->name|eschtml}</h2>
-        <div id="functions" class="block">
+        <div id="ra-functions" class="ra-block">
         <h3>{@rarangi_web~default.functions.list@}</h3>
         {if $functions && $functions->rowCount()}
             <ul>
@@ -16,13 +16,13 @@
         </div>
     {else}
         <h2>Project: {$project->name|eschtml} - Package: {$packagename|eschtml}</h2>
-        <div class="blockcontent">
+        <div class="ra-block">
             <p>Error, unknow package</p>
         </div>
     {/if}
 {else}
     <h2>Project: {$projectname}</h2>
-    <div class="blockcontent">
+    <div class="ra-block">
     <p>Error, unknow project</p>
     </div>
 {/if}

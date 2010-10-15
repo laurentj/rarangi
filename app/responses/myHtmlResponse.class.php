@@ -19,6 +19,7 @@ class myHtmlResponse extends jResponseHtml {
         parent::__construct();
         global $gJConfig;
         $this->addCSSLink($gJConfig->urlengine['basePath'].'themes/'.$gJConfig->theme.'/main.css');
+        $this->addCSSLink($gJConfig->urlengine['basePath'].'themes/'.$gJConfig->theme.'/rarangi_web.css');
     }
 
     protected function doAfterActions() {

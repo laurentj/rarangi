@@ -1,7 +1,8 @@
+<div id="ra-page">
 {if $project}
     <h2>{@rarangi_web~default.project.details@}</h2>
     
-    <div class="block">
+    <div class="ra-block">
     <h3>{@rarangi_web~default.project.code.stats@}</h3>
     <ul>
         <li>{$files_counter} files</li>
@@ -10,7 +11,7 @@
     </ul>
     </div>
     
-    <div class="block">
+    <div class="ra-block">
     <h3>{@rarangi_web~default.project.components.stats@}</h3>
     <ul>
         <li>{$classes_counter} classes</li>
@@ -20,9 +21,9 @@
     </div>
 
     {if $authors->rowCount() > 0}
-    <div class="block">
+    <div class="ra-block">
     <h3>{@rarangi_web~default.authors@}</h3>
-    <ul id="authors">
+    <ul id="ra-authors">
     {foreach $authors as $author}
         <li>{$author->name|eschtml} {if $author->email!=''}&lt;{$author->email|eschtml}&gt;{/if}</li>
     {/foreach}
@@ -31,7 +32,8 @@
     {/if}
 {else}
     <h2>Project: {$projectname}</h2>
-    <div class="blockcontent">
+    <div class="ra-block">
         <p>Error, unknow project</p>
     </div>
 {/if}
+</div>

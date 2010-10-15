@@ -1,30 +1,31 @@
+<div id="ra-page">
 {if $comp}
-  <div id="content">
+  <div id="ra-content">
     <h2>Global variable: {$comp->name|eschtml}</h2>
 
-        <div class="description-block">
+        <div class="ra-description-block">
         {if $comp->short_description || $comp->description}
-        <p class="short-description">{$comp->short_description|eschtml}</p>
-        <div class="text-description">{$comp->description|eschtml}</div>
+        <p class="ra-short-description">{$comp->short_description|eschtml}</p>
+        <div class="ra-text-description">{$comp->description|eschtml}</div>
         {/if}
         {if $comp->is_deprecated && $comp->deprecated}<p>About deprecation: {$comp->deprecated|eschtml}</p>{/if}
         </div>
 
-        <div class="tags">
-        {if $comp->is_deprecated}<span class="tag-deprecated">deprecated</span>{/if}
-        {if $comp->is_experimental}<span class="tag-experimental">experimental</span>{/if}
+        <div class="ra-tags">
+        {if $comp->is_deprecated}<span class="ra-tag-deprecated">deprecated</span>{/if}
+        {if $comp->is_experimental}<span class="ra-tag-experimental">experimental</span>{/if}
         </div>
 
         {if $comp->default_value}
-        <div class="block">
+        <div class="ra-block">
             <strong>Default value: </strong> <code>{$comp->default_value|eschtml}</code>
         </div>
         {/if}
 
-        <div class="block">
-        <h3 id="internals">Others informations</h3>
+        <div class="ra-block">
+        <h3 id="ra-internals">Others informations</h3>
         
-            {if $comp->internal}<div class="internal-description">
+            {if $comp->internal}<div class="ra-internal-description">
             <strong>Internal documentation: </strong>
                 {$comp->internal|eschtml}</div>{/if}
             
@@ -38,10 +39,10 @@
                 {$comp->license_label|eschtml}
             {/if}
             {if $comp->license_text}
-            <div class="license-description">{$comp->license_text|eschtml}</div>
+            <div class="ra-license-description">{$comp->license_text|eschtml}</div>
             {/if}
             </li>{/if}
-            {if $comp->todo}<li class="todo"><strong>todo:</strong> {$comp->todo|eschtml}</li>{/if}
+            {if $comp->todo}<li class="ra-todo"><strong>todo:</strong> {$comp->todo|eschtml}</li>{/if}
             {if $comp->changelog}
             <li><strong>Changelog:</strong><ul>{foreach $comp->changelog as $changelog}
                     <li>{$changelog|eschtml}</li>{/foreach}
@@ -49,10 +50,9 @@
             </li>{/if}
             </ul>
         </div>
-
   </div>
-  <div id="sidebar">
-        <ul class="properties">
+  <div id="ra-sidebar">
+        <ul class="ra-properties">
             <li><strong>Project:</strong> <a href="{jurl 'rarangi_web~default:project',array('project'=>$project->name)}">{$project->name}</a></li>
             <li><strong>Package:</strong> <a href="{jurl 'rarangi_web~packages:details',array('project'=>$project->name, 'package'=>$package)}#globals">{$package}</a></li>
             {if $comp->fullpath}{* some classes may be referenced but not parsed *}
@@ -63,26 +63,26 @@
             {/if}
         </ul>
 
-        <ul class="properties">
+        <ul class="ra-properties">
             {if $comp->links}
             <li><strong>links: </strong>
-                <ul class="links">{foreach $comp->links as $link}
+                <ul class="ra-links">{foreach $comp->links as $link}
                     <li><a href="{$link[0]|eschtml}">{if $link[1]}{$link[1]|eschtml}{else}{$link[0]|eschtml}{/if}</a></li>{/foreach}
                 </ul></li>{/if}
             {if $comp->see}
             <li><strong>{@default.seealso@}: </strong>
-                <ul class="see">{foreach $comp->see as $s}
+                <ul class="ra-see">{foreach $comp->see as $s}
                     <li>{$s|eschtml}</li>{/foreach}
                 </ul></li>{/if}
             {foreach $comp->user_tags as $t=>$c}
             <li><strong>{$t|eschtml}{if $c}: {/if}</strong>{$c|eschtml}</li>
             {/foreach}
         </ul>
-
   </div>
 {else}
     <h2>Global variable: {$compname}</h2>
-    <div class="blockcontent">
+    <div class="ra-block">
         <p>Error, unknow variable</p>
     </div>
 {/if}
+</div>

@@ -5,12 +5,12 @@
         <a href="{jurl 'main~default:about'}" title="">{@main~default.helplinks.about@}</a>
     </div>
 </div>
-
 <div id="menubar">
 {$MENUBAR}
 </div>
 
 <div id="main">
+
 {$MAIN}
 </div>
 

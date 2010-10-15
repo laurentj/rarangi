@@ -1,3 +1,5 @@
+<div id="ra-page">
+
 <h2>{$filename}</h2>
 
 {if $file->isdir}
@@ -25,3 +27,4 @@
 </ul>
 </div>
 {/if}
+</div>
