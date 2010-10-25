@@ -215,7 +215,7 @@
             </li>
         </ul>
         </div>
-
+      {if $class->links || $class->see || $class->user_tags}
         <ul class="ra-properties">
             {if $class->links}
             <li><strong>links: </strong>
@@ -232,6 +232,7 @@
             <li><strong>{$t|eschtml}{if $c}: {/if}</strong>{$c|eschtml}</li>
             {/foreach}{/if}
         </ul>
+      {/if}
   </div>
 {else}
     <h2>Class: {$classname}</h2>

@@ -7,9 +7,11 @@
     -moz-box-shadow:3px 3px 12px 0 #999;
     -webkit-box-shadow:3px 3px 12px #999;
     color: #ebebdf;
-    letter-spacing: 0.2em;
+	margin: 15px 0;
 }
-
+#ra-content > h2:first-child {
+	margin: 0 0 15px 0;
+}
 #ra-page a { color: #8A95A6; }
 #ra-page a:visited { color: #69717E; }
 
@@ -19,7 +21,7 @@
 
 #ra-sidebar {
     width:25%;
-    margin-top:1em;
+    padding-top:0px;
     font-size:0.8em;    
 }
 
@@ -57,10 +59,10 @@
 }
 
 #ra-sidebar .ra-relationship li {
-    margin:0;
-    padding:0 0 0 1em;
+    margin:0 0 0 1em;
+    padding:0 ;
     list-style-type: disc;
-    list-style-position: inside;
+    list-style-position: outide;
 }
 
 

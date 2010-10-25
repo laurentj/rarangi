@@ -1,15 +1,7 @@
-/*
-colors :
-    yellow: #FECF12
-    light orange: #FF9000
-    orange: #E45605
-    red: #D41C0E
-    purple: #72123D
-*/
 
 body {
     margin: 0;
-    font-family: Arial,Helvetica,sans-serif;
+    font-family: Tahoma, Arial,Helvetica,sans-serif;
     background-color: #efebec;
     color: #595959;
 }
@@ -21,11 +13,24 @@ body {
 	color: white;
 }
 
-#help-links {
-    text-align: right;
-
+#header h1 {
+	font-family: Impact, Verdana, sans-serif;
+	margin: 0.3em 2em 0 2em;
+}
+#header p {
+	font-family: Impact, Verdana, sans-serif;
+	margin: 0.3em 5em;
 }
 
+
+#help-links {
+    text-align: right;
+	float:right;
+	font-size:0.7em;
+}
+#help-links a {
+	color:white;
+}
 /* MENUBAR */
 #menubar {
     clear: both;
