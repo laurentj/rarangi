@@ -5,7 +5,7 @@
     <div class="ra-block">
     <h3>{@rarangi_web~default.project.code.stats@}</h3>
     <ul>
-        <li>{$files_counter} files</li>
+        <li><a href="{jurl 'rarangi_web~sources:index', array('project'=>$projectname)}">{$files_counter} files</a></li>
         <li>{$lines_counter} lines of code</li>
         {if $errors_counter}<li><a href="{jurl 'rarangi_web~default:errors', array('project'=>$projectname)}">{$errors_counter} errors/warnings</a> found during the parsing</li>{/if}
     </ul>
@@ -14,9 +14,9 @@
     <div class="ra-block">
     <h3>{@rarangi_web~default.project.components.stats@}</h3>
     <ul>
+        <li><a href="{jurl 'rarangi_web~packages:index', array('project'=>$projectname)}">{$packages_counter} packages</a></li>
         <li>{$classes_counter} classes</li>
         <li>{$functions_counter} functions</li>
-        <li>{$packages_counter} packages</li>
     </ul>
     </div>
 

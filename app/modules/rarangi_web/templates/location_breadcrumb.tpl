@@ -19,7 +19,6 @@
                 <li><a href="{jurl 'rarangi_web~default:errors', array('project'=>$project)}">Errors</a></li>
             </ul>
         </li>
-            
         {foreach $items as $item}
         <li>{if $item->url}<a href="{$item->url}">{$item->name|eschtml}</a> &gt;{else}{$item->name|eschtml}{/if}
          {if $item->children} <ul> {foreach $item->children as $child}
