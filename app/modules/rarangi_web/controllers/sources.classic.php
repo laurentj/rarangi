@@ -23,11 +23,7 @@ class sourcesCtrl extends jController {
         }
 
         $resp->title = $path;
-        
-        $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
-                    'mode' => 'projectbrowse',
-                    'projectname' => $project->name));
-        $resp->body->assignZone('MENUBAR', 'project_menubar');
+
 
         $tpl = new jTpl();
         $tpl->assign('filename', $path);
@@ -50,8 +46,31 @@ class sourcesCtrl extends jController {
         else {
             $resp->setHttpStatus('404', 'Not Found');
             $resp->body->assign('MAIN', "<p>unknow file $path</p>");
+
         }
-        
+
+
+        // breadcrumb construction
+        jClasses::inc('rarangi_web~breadcrumbItem');
+        $bcitems = array();
+        $bcitems[] = new breadcrumbItem('Sources', jUrl::get('rarangi_web~sources:index',
+                                                                array('project'=>$project->name)));
+
+        $pathlist = explode('/', $path);
+        $currentpath = '';
+        foreach($pathlist as $p) {
+            if ($p == '')
+                continue;
+            if ($currentpath != '')
+                $currentpath .= '/';
+            $currentpath.= $p;
+            $bcitems[] = new breadcrumbItem($p, jUrl::get('rarangi_web~sources:index',
+                                                                array('project'=>$project->name, 'path'=>$currentpath)));
+        }
+
+        $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
+                'project' => $project->name, 'part'=>'sources', 'items'=>$bcitems));
+
         return $resp;
     }
 

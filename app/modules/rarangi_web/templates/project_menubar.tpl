@@ -1,4 +1,4 @@
-<div id="menubar-top">
+<!--<div id="menubar-top">
 <ul>
     <li><a href="" title="{@rarangi_web~default.search@}"{if $mode=='search'} class="active"{/if}>{@rarangi_web~default.search@}</a></li>
     <li><a href="{jurl 'rarangi_web~default:project', array('project'=>$project->name)}" title="{@rarangi_web~default.browse@}"{if $mode=='browse'} class="active"{/if}>{@rarangi_web~default.browse@}</a></li>
@@ -15,4 +15,4 @@
 {elseif $mode == 'search'}
 <input type="text"/><input type="submit" value="Search"/>
 {/if}
-</div>
+</div>-->

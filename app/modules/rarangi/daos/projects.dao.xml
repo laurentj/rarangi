@@ -14,5 +14,10 @@
                 <eq property="name" expr="$name" />
             </conditions>
         </method>
+        <method name="findAll" type="select">
+            <order>
+                <orderitem property="name" way="asc" />
+            </order>
+        </method>
     </factory>
 </dao>

@@ -25,9 +25,6 @@ class defaultCtrl extends jController {
     function help() {
         $resp = $this->getResponse('html');
         $resp->title = jLocale::get('default.page.help.title');
-
-        $resp->body->assignZone('BREADCRUMB', 'rarangi_web~location_breadcrumb', array(
-                    'mode' => 'help'));
         $tpl = new jTpl();
         $resp->body->assign('MAIN', $tpl->fetch('help'));
         
@@ -40,12 +37,8 @@ class defaultCtrl extends jController {
     function about() {
         $resp = $this->getResponse('html');
         $resp->title = jLocale::get('default.page.about.title');
-
-        $resp->body->assignZone('BREADCRUMB', 'rarangi_web~location_breadcrumb', array(
-                    'mode' => 'about'));
         $tpl = new jTpl();
         $resp->body->assign('MAIN', $tpl->fetch('about'));
-        
         return $resp;
     }
 

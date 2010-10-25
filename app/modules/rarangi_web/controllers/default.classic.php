@@ -17,7 +17,7 @@ class defaultCtrl extends jController {
         $resp->title = jLocale::get('default.page.home.title');
         $resp->bodyTagAttributes = array('id' => 'home');
         
-        $resp->body->assignZone('BREADCRUMB', 'rarangi_web~location_breadcrumb', array('mode' => 'home'));
+        $resp->body->assignZone('BREADCRUMB', 'rarangi_web~location_breadcrumb');
         $resp->body->assign('MENUBAR', '');
 
         $tpl = new jTpl();
@@ -48,11 +48,7 @@ class defaultCtrl extends jController {
             $resp->setHttpStatus('404','Not found');
         } else {
             $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
-                    'mode' => 'projecthome',
-                    'projectname' => $projectname));
-            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
-                    'project' => $project,
-                    'mode' => 'browse'));
+                    'project' => $projectname));
 
             // Get authors of the project
             $dao_authors = jDao::get('rarangi~authors');
@@ -108,12 +104,13 @@ class defaultCtrl extends jController {
         if (!$project) {
             $resp->setHttpStatus('404','Not found');
         } else {
+
+            // breadcrumb construction
+            jClasses::inc('rarangi_web~breadcrumbItem');
+            $items = array(new breadcrumbItem('Errors', jUrl::get('rarangi_web~default:errors',
+                                                                array('project'=>$projectname))));
             $resp->body->assignZone('BREADCRUMB', 'location_breadcrumb', array(
-                    'mode' => 'projecthome',
-                    'projectname' => $projectname));
-            $resp->body->assignZone('MENUBAR', 'project_menubar', array(
-                    'project' => $project,
-                    'mode' => 'browse'));
+                    'project' => $projectname, 'part'=>'errors', 'items'=>$items));
 
             $dao_errors = jDao::get('rarangi~errors');
             switch($criteria) {

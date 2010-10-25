@@ -10,100 +10,84 @@ colors :
 body {
     margin: 0;
     font-family: Arial,Helvetica,sans-serif;
-    background-color: #ebebdf;
+    background-color: #efebec;
     color: #626262;
 }
-
-a { color: #879CB1; }
-a:visited { color: #697C8B; }
 
 /* HEADER */
 #header {
     padding: 5px;
+	background-color:#290810;
+	color: white;
 }
 
 #help-links {
-    float: right;
-    margin-bottom: 40px;
+    text-align: right;
+
 }
 
 /* MENUBAR */
 #menubar {
     clear: both;
-    border-bottom: 1px solid #72123D;
-    background-color: #e3856D;
+    border-bottom: 1px solid #fff;
+    background-color: #c1003C;
     color: white;
+	font-size:0.8em;
+	position: relative;
+	z-index:800;
 }
 #menubar a {
     color: #ebebdf;
 }
-body#home #menubar {
-    padding: 10px;
-    border-top: 1px solid #72123D;
+#menubar ul {
+	background-color: #c1003C;
+	min-height:2em;
 }
-
-#menubar-top {
-    background-color: #ebebdf;
+.jmenulist {
+	margin:0;
+	padding:4px;
 }
-#menubar-top ul {
-    margin-left: 80px;
+.jmenulist ul {
+	padding:4px;
+	margin:0.5em 0!important;
+	border:1px solid #C1848F;
+	max-height:200px;
+	overflow-y: auto ;
+	overflow-x: hidden;
 }
-#menubar-top li {
-    float: left;
-    list-style-type: none;
+.jmenulist ul ul { 
+	margin-left:180px;
+	margin: -0.5em 0 0 170px!important;
+	padding:0;
 }
-#menubar-top li a {
-    text-decoration: none;
-    background-color: #BB6E5B ;
-    color: #ccc;
-    margin-left: 15px;
-    padding: 5px 15px;
-    -moz-border-radius-topleft: 4px;
-    -moz-border-radius-topright: 4px;
-    font-weight: bold;
-    border: 1px solid #72123D;
-    border-bottom: none;
+.jmenulist li  {
+	padding:6px 6px;	
 }
-#menubar-top span {
-    color: black;
-    margin-left: 30px;
+.jmenulist a {
+	text-decoration:none;
 }
-#menubar-top a.active {
-    color:#ebebdf;
-    background-color: #e3856D;
+.jmenulist ul li a {
+	display:block;
 }
-#menubar-content {
-    padding: 10px;
-    padding-left: 30px;
-    font-weight: bold;
-    border-top: 1px solid #72123D;
-}
-#menubar-content span {
-    margin-left: 30px;
+.jmenulist a:hover, .jmenulist li:hover {
+	background-color: #9A002F;
 }
 
 /* MAIN */
 #main {
     padding: 15px 30px;
 }
-#main h2 {
-    background-color:#6B86A6;
-    padding:5px;
-    -moz-border-radius: 4px;
-    -webkit-border-radius:4px;
-    -moz-box-shadow:3px 3px 12px 0 #999;
-    -webkit-box-shadow:3px 3px 12px #999;
-    color: #ebebdf;
-    letter-spacing: 0.2em;
-}
+
 
 /* FOOTER */
 #footer {
     clear:both;
-	border-top : 1px #72123D solid;
 	text-align:center;
 	margin-top: 100px;
+	padding: 0.5em;
 	font-size:0.8em;
+	background-color:#290810;
+	color: white;
 }
 
 

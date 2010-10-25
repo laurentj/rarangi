@@ -9,93 +9,125 @@
 * @licence   GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
+jClasses::inc('rarangi_web~breadcrumbItem');
+
 class packagesCtrl extends jController {
     
-    protected function _prepareTpl($resp, $title, $withPackage = false) {
-        $tpl = new jTpl();
+    protected $bcItems = array();
+    protected $project;
+    protected $package;
+    protected $resp;
+    protected $tpl;
+    
+    protected function _prepareTpl($title, $withPackage = false) {
+        $this->resp = $this->getResponse('html');
+        
+        $this->tpl = new jTpl();
         $projectname = $this->param('project');
         $dao = jDao::get('rarangi~projects');
-        $project = $dao->getByName($projectname);
+        $this->project = $dao->getByName($projectname);
         
-        $tpl->assign('project',$project);
-        $tpl->assign('projectname',$projectname);
+        $this->tpl->assign('project', $this->project);
+        $this->tpl->assign('projectname', $projectname);
         
         if ($withPackage) {
             $packagename = $this->param('package');
-            $tpl->assign('packagename', $packagename);
-            $resp->title = jLocale::get($title, array($packagename, $projectname));
+            $this->tpl->assign('packagename', $packagename);
+            $this->resp->title = jLocale::get($title, array($packagename, $projectname));
         }
         else {
-            $resp->title = jLocale::get($title, array($projectname));
+            $this->resp->title = jLocale::get($title, array($projectname));
         }
 
-        $package = null;
-
-        if (!$project) {
-            $resp->setHttpStatus('404','Not found');
+        if (!$this->project) {
+            $this->resp->setHttpStatus('404','Not found');
         } else {
-            $resp->body->assignZone('BREADCRUMB',
-                                    'location_breadcrumb',
-                                    array(
-                                        'mode' => 'projectbrowse',
-                                        'projectname' => $projectname));
-
-            $param = array('project'=>$project);
-            if ($withPackage) {
-                $param['mode'] = 'browse';
-                $dao = jDao::get('rarangi~packages');
-                $package = $dao->getByName($project->id, $packagename, 0);
+            $packagesItem = new breadcrumbItem('Packages', jUrl::get('rarangi_web~packages:index',
+                                                                array('project'=>$this->project->name)));
+            $daoPackages = jDao::get('rarangi~packages');
+            foreach ($daoPackages->findByProject($this->project->id) as $p) {
+                $packagesItem->children[] = new breadcrumbItem($p->name, jUrl::get('rarangi_web~packages:details',
+                                                                    array('project'=>$this->project->name,
+                                                                          'package'=>$p->name)));
             }
+            $this->bcItems[] = $packagesItem;
 
-            $resp->body->assignZone('MENUBAR',
-                                    'project_menubar',
-                                    $param);
+            if ($withPackage) {
+                $this->package = $daoPackages->getByName($this->project->id, $packagename, 0);
+            }
         }
 
         if ($withPackage) {
-            if (!$package) {
-                $resp->setHttpStatus('404', 'Not found');
+            if (!$this->package) {
+                $this->resp->setHttpStatus('404', 'Not found');
             }
-            else
-                $tpl->assign('package', $package);
+            else {
+                $packageItem = new breadcrumbItem($this->package->name, jUrl::get('rarangi_web~packages:details',
+                                                                    array('project'=>$this->project->name,
+                                                                          'package'=>$this->package->name)));
+                $packageItem->children[] = new breadcrumbItem('Classes',
+                                                              jUrl::get('rarangi_web~packages:classes',
+                                                                    array('project'=>$this->project->name,
+                                                                          'package'=>$this->package->name)));
+                $packageItem->children[] = new breadcrumbItem('Interfaces',
+                                                              jUrl::get('rarangi_web~packages:interfaces',
+                                                                    array('project'=>$this->project->name,
+                                                                          'package'=>$this->package->name)));
+                $packageItem->children[] = new breadcrumbItem('Functions',
+                                                              jUrl::get('rarangi_web~packages:functions',
+                                                                    array('project'=>$this->project->name,
+                                                                          'package'=>$this->package->name)));
+                $packageItem->children[] = new breadcrumbItem('Globals',
+                                                              jUrl::get('rarangi_web~packages:globals',
+                                                                    array('project'=>$this->project->name,
+                                                                          'package'=>$this->package->name)));
+                $packageItem->children[] = new breadcrumbItem('Constants',
+                                                              jUrl::get('rarangi_web~packages:constants',
+                                                                    array('project'=>$this->project->name,
+                                                                          'package'=>$this->package->name)));
+                $this->bcItems[] = $packageItem;
+                $this->tpl->assign('package', $this->package);
+            }
         }
 
-        return $tpl;
+        return $this->tpl;
+    }
+
+    protected function _finishResponse($subtpl) {
+        $this->resp->body->assignZone('BREADCRUMB',
+                                'location_breadcrumb',
+                                array('project' => $this->param('project'),
+                                      'part'=>'packages',
+                                      'items'=>$this->bcItems));
+        $this->resp->body->assign('MAIN', $this->tpl->fetch($subtpl));
+        return $this->resp;
     }
     
     /**
     * Display the list of packages
     */
     function index() {
-        $resp = $this->getResponse('html');
-        $tpl = $this->_prepareTpl($resp, 'default.packages.title');
+        $tpl = $this->_prepareTpl('default.packages.title');
 
-        $project = $tpl->get('project');
-        if ($project) {
+        if ($this->project) {
             // Get packages
             $dao = jDao::get('rarangi~packages');
-            $packages = $dao->findByProject($project->id);
+            $packages = $dao->findByProject($this->project->id);
         }
         else
             $packages = null;
-        
         $tpl->assign('packages', $packages);
-        $resp->body->assign('MAIN', $tpl->fetch('packages_list'));
 
-        return $resp;
+        return $this->_finishResponse('packages_list');
     }
     
     /**
     * display details of a package and the list of subpackages
     */
     function details() {
-        $resp = $this->getResponse('html');
-        $tpl = $this->_prepareTpl($resp, 'default.packages.details.title', true);
+        $tpl = $this->_prepareTpl('default.packages.details.title', true);
 
-        $project = $tpl->get('project');
-        $package = $tpl->get('package');
-
-        if (!$package) {
+        if (!$this->package) {
             $tpl->assign('interfaces', null);
             $tpl->assign('classes', null);
             $tpl->assign('functions', null);
@@ -103,143 +135,135 @@ class packagesCtrl extends jController {
         else {
             // Get interfaces
             $dao_classes = jDao::get('rarangi~classes');
-            $interfaces = $dao_classes->findByPackage($project->id, $package->id, 1);
+            $interfaces = $dao_classes->findByPackage($this->project->id, $this->package->id, 1);
             $tpl->assign('interfaces', $interfaces);
             
             // Get classes
-            $classes = $dao_classes->findByPackage($project->id, $package->id, 0);
+            $classes = $dao_classes->findByPackage($this->project->id, $this->package->id, 0);
             $tpl->assign('classes', $classes);
             
             // Get functions
             $dao_functions = jDao::get('rarangi~functions');
-            $functions = $dao_functions->findByPackage($project->id, $package->id);
+            $functions = $dao_functions->findByPackage($this->project->id, $this->package->id);
             $tpl->assign('functions', $functions);
 
             // Get globals
             $dao_globals = jDao::get('rarangi~globals');
-            $globals = $dao_globals->findVariablesByPackage($project->id, $package->id);
+            $globals = $dao_globals->findVariablesByPackage($this->project->id, $this->package->id);
             $tpl->assign('globals', $globals);
 
             // Get defines
-            $defines = $dao_globals->findConstsByPackage($project->id, $package->id);
+            $defines = $dao_globals->findConstsByPackage($this->project->id, $this->package->id);
             $tpl->assign('defines', $defines);
         }
-        $resp->body->assign('MAIN', $tpl->fetch('package_details'));
-        
-        return $resp;
+        return $this->_finishResponse('package_details');
     }
 
     /**
     * display the list of classes of a package
     */
     function classes() {
-        $resp = $this->getResponse('html');
-        $tpl = $this->_prepareTpl($resp, 'default.packages.classes.title', true);
-        
-        $project = $tpl->get('project');
-        $package = $tpl->get('package');
-        
-        if (!$package) {
+        $tpl = $this->_prepareTpl('default.packages.classes.title', true);
+
+        if (!$this->package) {
             $tpl->assign('classes', null);
         } else {
             // Get classes
             $dao_classes = jDao::get('rarangi~classes');
-            $classes = $dao_classes->findByPackage($project->id, $package->id, 0);
+            $classes = $dao_classes->findByPackage($this->project->id, $this->package->id, 0);
             $tpl->assign('classes', $classes);
+            $this->bcItems[] = new breadcrumbItem('Classes',
+                                                    jUrl::get('rarangi_web~packages:classes',
+                                                          array('project'=>$this->project->name,
+                                                                'package'=>$this->package->name)));
         }
         $tpl->assign('forInterfaces', false);
-        $resp->body->assign('MAIN', $tpl->fetch('classes_list'));
-        return $resp;
+        return $this->_finishResponse('classes_list');
     }
 
     /**
     * display the list of interfaces of a package
     */
     function interfaces() {
-        $resp = $this->getResponse('html');
-        $tpl = $this->_prepareTpl($resp, 'default.packages.interfaces.title', true);
+        $tpl = $this->_prepareTpl('default.packages.interfaces.title', true);
 
-        $project = $tpl->get('project');
-        $package = $tpl->get('package');
-
-        if (!$package) {
+        if (!$this->package) {
             $tpl->assign('classes', null);
         } else {
             // Get interfaces
             $dao_classes = jDao::get('rarangi~classes');
-            $interfaces = $dao_classes->findByPackage($project->id, $package->id, 1);
+            $interfaces = $dao_classes->findByPackage($this->project->id, $this->package->id, 1);
             $tpl->assign('interfaces', $interfaces);
+            $this->bcItems[] = new breadcrumbItem('Interfaces',
+                                                    jUrl::get('rarangi_web~packages:interfaces',
+                                                          array('project'=>$this->project->name,
+                                                                'package'=>$this->package->name)));
         }
         $tpl->assign('forInterfaces', true);
-        $resp->body->assign('MAIN', $tpl->fetch('classes_list'));
-        return $resp;
+        return $this->_finishResponse('classes_list');
     }
 
     /**
     * display the list of functions of a package
     */
     function functions() {
-        $resp = $this->getResponse('html');
-        $tpl = $this->_prepareTpl($resp, 'default.packages.functions.title', true);
+        $tpl = $this->_prepareTpl('default.packages.functions.title', true);
 
-        $project = $tpl->get('project');
-        $package = $tpl->get('package');
-
-        if (!$package) {
+        if (!$this->package) {
             $tpl->assign('functions', null);
         } else {
             // Get functions
             $dao_functions = jDao::get('rarangi~functions');
-            $functions = $dao_functions->findByPackage($project->id, $package->id);
+            $functions = $dao_functions->findByPackage($this->project->id, $this->package->id);
             $tpl->assign('functions', $functions);
+            $this->bcItems[] = new breadcrumbItem('Functions',
+                                                    jUrl::get('rarangi_web~packages:functions',
+                                                          array('project'=>$this->project->name,
+                                                                'package'=>$this->package->name)));
         }
-        $resp->body->assign('MAIN', $tpl->fetch('functions_list'));
-        return $resp;
+        return $this->_finishResponse('functions_list');
     }
 
     /**
     * display the list of constants of a package
     */
     function constants() {
-        $resp = $this->getResponse('html');
-        $tpl = $this->_prepareTpl($resp, 'default.packages.constants.title', true);
+        $tpl = $this->_prepareTpl('default.packages.constants.title', true);
 
-        $project = $tpl->get('project');
-        $package = $tpl->get('package');
-
-        if (!$package) {
+        if (!$this->package) {
             $tpl->assign('components', null);
         }
         else {
             $dao_globals = jDao::get('rarangi~globals');
-            $defines = $dao_globals->findConstsByPackage($project->id, $package->id);
+            $defines = $dao_globals->findConstsByPackage($this->project->id, $this->package->id);
             $tpl->assign('components', $defines);
+            $this->bcItems[] = new breadcrumbItem('Constants',
+                                                    jUrl::get('rarangi_web~packages:constants',
+                                                          array('project'=>$this->project->name,
+                                                                'package'=>$this->package->name)));
         }
-        $resp->body->assign('MAIN', $tpl->fetch('package_constants'));
-        return $resp;
+        return $this->_finishResponse('package_constants');
     }
-
 
     /**
     * display the list of globals of a package
     */
     function globals() {
-        $resp = $this->getResponse('html');
-        $tpl = $this->_prepareTpl($resp, 'default.packages.globals.title', true);
+        $tpl = $this->_prepareTpl('default.packages.globals.title', true);
 
-        $project = $tpl->get('project');
-        $package = $tpl->get('package');
-
-        if (!$package) {
+        if (!$this->package) {
             $tpl->assign('components', null);
         }
         else {
             $dao_globals = jDao::get('rarangi~globals');
-            $defines = $dao_globals->findVariablesByPackage($project->id, $package->id);
+            $defines = $dao_globals->findVariablesByPackage($this->project->id, $this->package->id);
             $tpl->assign('components', $defines);
+            $this->bcItems[] = new breadcrumbItem('Globals',
+                                                    jUrl::get('rarangi_web~packages:globals',
+                                                          array('project'=>$this->project->name,
+                                                                'package'=>$this->package->name)));
         }
-        $resp->body->assign('MAIN', $tpl->fetch('package_globals'));
-        return $resp;
+        return $this->_finishResponse('package_globals');
     }
 
 }
