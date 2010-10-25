@@ -31,7 +31,16 @@ class significantUrlInfoParsing {
     }
 
     function getFullSel() {
-        return $this->module.'~'.($this->action?$this->action:'*').'@'.$this->requestType;
+        if ($this->action) {
+            $act = $this->action;
+            if (substr($act,-1) == ':') // this is a rest action
+                // we should add index because jSelectorAct resolve a "ctrl:" as "ctrl:index"
+                // and then create the corresponding selector so url create infos will be found
+                $act .= 'index';
+        }
+        else
+            $act = '*';
+        return $this->module.'~'.$act.'@'.$this->requestType;
     }
 }
 
@@ -353,8 +362,8 @@ class jSignificantUrlsCompiler implements jISimpleCompiler{
      * @return string the correponding regular expression
      */
     protected function extractDynamicParams($url, $regexppath, $u) {
-
-        if (preg_match_all("/\:([a-zA-Z_]+)/", $regexppath, $m, PREG_PATTERN_ORDER)) {
+        $regexppath = preg_quote($regexppath , '!');
+        if (preg_match_all("/\\\:([a-zA-Z_]+)/", $regexppath, $m, PREG_PATTERN_ORDER)) {
             $u->params = $m[1];
 
             foreach ($url->param as $var) {
@@ -386,7 +395,7 @@ class jSignificantUrlsCompiler implements jISimpleCompiler{
                     $regexp = '([^\/]+)';
                 }
 
-                $regexppath = str_replace(':'.$name, $regexp, $regexppath);
+                $regexppath = str_replace('\:'.$name, $regexp, $regexppath);
             }
 
             foreach ($u->params as $k=>$name) {
@@ -394,7 +403,7 @@ class jSignificantUrlsCompiler implements jISimpleCompiler{
                     continue;
                 }
                 $u->escapes[$k] = false;
-                $regexppath = str_replace(':'.$name, '([^\/]+)', $regexppath);
+                $regexppath = str_replace('\:'.$name, '([^\/]+)', $regexppath);
             }
         }
         return $regexppath;

@@ -40,6 +40,8 @@ Olivier Demah (aka FoxMaSk)
  - meta supplementaires (author,generator) (#1063)
  - install jacl2db sans prefix de table (#1119)
  - $ should not be allowed in parameters of dao methods  (#1129)
+ - format of date / hour too permissive (#1046)
+ - missing method groups:setdefault in ursl.xml jacl2db_admin (#1187)
 
 Antoine Detante (aka antoinefr)
  - support of persistant authentification in jAuth and auth plugin (#229)
@@ -174,8 +176,10 @@ Denis Lallement (dlalleme)
 
 Hadrien Lanneau
  - jDateTime::substract() (#623)
+ - jDateTime::isNull() (#1179)
  - bug on jDateTime::now() (#1164)
  - jCrypt : default key in configuration (#1137)
+ - jUrl::getFull() (#1186)
 
 Nicolas Lassalle
  - bug fix in jResponseBinary (#188)
@@ -193,6 +197,8 @@ Yannick Le Guédart (aka Torgan)
  - fixed bug on jBundle (#639)
  - fixed bug on jDaoConditions (#906)
  - created jKVDb (#1048)
+ - fixed bug on jDaoFactoryBase (#1192)
+ - headers on jRequest (#1201)
 
 Kévin Lepeltier (aka Lipki)
  - plugin image for jtpl (#474, #502, #558, #559, #560)
@@ -271,6 +277,7 @@ Brice Tence (aka brayce/bricet)
  - small testapp bug solved about missing tables (#1064)
  - fixed bug in jInstallChecker (#1087)
  - introduced optional jMinifier for jResponseHtml for JS/CSS concatenation and minification (#860)
+ - type attribut on link tag should be optional (#1188)
 
 Christophe Thiriot (aka Doubleface)
  - testor

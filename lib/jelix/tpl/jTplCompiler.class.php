@@ -3,9 +3,10 @@
 * @package     jelix
 * @subpackage  jtpl
 * @author      Laurent Jouanneau
-* @contributor Mathaud Loic (standalone version), Dominique Papin, dsdenes, Thiriot Christophe
+* @contributor Mathaud Loic (standalone version), Dominique Papin, dsdenes, Thiriot Christophe, Julien Issler
 * @copyright   2005-2008 Laurent Jouanneau
 * @copyright   2006 Mathaud Loic, 2007 Dominique Papin, 2009 dsdenes, 2010 Thiriot Christophe
+* @copyright   2010 Julien Issler
 * @link        http://www.jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
@@ -62,22 +63,22 @@ class jTplCompiler
      * tokens allowed in output for variables
      */
     protected $_allowedInVar;
-    
+
     /**
      * tokens allowed into expressions
      */
     protected $_allowedInExpr;
-    
+
     /**
      * tokens allowed into assignements
      */
     protected $_allowedAssign;
-    
+
     /**
      * tokens allowed in foreach statements
      */
     protected $_allowedInForeach;
-    
+
     /**
      * tokens not allowed in variable
      */
@@ -91,7 +92,7 @@ class jTplCompiler
      * list of plugins paths
      */
     private $_pluginPath = array();
-    
+
     private $_metaBody = '';
 
     /**
@@ -112,17 +113,17 @@ class jTplCompiler
      * name of the template file
      */
     private $_sourceFile;
-    
+
     /**
      * current parsed jtpl tag
      */
     private $_currentTag;
-    
+
     /**
      * type of the output
      */
     public $outputType = '';
-    
+
     /**
      * true if the template doesn't come from an untrusted source.
      * if it comes from an untrusted source, like a template uploaded by a user,
@@ -136,7 +137,7 @@ class jTplCompiler
     protected $_userFunctions = array ();
 
     protected $escapePI = false;
-    
+
     protected $removeASPtags = true;
 
     /**
@@ -199,7 +200,7 @@ class jTplCompiler
 
 
     protected function compileContent ($tplcontent) {
-        // we remove all php tags 
+        // we remove all php tags
         $tplcontent = preg_replace("!<\?((?:php|=|\s).*)\?>!s", '', $tplcontent);
         // we remove all template comments
         $tplcontent = preg_replace("!{\*(.*?)\*}!s", '', $tplcontent);
@@ -208,7 +209,7 @@ class jTplCompiler
             $tplcontent = preg_replace_callback("!(<\?.*\?>)!sm", array($this,'_piCallback'), $tplcontent);
         }
         if ($this->removeASPtags) {
-          // we remove all asp tags 
+          // we remove all asp tags
           $tplcontent = preg_replace("!<%.*%>!s", '', $tplcontent);
         }
 
@@ -593,8 +594,11 @@ class jTplCompiler
     }
 
     protected function _parseMeta ($args, $fct = '') {
-        if (preg_match("/^(\w+)\s+(.*)$/", $args, $m)) {
-            $argfct = $this->_parseFinal($m[2], $this->_allowedInExpr);
+        if (preg_match('/^(\w+)(\s+(.*))?$/', $args, $m)) {
+            if(isset($m[3]))
+                $argfct = $this->_parseFinal($m[3], $this->_allowedInExpr);
+            else
+                $argfct = 'null';
             if ($fct != '') {
                 $this->_metaBody.= $fct.'( $t,'."'".$m[1]."',".$argfct.");\n";
             } else {

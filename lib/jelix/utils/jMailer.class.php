@@ -38,7 +38,7 @@ class jMailer extends PHPMailer {
      */
     protected $bodyTpl = '';
 
-    protected $lang;
+    protected $defaultLang;
 
     /**
      * the path of the directory where to store mails
@@ -51,7 +51,7 @@ class jMailer extends PHPMailer {
      */
     function __construct(){
         global $gJConfig;
-        $this->lang = $gJConfig->locale;
+        $this->defaultLang = $gJConfig->locale;
         $this->CharSet = $gJConfig->charset;
         $this->Mailer = $gJConfig->mailer['mailerType'];
         $this->Hostname = $gJConfig->mailer['hostname'];
@@ -67,8 +67,10 @@ class jMailer extends PHPMailer {
         if($gJConfig->mailer['webmasterEmail'] != '') {
             $this->From = $gJConfig->mailer['webmasterEmail'];
         }
+
         $this->FromName = $gJConfig->mailer['webmasterName'];
         $this->filePath = JELIX_APP_VAR_PATH.$gJConfig->mailer['filesDir'];
+        parent::__construct(true);
     }
 
     /**
@@ -86,10 +88,19 @@ class jMailer extends PHPMailer {
      * @param string $address
      * @return array( $name, $address )
      */
-    function getAddrName($address) {
-        preg_match ('`^([^<]*)<([^>]*)>$`', $address, $tab );
-        array_shift($tab);
-        return $tab;
+    function getAddrName($address, $kind = false) {
+        if (preg_match ('`^([^<]*)<([^>]*)>$`', $address, $tab )) {
+            $name = $tab[1];
+            $addr = $tab[2];
+        }
+        else {
+            $name = '';
+            $addr = $address;
+        }
+        if (!$kind) {
+            return array($addr, $name);
+        }
+        $this->AddAnAddress($kind, $addr, $name);
     }
 
     protected $tpl = null;
@@ -115,110 +126,80 @@ class jMailer extends PHPMailer {
      * @return bool
      */
     function Send() {
-        $result = true;
 
-        if( isset($this->bodyTpl) && $this->bodyTpl != "") {
+        if (isset($this->bodyTpl) && $this->bodyTpl != "") {
             if ($this->tpl == null)
                 $this->tpl = new jTpl();
             $mailtpl = $this->tpl;
             $metas = $mailtpl->meta( $this->bodyTpl , ($this->ContentType == 'text/html'?'html':'text') );
 
-            if( isset($metas['Subject']) )
+            if (isset($metas['Subject']))
                 $this->Subject = $metas['Subject'];
 
-            if( isset($metas['Priority']) )
+            if (isset($metas['Priority']))
                 $this->Priority = $metas['Priority'];
             $mailtpl->assign('Priority', $this->Priority );
 
-            if( isset($metas['From']) ) {
-                $adr = $this->getAddrName( $metas['From'] );
-                $this->From = $adr[1];
-                $this->FromName = $adr[0];
-            }
-            $mailtpl->assign('From', $this->From );
-            $mailtpl->assign('FromName', $this->FromName );
-
-            if( isset($metas['Sender']) )
+            if (isset($metas['Sender']))
                 $this->Sender = $metas['Sender'];
             $mailtpl->assign('Sender', $this->Sender );
 
-            if( isset($metas['to']) )
+            if (isset($metas['to']))
                 foreach( $metas['to'] as $val )
-                    $this->to[] = $this->getAddrName( $val );
+                    $this->getAddrName( $val, 'to' );
             $mailtpl->assign('to', $this->to );
 
-            if( isset($metas['cc']) )
+            if (isset($metas['cc']))
                 foreach( $metas['cc'] as $val )
-                    $this->cc[] = $this->getAddrName( $val );
+                    $this->getAddrName($val, 'cc');
             $mailtpl->assign('cc', $this->cc );
 
-            if( isset($metas['bcc']) )
+            if (isset($metas['bcc']))
                 foreach( $metas['bcc'] as $val )
-                    $this->bcc[] = $this->getAddrName( $val );
-            $mailtpl->assign('bcc', $this->bcc );
+                    $this->getAddrName($val, 'bcc');
+            $mailtpl->assign('bcc', $this->bcc);
 
-            if( isset($metas['ReplyTo']) )
+            if (isset($metas['ReplyTo']))
                 foreach( $metas['ReplyTo'] as $val )
-                    $this->ReplyTo[] = $this->getAddrName( $val );
+                    $this->getAddrName($val, 'ReplyTo');
             $mailtpl->assign('ReplyTo', $this->ReplyTo );
 
-            $this->Body = $mailtpl->fetch( $this->bodyTpl, ($this->ContentType == 'text/html'?'html':'text'));
+            if (isset($metas['From'])) {
+                $adr = $this->getAddrName($metas['From']);
+                $this->SetFrom($adr[1], $adr[0]);
+            }
+
+            $mailtpl->assign('From', $this->From );
+            $mailtpl->assign('FromName', $this->FromName );
+
+            if ($this->ContentType == 'text/html') {
+                $this->MsgHTML($mailtpl->fetch( $this->bodyTpl, 'html'));
+            }
+            else
+                $this->Body = $mailtpl->fetch( $this->bodyTpl, 'text');
         }
 
-        // following lines are copied from the orginal file 
-        
-        if((count($this->to) + count($this->cc) + count($this->bcc)) < 1) {
-          $this->SetError($this->Lang('provide_address'));
-          return false;
-        }
-    
-        /* Set whether the message is multipart/alternative */
-        if(!empty($this->AltBody)) {
-          $this->ContentType = 'multipart/alternative';
-        }
-    
-        $this->error_count = 0; // reset errors
-        $this->SetMessageType();
+        return parent::Send();
+    }
+
+    public function CreateHeader() {
         if ($this->Mailer == 'file') {
             // to have all headers in the file, like cc, bcc...
             $this->Mailer = 'sendmail';
-            $header = $this->CreateHeader();
+            $headers = parent::CreateHeader();
             $this->Mailer = 'file';
+            return $headers;
         }
         else
-            $header = $this->CreateHeader();
-        $body = $this->CreateBody();
-    
-        if($body == '') {
-          return false;
-        }
-    
-        /* Choose the mailer */
-        switch($this->Mailer) {
-          case 'sendmail':
-            $result = $this->SendmailSend($header, $body);
-            break;
-          case 'smtp':
-            $result = $this->SmtpSend($header, $body);
-            break;
-          case 'file':
-            $result = $this->FileSend($header, $body);
-            break;
-          case 'mail':
-          default:
-            $result = $this->MailSend($header, $body);
-            break;
-        }
-    
-        return $result;
+            return parent::CreateHeader();
     }
-    
+
     /**
      * store mail in file instead of sending it
      * @access public
      * @return bool
      */
-    public function FileSend($header, $body) {
+    protected function FileSend($header, $body) {
         return jFile::write ($this->getStorageFile(), $header.$body);
     }
     
@@ -226,45 +207,19 @@ class jMailer extends PHPMailer {
         return rtrim($this->filePath,'/').'/mail.'.$GLOBALS['gJCoord']->request->getIP().'-'.date('Ymd-His').'-'.uniqid(mt_rand(), true);
     }
 
-    function SetLanguage($lang_type = 'en_EN', $lang_path = 'language/') {
-        $this->lang = $lang_type;
+    function SetLanguage($lang_type = 'en', $lang_path = 'language/') {
+        $lang = explode('_', $lang_type);
+        return parent::SetLanguage($lang[0], $lang_path);
     }
 
-    protected function SetError($msg) {
-        if (preg_match("/^([^#]*)#([^#]+)#(.*)$/", $msg, $m)) {
-            $arg = null;
-            if($m[1] != '')
-                $arg = $m[1];
-            if($m[3] != '')
-                $arg = $m[3];
-            if(strpos($m[2], 'WARNING:') !== false) {
-                $locale = 'jelix~errors.mail.'.substr($m[2],8);
-                if($arg !== null)
-                    parent::SetError(jLocale::get($locale, $arg, $this->lang, $this->CharSet));
-                else
-                    parent::SetError(jLocale::get($locale, array(), $this->lang, $this->CharSet));
-                return;
-            }
-            $locale = 'jelix~errors.mail.'.$m[2];
-            if ($arg !== null) {
-                throw new jException($locale, $arg, 1, $this->lang, $this->CharSet);
-            }
-            else
-                throw new jException($locale, array(), 1, $this->lang, $this->CharSet);
-        }
-        else {
-            throw new Exception($msg);
-        }
-    }
-
-    /**
-    * @return string
-    */
     protected function Lang($key) {
-        if($key == 'tls' || $key == 'authenticate')
-            $key = 'WARNING:'.$key;
-        return '#'.$key.'#';
+      if(count($this->language) < 1) {
+        $this->SetLanguage($this->defaultLang); // set the default language
+      }
+      if(isset($this->language[$key])) {
+        return $this->language[$key];
+      } else {
+        return 'Language string failed to load: ' . $key;
+      }
     }
 }
-
-

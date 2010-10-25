@@ -1,0 +1,21 @@
+
+.jmenulist {
+	min-height:1.5em;
+	list-style: none;
+	position: relative;
+	z-index: 800;
+}
+.jmenulist ul { 
+	position: absolute;
+	display: none;
+	float: left;
+	width: 180px;
+	list-style: none;
+}
+.jmenulist ul ul { 
+	margin-left:150px;
+	margin-top: 1em;
+}
+.jmenulist >li {
+	float:left;
+}

@@ -86,7 +86,7 @@ class dbprofileWizPage extends installWizardPage {
             if(substr($driver, -4) == '_pdo') {
                 $ini->setValue('usepdo', true, $profile);
                 $usepdo =true;
-                $realdriver = subst($driver, 0, -4);
+                $realdriver = substr($driver, 0, -4);
             }
             else {
                 $ini->removeValue('usepdo', $profile);
@@ -105,7 +105,7 @@ class dbprofileWizPage extends installWizardPage {
             else
                 $ini->removeValue('force_encoding', $profile);
 
-            $ini->setValue('prefix', $_POST['prefix'][$profile], $profile);
+            $ini->setValue('table_prefix', $_POST['table_prefix'][$profile], $profile);
 
             $database = trim($_POST['database'][$profile]);
             if ($database == '') {
@@ -201,6 +201,7 @@ user=
 password=
 persistent = on
 force_encoding = on
+table_prefix=
 ");
         }
 
@@ -214,7 +215,7 @@ force_encoding = on
             'password'=>array(),
             'passwordconfirm'=>array(),
             'persistent'=>array(),
-            'prefix'=>array(),
+            'table_prefix'=>array(),
             'force_encoding'=>array(),
         );
 
@@ -251,7 +252,7 @@ force_encoding = on
             $data['passwordconfirm'][$profile] = $data['password'][$profile];
             $data['persistent'][$profile] = $ini->getValue('persistent', $profile);
             $data['force_encoding'][$profile] = $ini->getValue('force_encoding', $profile);
-            $data['prefix'][$profile] = $ini->getValue('prefix', $profile);
+            $data['table_prefix'][$profile] = $ini->getValue('table_prefix', $profile);
             $data['errors'][$profile] = array();
         }
 
