@@ -5,7 +5,7 @@
 * @author    Laurent Jouanneau
 * @contributor    Loic Mathaud
 * @copyright 2008 Laurent Jouanneau, 2009 Loic Mathaud
-* @link      http://forge.jelix.org/projects/rarangi/
+* @link      http://rarangi.org
 * @licence   GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 class defaultCtrl extends jController {

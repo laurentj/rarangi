@@ -1,5 +1,6 @@
 <div id="header">
     <div id="help-links">
+        <a href="{jurl 'rarangi_web~default:index'}" title="">{@main~default.helplinks.home@}</a> |
         <a href="{jurl 'main~default:help'}" title="">{@main~default.helplinks.help@}</a> |
         <a href="{jurl 'main~default:about'}" title="">{@main~default.helplinks.about@}</a>
     </div>

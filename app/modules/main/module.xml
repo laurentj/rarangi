@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module xmlns="http://jelix.org/ns/module/1.0">
-    <info id="main@yourwebsite.undefined" name="main" createdate="2010-09-26">
-        <version>0.1pre</version>
-        <label lang="en_EN">main</label>
+    <info id="rarangiapp@rarangi.org" name="main" createdate="2010-09-26">
+        <version>0.0.9</version>
+        <label lang="en_EN">Default interface for Rarangi</label>
         <description lang="en_EN" />
-        <license URL="">All right reserved</license>
-        <copyright>2010 yourname</copyright>
-        <creator name="yourname" email="youremail@yourwebsite.undefined" active="true"/>
+        <license URL="http://www.gnu.org/licenses/gpl.html">GNU General Public Licence</license>
+        <copyright>2010 Laurent Jouanneau</copyright>
+        <creator name="Laurent Jouanneau" email="laurent@jelix.org" active="true"/>
         <!--<contributor name="hisname" email="hisemail@yoursite.undefined" active="true" since="" role=""/>-->
-        <homepageURL>http://www.yourwebsite.undefined</homepageURL>
+        <homepageURL>http://rarangi.org</homepageURL>
         <!--<updateURL>http://www.yourwebsite.undefined/update.xml</updateURL>-->
     </info>
     <dependencies>
-        <jelix minversion="1.2pre.1649" maxversion="1.2pre.*"/>
+        <jelix minversion="1.2pre.1649" maxversion="1.2.*"/>
+        <module name="rarangi_web" />
     </dependencies>
 </module>

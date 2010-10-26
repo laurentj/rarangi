@@ -1,13 +1,12 @@
 <?php
-/**
-* @package   app
-* @subpackage main
-* @author    yourname
-* @copyright 2010 yourname
-* @link      http://www.yourwebsite.undefined
-* @license    All right reserved
+/*
+* @package   rarangi
+* @subpackage main.module
+* @author    Laurent Jouanneau
+* @copyright 2010 Laurent Jouanneau
+* @link      http://rarangi.org
+* @licence   GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
-
 
 class mainModuleInstaller extends jInstallerModule {
 

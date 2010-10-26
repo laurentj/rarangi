@@ -1,4 +1,4 @@
-; --- build date:  2010-10-25 12:54
+; --- build date:  2010-10-26 10:59
 ; --- lib version: 1.2RC1
 PHP_VERSION_TARGET=5.2
 EDITION_NAME=

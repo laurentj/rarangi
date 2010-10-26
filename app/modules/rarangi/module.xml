@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module xmlns="http://jelix.org/ns/module/1.0">
-    <info id="rarangi-module@forge.jelix.org" name="rarangi" createdate="2008-11-25">
-        <version stability="pre-alpha" date="">0.0.4</version>
-        <label lang="en_EN">Rarangi</label>
+    <info id="rarangi@rarangi.org" name="rarangi" createdate="2008-11-25">
+        <version>0.0.9</version>
+        <label lang="en_EN">Rarangi engine</label>
         <description lang="en_EN"/>
         <licence URL="http://www.gnu.org/licenses/gpl.html">GNU General Public Licence</licence>
         <copyright>2008-2010 Laurent Jouanneau</copyright>
         <creator name="Laurent Jouanneau" email="laurent@jelix.org" active="true"/>
-        <!--<contributor name="hisname" email="hisemail@yoursite.undefined" active="true" since="" role=""/>-->
-        <homepageURL>http://bitbucket.org/laurentj/rarangi</homepageURL>
-        <!--<updateURL>http://www.yourwebsite.undefined/update.xml</updateURL>-->
+        <homepageURL>http://rarangi.org</homepageURL>
     </info>
     <dependencies>
-        <jelix minversion="1.2pre.1529" maxversion="1.2"/>
+        <jelix minversion="1.2pre.1529" maxversion="1.2.*"/>
     </dependencies>
 </module>

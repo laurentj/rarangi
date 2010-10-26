@@ -5,7 +5,7 @@
 * @author    Loic Mathaud <loic@mathaud.net>
 * @contributor Laurent Jouanneau
 * @copyright 2008 Loic Mathaud, 2010 Laurent Jouanneau
-* @link      http://forge.jelix.org/projects/rarangi/
+* @link      http://rarangi.org
 * @licence    GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 

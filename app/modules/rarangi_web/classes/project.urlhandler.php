@@ -4,7 +4,7 @@
 * @author      Laurent Jouanneau
 * @contributor
 * @copyright   2008 Laurent Jouanneau
-* @link        http://forge.jelix.org/projects/rarangi/
+* @link        http://rarangi.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 class projectUrlsHandler implements jIUrlSignificantHandler {
