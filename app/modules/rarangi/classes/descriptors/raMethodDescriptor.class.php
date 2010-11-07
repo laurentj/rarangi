@@ -13,7 +13,7 @@
  */
 class raMethodDescriptor  extends raBaseDescriptor {
 
-    public $name;
+    public $name = '';
     
     public $classId = null;
 
@@ -25,11 +25,20 @@ class raMethodDescriptor  extends raBaseDescriptor {
 
     public $isAbstract = false;
 
+    /**
+     * informations of parameters readed into the doc comment
+     */
     public $docParameters = array();
     
-    protected $currentParam = '';
-    
+    /**
+     * informations of parameters readed into the php declaration
+     * of the function/method. It may also contain informations
+     * from docParameters. Filled by the function parser.
+     * @see raPHPFunctionParser
+     */
     public $parameters = array();
+    
+    protected $currentParam = '';
 
     public $returnType=array();
     

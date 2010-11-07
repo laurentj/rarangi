@@ -495,5 +495,82 @@ lorem ipsum',
 
     }
 
+
+    function testParam() {
+        $desc = new raMethodDescriptor($this->project, 1, 1);
+        $this->logger->clear();
+                $c = '/**
+     * return the possible values of the right on the given subject (and on the optional resource)
+     * @param string $subject the key of the subject
+     * @param string|integer $resource the id of a resource
+     * @return array list of values corresponding to the right
+     */';
+        $desc->initFromPhpDoc($c);
+
+        // common properties
+        $this->assertEqual($desc->shortDescription, 'return the possible values of the right on the given subject (and on the optional resource)');
+        $this->assertEqual($desc->description, '');
+        $this->assertEqual($desc->package, '_unknown');
+        $this->assertEqual($desc->authors, array());
+        $this->assertEqual($desc->contributors, array());
+        $this->assertEqual($desc->copyright, '');
+        $this->assertFalse($desc->isDeprecated);
+        $this->assertEqual($desc->deprecated, '');
+        $this->assertFalse($desc->experimental);
+        $this->assertFalse($desc->ignore);
+        $this->assertEqual($desc->internal, '');
+        $this->assertEqual($desc->links, array());
+        $this->assertEqual($desc->see, array());
+        $this->assertEqual($desc->uses, array());
+        $this->assertEqual($desc->since, '');
+        $this->assertEqual($desc->changelog, array());
+        $this->assertEqual($desc->todo, '');
+        $this->assertEqual($desc->userTags, array());
+        $this->assertEqual($desc->licenseLink, '');
+        $this->assertEqual($desc->licenseLabel, '');
+        $this->assertEqual($desc->licenseText, '');
+
+        $this->assertEqual($desc->name, '');
+        $this->assertEqual($desc->accessibility, T_PUBLIC);
+        $this->assertFalse($desc->isStatic);
+        $this->assertFalse($desc->isFinal);
+        $this->assertFalse($desc->isAbstract);
+        $this->assertEqual($desc->docParameters, array('subject'=>array(array('string'), 'the key of the subject'),
+                                                       'resource'=>array(array('string', 'integer'), 'the id of a resource')));
+        $this->assertEqual($desc->parameters, array());
+        $this->assertEqual($desc->returnType, array('array'));
+        $this->assertEqual($desc->returnDescription, 'list of values corresponding to the right');
+
+    }
+
 }
-?>
+
+
+/*
+        // common properties
+        $this->assertEqual($desc->shortDescription, '');
+        $this->assertEqual($desc->description, '');
+        $this->assertEqual($desc->package, '_unknown');
+        $this->assertEqual($desc->authors, array());
+        $this->assertEqual($desc->contributors, array());
+        $this->assertEqual($desc->copyright, '');
+        $this->assertFalse($desc->isDeprecated);
+        $this->assertEqual($desc->deprecated, '');
+        $this->assertFalse($desc->experimental);
+        $this->assertFalse($desc->ignore);
+        $this->assertEqual($desc->internal, '');
+        $this->assertEqual($desc->links, array());
+        $this->assertEqual($desc->see, array());
+        $this->assertEqual($desc->uses, array());
+        $this->assertEqual($desc->since, '');
+        $this->assertEqual($desc->changelog, array());
+        $this->assertEqual($desc->todo, '');
+        $this->assertEqual($desc->userTags, array());
+        $this->assertEqual($desc->licenseLink, '');
+        $this->assertEqual($desc->licenseLabel, '');
+        $this->assertEqual($desc->licenseText, '');
+        $this->assertEqual($desc->project, null);
+        $this->assertEqual($desc->fileId, null);
+        $this->assertEqual($desc->line, 0);
+        $this->assertEqual($desc->lineEnd, 0);
+*/
