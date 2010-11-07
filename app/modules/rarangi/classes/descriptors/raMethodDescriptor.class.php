@@ -69,6 +69,7 @@ class raMethodDescriptor  extends raBaseDescriptor {
                 $this->currentParam = '';
                 $this->project->logger()->warning('@param, invalid arguments: '.$content);
             }
+            return true;
         }
         return false;
     }
@@ -78,8 +79,10 @@ class raMethodDescriptor  extends raBaseDescriptor {
             $this->returnDescription .=  "\n".$content;
             return true;
         }
-        elseif ($tag == 'param' && $this->currentParam) {
-            $this->docParameters[$this->currentParam][1].="\n".$content;
+        elseif ($tag == 'param') {
+            if ($this->currentParam)
+                $this->docParameters[$this->currentParam][1].="\n".$content;
+            return true;
         }
         return false;
     }

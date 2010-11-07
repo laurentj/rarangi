@@ -382,6 +382,8 @@ class raBaseDescriptor {
                     case 'uses':
                     case 'since':
                     case 'experimental':
+                    case 'author':
+                    case 'contributor':
                         break;
 
                     default:
@@ -553,30 +555,6 @@ class raBaseDescriptor {
             else
                 $this->contributors[] = array($author, $email);
         }
-/*
-            if (trim($p) == '') {
-                continue;
-            }
-            if (preg_match('/^([^\<\(]+)?(?:\<([^\>]*)\>)?(.*)$/', $p, $m)) {
-                $n = trim($m[1]);
-                $e = (isset($m[2])?trim($m[2]):'');
-                if ($n == '') {
-                    $n = $e;
-                }
-                if (isset($m[3]) && $m[3] != '') {
-                    if ($m[3][0] == '<')
-                        $this->project->logger()->warning("@$tag: invalid value '$p'");
-                    else
-                        $this->project->logger()->notice("@$tag: a part of the tag is ignored (".$m[3].")");
-                }
-            }
-            else {
-                $this->project->logger()->warning("@$tag: invalid value '$p'");
-                $n = $p;
-                $e = '';
-            }
-
-        }*/
     }
     
     
