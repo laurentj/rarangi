@@ -2,7 +2,7 @@
 /**
 * @package    jelix
 * @subpackage jtpl_plugin
-* @author     Mickael Fradin aka kewix
+* @author     Mickael Fradin
 * @contributor Laurent Jouanneau
 * @copyright  2009 Mickael Fradin
 * @link       http://www.jelix.org
@@ -15,7 +15,7 @@
  * @param jTpl $tpl template engine
  * @param string $selector selector action
  * @param array $params parameters for the url
- * @param string domain name, false if you want to use the config domain name or the server name
+ * @param string $domain domain name, false if you want to use the config domain name or the server name
  */
 function jtpl_function_text_jfullurl($tpl, $selector, $params=array(), $domain=false) {
     echo jUrl::getFull($selector, $params, 0, $domain);

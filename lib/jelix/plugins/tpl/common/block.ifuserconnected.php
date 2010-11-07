@@ -2,9 +2,9 @@
 /**
 * @package     jelix
 * @subpackage  jtpl_plugin
-* @author      Jouanneau Laurent
+* @author      Laurent Jouanneau
 * @contributor Dominique Papin
-* @copyright   2006 Jouanneau laurent
+* @copyright   2006 Laurent Jouanneau
 * @copyright   2007 Dominique Papin
 * @link        http://www.jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
@@ -15,7 +15,7 @@
  *
  * <pre>{ifuserconnected} ..here generated content if the user is connected  {/ifuserconnected}</pre>
  * @param jTplCompiler $compiler the template compiler
- * @param boolean true if it is the begin of block, else false
+ * @param boolean $begin true if it is the begin of block, else false
  * @param array $params no parameters. array should be empty
  * @return string the php code corresponding to the begin or end of the block
  */

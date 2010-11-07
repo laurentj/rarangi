@@ -2,9 +2,9 @@
 /**
  * @package     jelix
  * @subpackage  utils
- * @author      Christophe THIRIOT
+ * @author      Christophe Thiriot
  * @contributor Laurent Jouanneau
- * @copyright   2008 Christophe THIRIOT, 2008-2010 Laurent Jouanneau
+ * @copyright   2008 Christophe Thiriot, 2008-2010 Laurent Jouanneau
  * @link        http://www.jelix.org
  * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
  * @since 1.1
@@ -36,7 +36,7 @@ class jClassBinding {
 
     /**
      * __constructor
-     * @param jSelectorIface|jSelectorClass
+     * @param jSelectorIface|jSelectorClass $selector the selector of the class
      * @return void
      */
     public function __construct($selector) {

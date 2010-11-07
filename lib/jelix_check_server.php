@@ -20,7 +20,6 @@
 * @package     jelix
 * @subpackage  installer
 * @author      Laurent Jouanneau
-* @contributor 
 * @copyright   2008-2009 Laurent Jouanneau
 * @link        http://jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
@@ -81,20 +80,20 @@ class jInstallerMessageProvider {
 
     protected $messages = array(
         'fr'=>array(
-     'checker.title'=>'Vérification de votre serveur pour Jelix 1.2RC1',
+     'checker.title'=>'Vérification de votre serveur pour Jelix 1.2RC2.1713',
         'number.errors'         =>' erreurs.',
         'number.error'          =>' erreur.',
         'number.warnings'       =>' avertissements.',
         'number.warning'        =>' avertissement.',
         'number.notices'        =>' remarques.',
         'number.notice'         =>' remarque.',
-    'conclusion.error'      =>'Vous devez corriger l\'erreur pour faire fonctionner correctement une application Jelix 1.2RC1.',
-    'conclusion.errors'     =>'Vous devez corriger les erreurs pour faire fonctionner correctement une application Jelix 1.2RC1.',
-    'conclusion.warning'    =>'Une application Jelix 1.2RC1 peut à priori fonctionner, mais il est préférable de corriger l\'avertissement pour être sûr.',
-    'conclusion.warnings'   =>'Une application Jelix 1.2RC1 peut à priori fonctionner, mais il est préférable de corriger les avertissements pour être sûr.',
-    'conclusion.notice'     =>'Aucun problème pour installer une application pour Jelix  1.2RC1 malgré la remarque.',
-    'conclusion.notices'    =>'Aucun problème pour installer une application pour Jelix  1.2RC1 malgré les remarques.',
-    'conclusion.ok'         =>'Vous pouvez installer une application avec Jelix 1.2RC1',
+    'conclusion.error'      =>'Vous devez corriger l\'erreur pour faire fonctionner correctement une application Jelix 1.2RC2.1713.',
+    'conclusion.errors'     =>'Vous devez corriger les erreurs pour faire fonctionner correctement une application Jelix 1.2RC2.1713.',
+    'conclusion.warning'    =>'Une application Jelix 1.2RC2.1713 peut à priori fonctionner, mais il est préférable de corriger l\'avertissement pour être sûr.',
+    'conclusion.warnings'   =>'Une application Jelix 1.2RC2.1713 peut à priori fonctionner, mais il est préférable de corriger les avertissements pour être sûr.',
+    'conclusion.notice'     =>'Aucun problème pour installer une application pour Jelix  1.2RC2.1713 malgré la remarque.',
+    'conclusion.notices'    =>'Aucun problème pour installer une application pour Jelix  1.2RC2.1713 malgré les remarques.',
+    'conclusion.ok'         =>'Vous pouvez installer une application avec Jelix 1.2RC2.1713',
         'cannot.continue'       =>'Les vérifications ne peuvent continuer : %s',
         'extension.not.installed'=>'L\'extension %s n\'est pas disponible',
         'extension.optional.not.installed'=>'L\'extension %s optionnelle n\'est pas disponible',
@@ -162,20 +161,20 @@ class jInstallerMessageProvider {
         ),
 
         'en'=>array(
-  'checker.title'   =>'Check your configuration server for Jelix 1.2RC1',
+  'checker.title'   =>'Check your configuration server for Jelix 1.2RC2.1713',
         'number.errors'     =>' errors.',
         'number.error'      =>' error.',
         'number.warnings'   =>' warnings.',
         'number.warning'    =>' warning.',
         'number.notices'    =>' notices.',
         'number.notice'     =>' notice.',
-      'conclusion.error'    =>'You must fix the error in order to run an application correctly with Jelix 1.2RC1.',
-      'conclusion.errors'   =>'You must fix errors in order to run an application correctly with Jelix 1.2RC1.',
-      'conclusion.warning'  =>'Your application for Jelix 1.2RC1 may run without problems, but it is recommanded to fix the warning.',
-      'conclusion.warnings' =>'Your application for Jelix 1.2RC1 may run without problems, but it is recommanded to fix warnings.',
-      'conclusion.notice'   =>'You can install an application for Jelix 1.2RC1, although there is a notice.',
-      'conclusion.notices'  =>'You can install an application for Jelix 1.2RC1, although there are notices.',
-      'conclusion.ok'       =>'You can install an application for Jelix 1.2RC1.',
+      'conclusion.error'    =>'You must fix the error in order to run an application correctly with Jelix 1.2RC2.1713.',
+      'conclusion.errors'   =>'You must fix errors in order to run an application correctly with Jelix 1.2RC2.1713.',
+      'conclusion.warning'  =>'Your application for Jelix 1.2RC2.1713 may run without problems, but it is recommanded to fix the warning.',
+      'conclusion.warnings' =>'Your application for Jelix 1.2RC2.1713 may run without problems, but it is recommanded to fix warnings.',
+      'conclusion.notice'   =>'You can install an application for Jelix 1.2RC2.1713, although there is a notice.',
+      'conclusion.notices'  =>'You can install an application for Jelix 1.2RC2.1713, although there are notices.',
+      'conclusion.ok'       =>'You can install an application for Jelix 1.2RC2.1713.',
         'cannot.continue'       =>'Cannot continue the checking: %s',
         'extension.not.installed'=>'The extension %s is not available',
         'extension.optional.not.installed'=>'the optional extension %s is not available',

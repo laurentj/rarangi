@@ -3,7 +3,6 @@
 * @package    jelix
 * @subpackage dao
 * @author      Laurent Jouanneau
-* @contributor
 * @copyright   2005-2009 Laurent Jouanneau
 * Idea of this class was get originally from the Copix project
 * (CopixDaoCompiler, Copix 2.3dev20050901, http://www.copix.org)

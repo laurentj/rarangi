@@ -3,7 +3,6 @@
 * @package     jelix
 * @subpackage  installer
 * @author      Laurent Jouanneau
-* @contributor 
 * @copyright   2008-2010 Laurent Jouanneau
 * @link        http://www.jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
@@ -181,6 +180,9 @@ class jInstallerComponentModule extends jInstallerComponentBase {
         foreach($this->moduleUpgraders as $upgrader) {
 
             if (jVersionComparator::compareVersion($this->moduleInfos[$epId]->version, $upgrader->version) >= 0 ) {
+                continue;
+            }
+            if (jVersionComparator::compareVersion($this->sourceVersion, $upgrader->version) < 0 ) {
                 continue;
             }
 

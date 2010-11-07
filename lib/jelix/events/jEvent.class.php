@@ -2,8 +2,8 @@
 /**
 * @package     jelix
 * @subpackage  events
-* @author      Croes Gérald, Patrice Ferlet
-* @contributor Laurent Jouanneau, Dominique Papin, Catsoup
+* @author      Gérald Croes, Patrice Ferlet
+* @contributor Laurent Jouanneau, Dominique Papin, Steven Jehannet
 * @copyright 2001-2005 CopixTeam, 2005-2009 Laurent Jouanneau, 2009 Dominique Papin
 * This classes were get originally from the Copix project
 * (CopixEvent*, CopixListener* from Copix 2.3dev20050901, http://www.copix.org)
@@ -118,7 +118,7 @@ class jEvent {
 
     /**
     * send a notification to all modules
-    * @param $event string   the event name
+    * @param string $event the event name
     * @return jEvent
     */
     public static function notify ($eventname, $params=array()) {
