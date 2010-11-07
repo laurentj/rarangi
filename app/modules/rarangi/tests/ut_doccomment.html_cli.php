@@ -266,7 +266,7 @@ class ut_doccomment extends jUnitTestCase {
             $this->dump($log['error'],'raLogger::error');
         if(!$this->assertEqual(count($log['warning']),0))
             $this->dump($log['warning'],'raLogger::warning');
-        if(!$this->assertEqual(count($log['notice']),3))
+        if(!$this->assertEqual(count($log['notice']),0))
             $this->dump($log['notice'],'raLogger::notice');
 
         $this->logger->clear();
@@ -276,7 +276,7 @@ class ut_doccomment extends jUnitTestCase {
 */';
         $desc->initFromPhpDoc($c);
         $this->assertEqual($desc->authors,array(
-                        array('laurent','')
+                        array('laurent','toto4@truc.local')
                         ));
         $log = $this->logger->getLog();
         if(!$this->assertEqual(count($log['error']),0))
@@ -285,6 +285,30 @@ class ut_doccomment extends jUnitTestCase {
             $this->dump($log['warning'],'raLogger::warning');
         if(!$this->assertEqual(count($log['notice']),0))
             $this->dump($log['notice'],'raLogger::notice');
+
+        $this->logger->clear();
+        $desc->authors = array();
+        $c = '/**
+* @author laurent ( contributed on cc, bcc, and other things)
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->authors,array(
+                        array('laurent',''),
+                        ));
+        $this->assertTrue($this->checkLogEmpty());
+
+        $this->logger->clear();
+        $desc->authors = array();
+        $c = '/**
+* @author laurent ( contributed on cc, bcc, and other things), loic <tutt@machin.local> (yes, no)
+*/';
+        $desc->initFromPhpDoc($c);
+        $this->assertEqual($desc->authors,array(
+                        array('laurent',''),
+                        array('loic','tutt@machin.local'),
+                        ));
+        $this->assertTrue($this->checkLogEmpty());
+
 
     }
     

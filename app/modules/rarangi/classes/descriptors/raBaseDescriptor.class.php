@@ -485,8 +485,75 @@ class raBaseDescriptor {
             $this->project->logger()->notice("@$tag is ignored because it is empty");
             return;
         }
-        $people = explode(",", $content);
-        foreach ($people as $p) {
+        $parts = preg_split("/([\<\>\,\(\)])/", $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+        $partType = 0; // 0=name, 1= email, 2 = comment
+        
+        $author = '';
+        $email = '';
+        $comment = '';
+
+        foreach ($parts as $p) {
+            if ($p == '')
+                continue;
+            switch ($partType) {
+                case 0:
+                case 3:
+                    if ($p == '<')
+                        $partType = 1;
+                    else if ($p == '(')
+                        $partType = 2;
+                    else if ($p == ',') {
+                        $author = trim($author);
+                        if ($author == '') {
+                            if ($email == '')
+                                break;
+                            $author = $email;
+                        }
+
+                        if ($tag == 'author')
+                            $this->authors[] = array($author,$email);
+                        else
+                            $this->contributors[] = array($author, $email);
+                        $author = $email = '';
+                        $partType = 0;
+                    }
+                    else if ($partType == 0) {
+                        $author .= $p;
+                    }
+                    break;
+                case 1: // email
+                    if ($p == '>')
+                        $partType = 3;
+                    else if ($p == '<' || $p == '(' || $p == ')' || $p == ',') {
+                        $this->project->logger()->warning("@$tag: invalid character in email '$p'");
+                        $email .= $p;
+                    }
+                    else
+                        $email .= $p;
+                    break;
+                case 2: //comment
+                    if ($p == ')')
+                        $partType = 3;
+                    break;
+                
+            }
+        }
+
+        if ($partType == 1 || $partType == 2) {
+            $this->project->logger()->warning("@$tag: invalid syntax. > or ) is missing");
+        }
+
+        $author = trim($author);
+        if ( $author != '' || trim ($email) != '') {
+            if ($author == '')
+                $author = $email;
+            if ($tag == 'author')
+                $this->authors[] = array($author,$email);
+            else
+                $this->contributors[] = array($author, $email);
+        }
+/*
             if (trim($p) == '') {
                 continue;
             }
@@ -508,11 +575,8 @@ class raBaseDescriptor {
                 $n = $p;
                 $e = '';
             }
-            if ($tag == 'author')
-                $this->authors[] = array($n,$e);
-            else
-                $this->contributors[] = array($n,$e);
-        }
+
+        }*/
     }
     
     
