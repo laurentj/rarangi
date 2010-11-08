@@ -20,7 +20,7 @@ class projectUrlsHandler implements jIUrlSignificantHandler {
             $urlact->setParam('project',$match[1]);
             $GLOBALS['currentproject'] = $project;
 
-            if($match[3] == '') {
+            if(!isset($match[3]) || $match[3] == '') {
                 $urlact->setParam('action', 'default:project');
                 return $urlact;
             }
