@@ -3,9 +3,10 @@
 * @package     jelix
 * @subpackage  acl
 * @author      Laurent Jouanneau
-* @contributor Julien Issler
+* @contributor Julien Issler, Vincent Viaud
 * @copyright   2006-2010 Laurent Jouanneau
 * @copyright   2009 Julien Issler
+* @copyright   2011 Vincent Viaud
 * @link        http://www.jelix.org
 * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 * @since 1.1
@@ -27,39 +28,40 @@ class jAcl2DbUserGroup {
 
     /**
      * Says if the current user is a member of the given user group
-     * @param int $groupid The id of a group
+     * @param string $groupid The id of a group
      * @return boolean true if it's ok
      */
     public static function isMemberOfGroup ($groupid){
         return in_array($groupid, self::getGroups());
     }
 
+    protected static $groups = null;
+
     /**
      * retrieve the list of group the current user is member of
      * @return array list of group id
      */
     public static function getGroups(){
-        static $groups = null;
-
         if(!jAuth::isConnected())
             return array();
 
         // chargement des groupes
-        if($groups === null){
+        if(self::$groups === null){
             $gp = jDao::get('jacl2db~jacl2usergroup', 'jacl2_profile')
                     ->getGroupsUser(jAuth::getUserSession()->login);
-            $groups = array();
+            self::$groups = array();
             foreach($gp as $g){
-                $groups[]=intval($g->id_aclgrp);
+                self::$groups[] = $g->id_aclgrp;
             }
+
         }
-        return $groups;
+        return self::$groups;
     }
 
     /**
      * get the private group for the current user or for the given login
      * @param string $login The user's login
-     * @return int the id of the private group
+     * @return string the id of the private group
      * @since 1.2
      */
     public static function getPrivateGroup($login=null){
@@ -72,18 +74,18 @@ class jAcl2DbUserGroup {
     }
 
     /**
-     * get a group by its codename
+     * get a group
      * @param string $code The code
-     * @return int the id of group
+     * @return jacl2group|false the dao object r false if it doesn't exist
      * @since 1.2
      */
-    public static function getGroupByCode($code){
-        return jDao::get('jacl2db~jacl2group', 'jacl2_profile')->getGroupByCode($code)->id_aclgrp;
+    public static function getGroup($code){
+        return jDao::get('jacl2db~jacl2group', 'jacl2_profile')->get($code);
     }
 
     /**
      * get the list of the users of a group
-     * @param int $groupid  id of the user group
+     * @param string $groupid  id of the user group
      * @return array a list of users object (dao records)
      */
     public static function getUsersList($groupid){
@@ -103,7 +105,7 @@ class jAcl2DbUserGroup {
         $daousergroup = jDao::get('jacl2db~jacl2usergroup','jacl2_profile');
         $daogroup = jDao::get('jacl2db~jacl2group','jacl2_profile');
         $usergrp = jDao::createRecord('jacl2db~jacl2usergroup','jacl2_profile');
-        $usergrp->login =$login;
+        $usergrp->login = $login;
 
         // si $defaultGroup -> assign le user aux groupes par defaut
         if($defaultGroup){
@@ -114,8 +116,9 @@ class jAcl2DbUserGroup {
             }
         }
 
-        // creation d'un groupe personnel
+        // create a private group
         $persgrp = jDao::createRecord('jacl2db~jacl2group','jacl2_profile');
+        $persgrp->id_aclgrp = '__priv_'.$login;
         $persgrp->name = $login;
         $persgrp->grouptype = 2;
         $persgrp->ownerlogin = $login;
@@ -130,13 +133,13 @@ class jAcl2DbUserGroup {
      *
      * (a user can be a member of several groups)
      * @param string $login the user login
-     * @param int $groupid the group id
+     * @param string $groupid the group id
      */
     public static function addUserToGroup($login, $groupid){
-        if( $groupid == 0)
+        if( $groupid == '__anonymous')
             throw new Exception ('jAcl2DbUserGroup::addUserToGroup : invalid group id');
         $usergrp = jDao::createRecord('jacl2db~jacl2usergroup','jacl2_profile');
-        $usergrp->login =$login;
+        $usergrp->login = $login;
         $usergrp->id_aclgrp = $groupid;
         jDao::get('jacl2db~jacl2usergroup','jacl2_profile')->insert($usergrp);
     }
@@ -144,7 +147,7 @@ class jAcl2DbUserGroup {
     /**
      * remove a user from a group
      * @param string $login the user login
-     * @param int $groupid the group id
+     * @param string $groupid the group id
      */
     public static function removeUserFromGroup($login,$groupid){
         jDao::get('jacl2db~jacl2usergroup', 'jacl2_profile')->delete($login,$groupid);
@@ -174,14 +177,16 @@ class jAcl2DbUserGroup {
     /**
      * create a new group
      * @param string $name its name
-     * @param string $code its code
-     * @return int the id of the new group
+     * @param string $id_aclgrp its id
+     * @return string the id of the new group
      */
-    public static function createGroup($name, $code=null){
+    public static function createGroup($name, $id_aclgrp = null){
+        if ($id_aclgrp === null)
+            $id_aclgrp = strtolower(str_replace(' ', '_',$name));
         $group = jDao::createRecord('jacl2db~jacl2group','jacl2_profile');
-        $group->name=$name;
-        $group->code = $code;
-        $group->grouptype=0;
+        $group->id_aclgrp = $id_aclgrp;
+        $group->name = $name;
+        $group->grouptype = 0;
         jDao::get('jacl2db~jacl2group','jacl2_profile')->insert($group);
         return $group->id_aclgrp;
     }
@@ -191,11 +196,11 @@ class jAcl2DbUserGroup {
      *
      * there can have several default group. A default group is a group
      * where a user is assigned to during its registration
-     * @param int $groupid the group id
+     * @param string $groupid the group id
      * @param boolean $default true if the group is to be default, else false
      */
     public static function setDefaultGroup($groupid, $default=true){
-        if( $groupid == 0)
+        if( $groupid == '__anonymous')
             throw new Exception ('jAcl2DbUserGroup::setDefaultGroup : invalid group id');
 
         $daogroup = jDao::get('jacl2db~jacl2group', 'jacl2_profile');
@@ -207,23 +212,23 @@ class jAcl2DbUserGroup {
 
     /**
      * change the name of a group
-     * @param int $groupid the group id
+     * @param string $groupid the group id
      * @param string $name the new name
      */
     public static function updateGroup($groupid, $name){
-        if( $groupid == 0)
+        if( $groupid == '__anonymous')
             throw new Exception ('jAcl2DbUserGroup::updateGroup : invalid group id');
         jDao::get('jacl2db~jacl2group','jacl2_profile')->changeName($groupid,$name);
     }
 
     /**
      * delete a group from the acl system
-     * @param int $groupid the group id
+     * @param string $groupid the group id
      */
     public static function removeGroup($groupid){
-        if( $groupid == 0)
+        if( $groupid == '__anonymous')
             throw new Exception ('jAcl2DbUserGroup::removeGroup : invalid group id');
-        // enlever tout les droits attaché au groupe
+        // enlever tous les droits attachés au groupe
         jDao::get('jacl2db~jacl2rights','jacl2_profile')->deleteByGroup($groupid);
         // enlever les utilisateurs du groupe
         jDao::get('jacl2db~jacl2usergroup','jacl2_profile')->deleteByGroup($groupid);
@@ -246,4 +251,13 @@ class jAcl2DbUserGroup {
             return jDao::get('jacl2db~jacl2groupsofuser','jacl2_profile')->getGroupsUser($login);
         }
     }
+
+    /**
+     * clear cache of variables of this class
+     * @since 1.3
+     */
+    public static function clearCache(){
+        self::$groups = null;
+    }
+
 }

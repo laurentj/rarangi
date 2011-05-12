@@ -4,10 +4,10 @@
 * @subpackage  forms
 * @author      Laurent Jouanneau
 * @contributor Dominique Papin
-* @contributor Bastien Jaillot
+* @contributor Bastien Jaillot, Steven Jehannet
 * @contributor Christophe Thiriot, Julien Issler, Olivier Demah
 * @copyright   2006-2010 Laurent Jouanneau, 2007 Dominique Papin, 2008 Bastien Jaillot
-* @copyright   2008-2009 Julien Issler, 2009 Olivier Demah
+* @copyright   2008-2009 Julien Issler, 2009 Olivier Demah, 2010 Steven Jehannet
 * @link        http://www.jelix.org
 * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -633,7 +633,11 @@ abstract class jFormsBase {
 
     protected function _diffValues(&$v1, &$v2) {
         if (is_array($v1) && is_array($v2)) {
-            return (count(array_diff($v1,$v2)) > 0);
+            $comp = array_merge(array_diff($v1, $v2),array_diff($v2, $v1));
+            return !empty($comp);
+        }
+        elseif(empty($v1) && empty($v2)){
+            return false;
         }
         elseif (is_array($v1) || is_array($v2)) {
             return true;
@@ -664,15 +668,17 @@ abstract class jFormsBase {
      * @return jFormsBuilderBase
      */
     public function getBuilder($buildertype){
-        global $gJConfig;
-        if($buildertype == '') $buildertype = 'html';
-        if(isset($gJConfig->_pluginsPathList_jforms[$buildertype])){
-            if(isset($this->builders[$buildertype]))
-                return $this->builders[$buildertype];
-            include_once(JELIX_LIB_PATH.'forms/jFormsBuilderBase.class.php');
-            include_once ($gJConfig->_pluginsPathList_jforms[$buildertype].$buildertype.'.jformsbuilder.php');
-            $c = $buildertype.'JformsBuilder';
-            $o = $this->builders[$buildertype] = new $c($this);
+
+        if($buildertype == '')
+            $buildertype = 'html';
+
+        if(isset($this->builders[$buildertype]))
+            return $this->builders[$buildertype];
+
+        include_once(JELIX_LIB_PATH.'forms/jFormsBuilderBase.class.php');
+        $o = jApp::loadPlugin($buildertype, 'jforms', '.jformsbuilder.php', $buildertype.'JformsBuilder', $this);
+        if ($o) {
+            $this->builders[$buildertype] = $o;
             return $o;
         }else{
             throw new jExceptionForms('jelix~formserr.invalid.form.builder', array($buildertype, $this->sel));
@@ -691,7 +697,7 @@ abstract class jFormsBase {
      */
     public function saveFile($controlName, $path='', $alternateName='') {
         if ($path == '') {
-            $path = JELIX_APP_VAR_PATH.'uploads/'.$this->sel.'/';
+            $path = jApp::varPath('uploads/'.$this->sel.'/');
         } else if (substr($path, -1, 1) != '/') {
             $path.='/';
         }
@@ -721,7 +727,7 @@ abstract class jFormsBase {
      */
     public function saveAllFiles($path='') {
         if ($path == '') {
-            $path = JELIX_APP_VAR_PATH.'uploads/'.$this->sel.'/';
+            $path = jApp::varPath('uploads/'.$this->sel.'/');
         } else if (substr($path, -1, 1) != '/') {
             $path.='/';
         }

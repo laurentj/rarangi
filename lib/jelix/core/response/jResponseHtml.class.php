@@ -5,7 +5,7 @@
 * @author      Laurent Jouanneau
 * @contributor Yann, Dominique Papin
 * @contributor Warren Seine, Alexis Métaireau, Julien Issler, Olivier Demah, Brice Tence
-* @copyright   2005-2009 Laurent Jouanneau, 2006 Yann, 2007 Dominique Papin
+* @copyright   2005-2010 Laurent Jouanneau, 2006 Yann, 2007 Dominique Papin
 * @copyright   2008 Warren Seine, Alexis Métaireau
 * @copyright   2009 Julien Issler, Olivier Demah
 * @copyright   2010 Brice Tence
@@ -17,15 +17,15 @@
 /**
 *
 */
+require_once(JELIX_LIB_CORE_PATH.'response/jResponseBasicHtml.class.php');
 require_once(JELIX_LIB_PATH.'tpl/jTpl.class.php');
-require_once(JELIX_LIB_PATH.'utils/jMinifier.class.php');
 
 /**
 * HTML response
 * @package  jelix
 * @subpackage core_response
 */
-class jResponseHtml extends jResponse {
+class jResponseHtml extends jResponseBasicHtml {
     /**
     * jresponse id
     * @var string
@@ -72,57 +72,80 @@ class jResponseHtml extends jResponse {
     public $bodyTagAttributes= array();
 
     /**
-     * says what part of the html head has been send
-     * @var integer
-     */
-    protected $_headSent = 0;
-
-    /**
-     * the charset of the document
-     * @var string
-     */
-    protected $_charset;
-
-    /**
-     * the lang of the document
-     * @var string
-     */
-    protected $_lang;
-
-    /**
-     * properties of the head content
-     */
-
-    /**#@+
-     * content for the head
-     * @var array
+     * list of css stylesheet
+     * @var array  key = url, value=link attributes
      */
     protected $_CSSLink = array ();
-    protected $_CSSIELink = array ();
-    protected $_Styles  = array ();
-    protected $_JSLink  = array ();
-    protected $_JSIELink  = array ();
-    protected $_JSCode  = array ();
-    protected $_Others  = array ();
-    protected $_MetaKeywords = array();
-    protected $_MetaDescription = array();
-    protected $_MetaAuthor = '';
-    protected $_MetaGenerator = '';
-    protected $_Link = array();
-    /**#@-*/
-
-    /**#@+
-     * content for the body
-     * @var array
-     */
-    protected $_bodyTop = array();
-    protected $_bodyBottom = array();
-    /**#@-*/
 
     /**
-     * says if the document is in xhtml or html
+     * list of css stylesheet for IE
+     * @var array  key = url, value=link attributes + optional parameter _iecondition
      */
-    protected $_isXhtml = true;
+    protected $_CSSIELink = array ();
+
+    /**
+     * list of CSS code
+     */
+    protected $_Styles  = array ();
+
+    /**
+     * list of js script
+     * @var array  key = url, value=link attributes
+     */
+    protected $_JSLink  = array ();
+
+    /**
+     * list of js script for IE
+     * @var array  key = url, value=link attributes + optional parameter _iecondition
+     */
+    protected $_JSIELink  = array ();
+
+    /**
+     * inline js code to insert before js links
+     * @var array list of js source code
+     */
+    protected $_JSCodeBefore  = array ();
+
+    /**
+     * inline js code to insert after js links
+     * @var array list of js source code
+     */
+    protected $_JSCode  = array ();
+
+    /**
+     * list of keywords to add into a meta keyword tag
+     * @var array  array of strings
+     */
+    protected $_MetaKeywords = array();
+
+    /**
+     * list of descriptions to add into a meta description tag
+     * @var array  array of strings
+     */
+    protected $_MetaDescription = array();
+
+    /**
+     * content of the meta author tag
+     * @var string
+     */
+    protected $_MetaAuthor = '';
+
+    /**
+     * content of the meta generator tag
+     * @var string
+     */
+    protected $_MetaGenerator = '';
+
+    /**
+     * list of information to generate link tags
+     * @var array keys are the href value, valu is an array ('rel','type','title')
+     */
+    protected $_Link = array();
+
+    /**
+     * the end tag to finish tags. it is different if we are in XHTML mode or not
+     * @var string
+     */
     protected $_endTag="/>\n";
 
     /**
@@ -133,21 +156,10 @@ class jResponseHtml extends jResponse {
     protected $_strictDoctype = true;
 
     /**
-     * says if xhtml content type should be send or not.
-     * it true, a verification of HTTP_ACCEPT is done.
-     * @var boolean
-     */
-    public $xhtmlContentType = false;
-
-
-    /**
     * constructor;
     * setup the charset, the lang, the template engine
     */
     function __construct (){
-        global $gJConfig;
-        $this->_charset = $gJConfig->charset;
-        $this->_lang = $gJConfig->locale;
         $this->body = new jTpl();
         parent::__construct();
     }
@@ -157,143 +169,50 @@ class jResponseHtml extends jResponse {
      *
      * @return boolean    true if the generated content is ok
      */
-    final public function output(){
+    public function output(){
+
+        foreach($this->plugins as $name=>$plugin)
+            $plugin->afterAction();
+
         $this->doAfterActions();
 
-        $this->_headSent = 0;
-        if($this->_isXhtml && $this->xhtmlContentType && strstr($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')){
-            $this->_httpHeaders['Content-Type']='application/xhtml+xml;charset='.$this->_charset;
-        }else{
-            $this->_httpHeaders['Content-Type']='text/html;charset='.$this->_charset;
+        $this->setContentType();
+        // let's get the main content for the body
+        // we don't output yet <head> and other things, to have the
+        // opportunity for any components called during the output,
+        // to add things in the <head>
+        if ($this->bodyTpl != '') {
+            $this->body->meta($this->bodyTpl);
+            $content = $this->body->fetch($this->bodyTpl,'html');
         }
+        else $content = '';
+
+        // retrieve errors messages and log messages
+        jLog::outputLog($this);
+
+        foreach($this->plugins as $name=>$plugin)
+            $plugin->beforeOutput();
+
+        // now let's output the html content
         $this->sendHttpHeaders();
         $this->outputDoctype();
-        $this->_headSent = 1;
-        
-        if($this->bodyTpl != '')
-            $this->body->meta($this->bodyTpl);
         $this->outputHtmlHeader();
         echo '<body ';
         foreach($this->bodyTagAttributes as $attr=>$value){
             echo $attr,'="', htmlspecialchars($value),'" ';
         }
         echo ">\n";
-        $this->_headSent = 2;
         echo implode("\n",$this->_bodyTop);
-        if($this->bodyTpl != '')
-            $this->body->display($this->bodyTpl);
-
-        if($this->hasErrors()){
-            if($GLOBALS['gJConfig']->error_handling['showInFirebug']){
-                echo '<script type="text/javascript">if(console){';
-                foreach( $GLOBALS['gJCoord']->errorMessages  as $e){
-                    switch ($e[0]) {
-                      case 'warning':
-                        echo 'console.warn("[warning ';
-                        break;
-                      case 'notice':
-                        echo 'console.info("[notice ';
-                        break;
-                      case 'strict':
-                        echo 'console.info("[strict ';
-                        break;
-                      case 'error':
-                        echo 'console.error("[error ';
-                        break;
-                    }
-                    $m = $e[2]. ($e[5]?"\n".$e[5]:"");
-                    echo $e[1],'] ',str_replace(array('"',"\n","\r","\t"),array('\"','\\n','\\r','\\t'),$m),' (',str_replace('\\','\\\\',$e[3]),' ',$e[4],')");';
-                }
-                echo '}else{alert("there are some errors, you should activate Firebug to see them");}</script>';
-            }else{
-                echo '<div id="jelixerror" style="position:absolute;left:0px;top:0px;border:3px solid red; background-color:#f39999;color:black;z-index:100;">';
-                echo $this->getFormatedErrorMsg();
-                echo '<p><a href="#" onclick="document.getElementById(\'jelixerror\').style.display=\'none\';return false;">close</a></p></div>';
-            }
-        }
+        echo $content;
         echo implode("\n",$this->_bodyBottom);
-        if(count($GLOBALS['gJCoord']->logMessages)) {
-            if(count($GLOBALS['gJCoord']->logMessages['response'])) {
-                echo '<ul id="jelixlog">';
-                foreach($GLOBALS['gJCoord']->logMessages['response'] as $m) {
-                    echo '<li>',htmlspecialchars($m),'</li>';
-                }
-                echo '</ul>';
-            }
-            if(count($GLOBALS['gJCoord']->logMessages['firebug'])) {
-                echo '<script type="text/javascript">if(console){';
-                foreach($GLOBALS['gJCoord']->logMessages['firebug'] as $m) {
-                    echo 'console.debug("',str_replace(array('"',"\n","\r","\t"),array('\"','\\n','\\r','\\t'),$m),'");';
-                }
-                echo '}else{alert("there are log messages, you should activate Firebug to see them");}</script>';
-            }
-        }
+
+        foreach($this->plugins as $name=>$plugin)
+            $plugin->atBottom();
+
         echo '</body></html>';
         return true;
     }
 
-    /**
-     * The method you can overload in your inherited html response
-     * overload it if you want to add processes (stylesheet, head settings, additionnal content etc..)
-     * after all actions
-     * @since 1.1
-     */
-    protected function doAfterActions(){
-
-    }
-
-    /**
-     * output errors
-     */
-    final public function outputErrors(){
-        if($this->_headSent < 1){
-             if(!$this->_httpHeadersSent){
-                header("HTTP/1.0 500 Internal Server Error");
-                header('Content-Type: text/html;charset='.$this->_charset);
-             }
-            echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">', "\n<html>";
-        }
-        if($this->_headSent < 2){
-            echo '<head><title>Errors</title></head><body>';
-        }
-        if($this->hasErrors()){
-            echo $this->getFormatedErrorMsg();
-        }else{
-            echo '<p style="color:#FF0000">Unknown Error</p>';
-        }
-        echo '</body></html>';
-    }
-
-
-    /**
-     * create html error messages
-     * @return string html content
-     */
-    protected function getFormatedErrorMsg(){
-        $errors='';
-        foreach( $GLOBALS['gJCoord']->errorMessages  as $e){
-           $errors .=  '<p style="margin:0;"><b>['.$e[0].' '.$e[1].']</b> <span style="color:#FF0000">';
-           $errors .= htmlspecialchars($e[2], ENT_NOQUOTES, $this->_charset)."</span> \t".$e[3]." \t".$e[4]."</p>\n";
-           if ($e[5])
-            $errors.= '<pre>'.htmlspecialchars($e[5], ENT_NOQUOTES, $this->_charset).'</pre>';
-        }
-        return $errors;
-    }
-
-    /**
-     * add content to the body
-     * you can add additionnal content, before or after the content generated by the main template
-     * @param string $content additionnal html content
-     * @param boolean $beforeTpl true if you want to add it before the template content, else false for after
-     */
-    function addContent($content, $beforeTpl = false){
-      if($beforeTpl){
-        $this->_bodyTop[]=$content;
-      }else{
-         $this->_bodyBottom[]=$content;
-      }
-    }
-    
     /**
      * add a generic link to the head
      * 
@@ -302,7 +221,7 @@ class jResponseHtml extends jResponse {
      * @param string $type  mime type of the ressource
      * @param string $title
      */ 
-    final public function addLink($href, $rel, $type='', $title='') {
+    public function addLink($href, $rel, $type='', $title='') {
         $this->_Link[$href] = array($rel, $type, $title);
     }
 
@@ -313,11 +232,13 @@ class jResponseHtml extends jResponse {
      *
      * @param string $src the link
      * @param array $params additionnals attributes for the script tag
-     * @param boolean $forIE if true, the script sheet will be only for IE browser
+     * @param boolean $forIE if true, the script sheet will be only for IE browser. string values possible (ex:'lt IE 7')
      */
-    final public function addJSLink ($src, $params=array(), $forIE=false){
+    public function addJSLink ($src, $params=array(), $forIE=false){
         if($forIE){
             if (!isset ($this->_JSIELink[$src])){
+                if (!is_bool($forIE) && !empty($forIE))
+                    $params['_ieCondition'] = $forIE;
                 $this->_JSIELink[$src] = $params;
             }
         }else{
@@ -328,6 +249,54 @@ class jResponseHtml extends jResponse {
     }
 
     /**
+     * returns all JS links
+     * @return array  key = url, value=link attributes
+     */
+    public function getJSLinks() { return $this->_JSLink; }
+
+    /**
+     * set all JS links
+     * @param array  $list key = url, value=link attributes
+     */
+    public function setJSLinks($list) { $this->_JSLink = $list; }
+
+    /**
+     * returns all JS links for IE
+     * @return array  key = url, value=link attributes + optional parameter _iecondition
+     */
+    public function getJSIELinks() { return $this->_JSIELink; }
+
+    /**
+     * set all JS links for IE
+     * @param array  $list key = url, value=link attributes
+     */
+    public function setJSIELinks($list) { $this->_JSIELink = $list; }
+
+     /**
+     * returns all CSS links
+     * @var array  key = url, value=link attributes
+     */
+    public function getCSSLinks() { return $this->_CSSLink; }
+
+    /**
+     * set all CSS links
+     * @param array  $list key = url, value=link attributes
+     */
+    public function setCSSLinks($list) { $this->_CSSLink = $list; }
+
+    /**
+     * returns all CSS links for IE
+     * @var array  key = url, value=link attributes + optional parameter _iecondition
+     */
+     public function getCSSIELinks() { return $this->_CSSIELink; }
+
+    /**
+     * set all CSS links for IE
+     * @param array  $list key = url, value=link attributes
+     */
+    public function setCSSIELinks($list) { $this->_CSSIELink = $list; }
+
+    /**
      * add a link to a css stylesheet in the document head
      *
      * $forIe parameter exists since 1.0b2
@@ -336,7 +305,7 @@ class jResponseHtml extends jResponse {
      * @param array $params additionnals attributes for the link tag
      * @param mixed $forIE if true, the style sheet will be only for IE browser. string values possible (ex:'lt IE 7')
      */
-    final public function addCSSLink ($src, $params=array (), $forIE=false){
+    public function addCSSLink ($src, $params=array (), $forIE=false){
         if($forIE){
             if (!isset ($this->_CSSIELink[$src])){
                 if (!is_bool($forIE) && !empty($forIE))
@@ -355,27 +324,22 @@ class jResponseHtml extends jResponse {
      * @param string $selector css selector
      * @param string $def      css properties for the given selector
      */
-    final public function addStyle ($selector, $def=null){
+    public function addStyle ($selector, $def=null){
         if (!isset ($this->_Styles[$selector])){
             $this->_Styles[$selector] = $def;
         }
     }
 
     /**
-     * add additional content into the document head
-     * @param string $content
-     * @since 1.0b1
-     */
-    final public function addHeadContent ($content){
-        $this->_Others[] = $content;
-    }
-
-    /**
      * add inline javascript code (inside a <script> tag)
      * @param string $code  javascript source code
+     * @param boolean $before will insert the code before js links if true
      */
-    final public function addJSCode ($code){
-        $this->_JSCode[] = $code;
+    public function addJSCode ($code, $before = false){
+        if ($before)
+            $this->_JSCodeBefore[] = $code;
+        else
+            $this->_JSCode[] = $code;
     }
 
     /**
@@ -384,7 +348,7 @@ class jResponseHtml extends jResponse {
      * @param string $content keywords
      * @since 1.0b1
      */
-    final public function addMetaKeywords ($content){
+    public function addMetaKeywords ($content){
         $this->_MetaKeywords[] = $content;
     }
     /**
@@ -393,7 +357,7 @@ class jResponseHtml extends jResponse {
      * @param string $content a description
      * @since 1.0b1
      */
-    final public function addMetaDescription ($content){
+    public function addMetaDescription ($content){
         $this->_MetaDescription[] = $content;
     }
     /**
@@ -402,7 +366,7 @@ class jResponseHtml extends jResponse {
      * @param string $content author(s)
      * @since 1.2
      */
-    final public function addMetaAuthor($content){
+    public function addMetaAuthor($content){
         $this->_MetaAuthor = $content;
     }
     /**
@@ -411,7 +375,7 @@ class jResponseHtml extends jResponse {
      * @param string $content generator
      * @since 1.2
      */
-    final public function addMetaGenerator($content){
+    public function addMetaGenerator($content){
         $this->_MetaGenerator = $content;
     }
     /**
@@ -429,198 +393,35 @@ class jResponseHtml extends jResponse {
         }
     }
 
-    final protected function outputJsScriptTag( $fileUrl, $scriptParams, $filePath = null ) {
-        global $gJConfig;
-
+    protected function outputJsScriptTag( $fileUrl, $scriptParams ) {
         $params = '';
-        if( is_array($scriptParams) ) {
-            foreach ($scriptParams as $param_name=>$param_value){
-                $params .= $param_name.'="'. htmlspecialchars($param_value).'" ';
-            }
-        } else {
-            $params = $scriptParams;
+        foreach ($scriptParams as $param_name=>$param_value){
+            if ($param_name=='_ieCondition')
+                continue ;
+            $params .= $param_name.'="'. htmlspecialchars($param_value).'" ';
         }
 
-        $jsFilemtime = '';
-        if( isset($gJConfig->jResponseHtml) && $gJConfig->jResponseHtml['jsUniqueUrlId']
-            && $filePath !== null
-            && (strpos($fileUrl,'http://')===FALSE) //path is not absolute
-          ) {
-            $jsFilemtime = "?".filemtime($filePath);
-        }
-        echo '<script type="text/javascript" src="',htmlspecialchars($fileUrl),$jsFilemtime,'" ',$params,'></script>',"\n";
+        echo '<script type="text/javascript" src="',htmlspecialchars($fileUrl),'" ',$params,'></script>',"\n";
     }
 
-
-
-    final protected function outputCssLinkTag( $fileUrl, $cssParams, $filePath = null ) {
-        global $gJConfig;
-
-        $params = '';
-        if( is_array($cssParams) ) {
-            foreach ($cssParams as $param_name=>$param_value){
-                $params .= $param_name.'="'. htmlspecialchars($param_value).'" ';
-            }
-        } else {
-            $params = $cssParams;
+    protected function outputCssLinkTag( $fileUrl, $cssParams ) {
+        $params = '';   
+        foreach ($cssParams as $param_name=>$param_value){
+            if ($param_name=='_ieCondition')
+                continue ;
+            $params .= $param_name.'="'. htmlspecialchars($param_value).'" ';
         }
 
-        $cssFilemtime = '';
-        if( isset($gJConfig->jResponseHtml) && $gJConfig->jResponseHtml['cssUniqueUrlId']
-            && $filePath !== null
-            && (strpos($fileUrl,'http://')===FALSE) //path is not absolute
-          ) {
-            $cssFilemtime = "?".filemtime($filePath);
-        }
-        echo '<link type="text/css" href="',htmlspecialchars($fileUrl),$cssFilemtime,'" ',$params,$this->_endTag,"\n";
+        if(!isset($cssParams['rel']))
+            $params .='rel="stylesheet" ';
+        echo '<link type="text/css" href="',htmlspecialchars($fileUrl),'" ',$params,$this->_endTag,"\n";
     }
-
-
-
-
-    final protected function outputJsScripts( &$scriptList ) {
-        global $gJConfig;
-
-        $minifyJsByParams = array();
-        $minifyExcludeJS = array();
-
-        if( isset($gJConfig->jResponseHtml) && $gJConfig->jResponseHtml['minifyExcludeJS'] ) {
-            $minifyExcludeJS = explode( ',', $gJConfig->jResponseHtml['minifyExcludeJS'] );
-        }
-
-        foreach ($scriptList as $src=>$params){
-            //the extra params we may found in there.
-            $scriptParams = '';
-
-            $pathSrc = $src;
-            if ( $gJConfig->urlengine['basePath'] != '/' &&
-                $gJConfig->urlengine['basePath'] != '' ) {
-                    $res = explode($gJConfig->urlengine['basePath'],$src);
-                    if ( count($res) > 1 )
-                        list(,$pathSrc) = $res;
-                }
-
-            $pathIsAbsolute = (strpos($pathSrc,'http://')!==FALSE);
-
-            if( isset($gJConfig->jResponseHtml) && $gJConfig->jResponseHtml['minifyJS'] &&
-                ! $pathIsAbsolute && ! in_array(basename($pathSrc), $minifyExcludeJS) ) {
-                //this file should be minified
-                $sparams=$params;
-                ksort($sparams); //sort to avoid duplicity just because of params order
-                foreach ($sparams as $param_name=>$param_value){
-                    $scriptParams .= $param_name.'="'. htmlspecialchars($param_value).'" ';
-                }
-                $minifyJsByParams[$scriptParams][] = "$src";
-            } else {
-                // current script should not be minified
-                // thus to preserve scripts order we should apply previous pending minifications and generate its script tag
-                // ex: a.js, b.js, c.js, d.js where c should not be minified. script tag generated must be min_a_+_b.js, c.js, min_d.js
-                foreach ($minifyJsByParams as $param_value=>$js_files) {
-                    foreach (jMinifier::minify( $js_files, 'js' ) as $minifiedJs ) {
-                        $this->outputJsScriptTag( $gJConfig->urlengine['basePath'].$minifiedJs, $param_value, JELIX_APP_WWW_PATH.$minifiedJs);
-                    }
-                }
-                // minified operation finished on pending scripts. thus clear js array of scripts to minify :
-                $minifyJsByParams = array();
-
-                $this->outputJsScriptTag( $src, $params, JELIX_APP_WWW_PATH.$pathSrc );
-            }
-        }
-        //minify all pending JS script files (may be all files if none was excluded or had absolute URL)
-        foreach ($minifyJsByParams as $param_value=>$js_files) {
-            foreach (jMinifier::minify( $js_files, 'js' ) as $minifiedJs ) {
-                $this->outputJsScriptTag( $gJConfig->urlengine['basePath'].$minifiedJs, $param_value, JELIX_APP_WWW_PATH.$minifiedJs);
-            }
-        }
-    }
-
-
-
-    final protected function outputCssLinks( &$linkList ) {
-        global $gJConfig;
-
-        $minifyCssByParams = array();
-        $minifyExcludeCSS = array();
-
-        if( isset($gJConfig->jResponseHtml) && $gJConfig->jResponseHtml['minifyExcludeCSS'] ) {
-            $minifyExcludeCSS = explode( ',', $gJConfig->jResponseHtml['minifyExcludeCSS'] );
-        }
-
-        foreach ($linkList as $src=>$params){
-            //the extra params we may found in there.
-            $cssParams = '';
-            
-            $pathSrc = $src;
-            if ( $gJConfig->urlengine['basePath'] != '/' &&
-                $gJConfig->urlengine['basePath'] != '' ) {
-                    $res = explode($gJConfig->urlengine['basePath'],$src);
-                    if ( count($res) > 1 )
-                        list(,$pathSrc) = $res;
-                }
-
-            $pathIsAbsolute = (strpos($pathSrc,'http://')!==FALSE);
-
-            if( isset($gJConfig->jResponseHtml) && $gJConfig->jResponseHtml['minifyCSS'] &&
-                ! $pathIsAbsolute && ! in_array(basename($pathSrc), $minifyExcludeCSS) ) {
-                //this file should be minified
-                $sparams=$params;
-                ksort($sparams); //sort to avoid duplicity just because of params order
-                foreach ($sparams as $param_name=>$param_value){
-                    if( $param_name != "media" ) {
-                        $cssParams .= $param_name.'="'. htmlspecialchars($param_value).'" ';
-                    }
-                }
-                if(!isset($params['rel']))
-                    $cssParams .='rel="stylesheet" ';
-                if( isset($params['media'] ) ) {
-                    //split for each media if specified
-                    foreach ( explode(',', $params['media']) as $medium) {
-                        $myCssParams = $cssParams . 'media="' . $medium . '" ';
-                        $minifyCssByParams[$myCssParams][] = "$src";
-                    }
-                } else {
-                    $minifyCssByParams[$cssParams][] = "$src";
-                }
-            } else {
-                // current stylesheet should not be minified
-                // thus to preserve stylesheets order we should apply previous pending minifications and generate its link tag
-                // ex: a.css, b.css, c.css, d.css where c should not be minified. script tag genrated must be min_a_+_b.css, c.js, min_d.js
-                foreach ($minifyCssByParams as $param_value=>$css_files) {
-                    foreach (jMinifier::minify( $css_files, 'css' ) as $minifiedCss ) {
-                        $this->outputCssLinkTag( $gJConfig->urlengine['basePath'].$minifiedCss, $param_value, JELIX_APP_WWW_PATH.$minifiedCss);
-                    }
-                }
-                $minifyCssByParams = array();
-                
-                if(!isset($params['rel']))
-                    $params['rel'] ='stylesheet';
-                
-                $this->outputCssLinkTag( $src, $params, JELIX_APP_WWW_PATH.$pathSrc);
-            }
-        }
-        //minify all pending CSS files (may be all files if none was excluded or had absolute URL)
-        foreach ($minifyCssByParams as $param_value=>$css_files) {
-            foreach (jMinifier::minify( $css_files, 'css' ) as $minifiedCss ) {
-                $this->outputCssLinkTag( $gJConfig->urlengine['basePath'].$minifiedCss, $param_value, JELIX_APP_WWW_PATH.$minifiedCss);
-            }
-        }
-    }
-
-
-
-
 
     /**
      * generate the content of the <head> content
      */
-    final protected function outputHtmlHeader (){
+    protected function outputHtmlHeader (){
         global $gJConfig;
-
-        $minifyExcludeCSS = array();
-
-        if( isset($gJConfig->jResponseHtml) && $gJConfig->jResponseHtml['minifyExcludeCSS'] ) {
-            $minifyExcludeCSS = explode( ',', $gJConfig->jResponseHtml['minifyExcludeCSS'] );
-        }
 
         echo '<head>'."\n";
         if($this->_isXhtml && $this->xhtmlContentType && strstr($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')){      
@@ -648,18 +449,17 @@ class jResponseHtml extends jResponse {
             echo '<meta name="author" content="'.htmlspecialchars($this->_MetaAuthor).'" '.$this->_endTag;
         }
 
-        $this->outputCssLinks( $this->_CSSLink );
+        // css link
+        foreach ($this->_CSSLink as $src=>$params){
+            $this->outputCssLinkTag($src, $params);
+        }
 
         foreach ($this->_CSSIELink as $src=>$params){
             // special params for conditions on IE versions
             if (!isset($params['_ieCondition']))
-                $params['_ieCondition'] = 'IE' ;
+              $params['_ieCondition'] = 'IE' ;
             echo '<!--[if '.$params['_ieCondition'].' ]>';
-
-            unset($params['_ieCondition']);
-            $cssIeLink = array($src=>$params); //make a var to pass it by ref
-            $this->outputCssLinks( $cssIeLink );
-
+            $this->outputCssLinkTag($src, $params);
             echo '<![endif]-->';
         }
 
@@ -679,20 +479,31 @@ class jResponseHtml extends jResponse {
             echo '<link rel="',$params[0],'" href="',htmlspecialchars($href),'" ',implode($more, ' '),$this->_endTag;
         }
 
-        $this->outputJsScripts( $this->_JSLink );
+        // js code
+        if(count($this->_JSCodeBefore)){
+            echo '<script type="text/javascript">
+// <![CDATA[
+ '.implode ("\n", $this->_JSCodeBefore).'
+// ]]>
+</script>';
+        }
 
-        if(count($this->_JSIELink)){
-            echo '<!--[if IE]>';
+        // js link
+        foreach ($this->_JSLink as $src=>$params){
+            $this->outputJsScriptTag($src, $params);
+        }
 
-            $this->outputJsScripts( $this->_JSIELink );
-
+        foreach ($this->_JSIELink as $src=>$params){
+            if (!isset($params['_ieCondition']))
+                $params['_ieCondition'] = 'IE' ;
+            echo '<!--[if '.$params['_ieCondition'].' ]>';
+            $this->outputJsScriptTag($src, $params);
             echo '<![endif]-->';
         }
 
         // styles
         if(count($this->_Styles)){
-            echo '<style type="text/css">
-            ';
+            echo "<style type=\"text/css\">\n";
             foreach ($this->_Styles as $selector=>$value){
                 if (strlen ($value)){
                     //il y a une paire clef valeur.
@@ -713,14 +524,14 @@ class jResponseHtml extends jResponse {
 // ]]>
 </script>';
         }
-        echo implode ("\n", $this->_Others), '</head>';
+        echo implode ("\n", $this->_headBottom), '</head>';
     }
 
     /**
      * used to erase some head properties
      * @param array $what list of one or many of this strings : 'CSSLink', 'CSSIELink', 'Styles', 'JSLink', 'JSIELink', 'JSCode', 'Others','MetaKeywords','MetaDescription'. If null, it cleans all values.
      */
-    final public function clearHtmlHeader ($what=null){
+    public function clearHtmlHeader ($what=null){
         $cleanable = array ('CSSLink', 'CSSIELink', 'Styles', 'JSLink','JSIELink', 'JSCode', 'Others','MetaKeywords','MetaDescription');
         if($what==null)
             $what= $cleanable;
@@ -736,7 +547,7 @@ class jResponseHtml extends jResponse {
      * change the type of html for the output
      * @param boolean $xhtml true if you want xhtml, false if you want html
      */
-    final public function setXhtmlOutput($xhtml = true){
+    public function setXhtmlOutput($xhtml = true){
         $this->_isXhtml = $xhtml;
         if($xhtml)
             $this->_endTag = "/>\n";
@@ -749,20 +560,14 @@ class jResponseHtml extends jResponse {
      * @param boolean $val true for strict, false for transitional
      * @since 1.1.3
      */
-    final public function strictDoctype($val = true){
+    public function strictDoctype($val = true){
         $this->_strictDoctype = $val;
     }
-
-    /**
-     * says if the response will be xhtml or html
-     * @return boolean true if it is xhtml
-     */
-    final public function isXhtml(){ return $this->_isXhtml; }
 
     /**
      * return the end of a html tag : "/>" or ">", depending if it will generate xhtml or html
      * @return string
      */
-    final public function endTag(){ return $this->_endTag;}
+    public function endTag(){ return $this->_endTag;}
 
 }

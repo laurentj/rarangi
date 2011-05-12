@@ -6,7 +6,7 @@
 * @subpackage core
 * @author   Laurent Jouanneau
 * @contributor Loic Mathaud, Julien Issler
-* @copyright 2005-2010 Laurent Jouanneau
+* @copyright 2005-2011 Laurent Jouanneau
 * @copyright 2007 Julien Issler
 * @link     http://www.jelix.org
 * @licence  GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
@@ -17,7 +17,7 @@
  * Version number of Jelix
  * @name  JELIX_VERSION
  */
-define ('JELIX_VERSION', '1.2RC2.1713');
+define ('JELIX_VERSION', '1.3pre.1930');
 
 /**
  * base of namespace path used in xml files of jelix
@@ -38,7 +38,7 @@ if(!defined('E_USER_DEPRECATED'))
     define ('E_USER_DEPRECATED',16384);
 error_reporting (E_ALL | E_STRICT);
 
-
+require (JELIX_LIB_CORE_PATH . 'jApp.class.php');
 require (JELIX_LIB_CORE_PATH . 'jICoordPlugin.iface.php');
 require (JELIX_LIB_CORE_PATH . 'jISelector.iface.php');
 require (JELIX_LIB_CORE_PATH . 'jIUrlEngine.iface.php');
@@ -68,6 +68,7 @@ require (JELIX_LIB_CORE_PATH . 'jRequest.class.php');
 require (JELIX_LIB_CORE_PATH . 'jResponse.class.php');
 require (JELIX_LIB_CORE_PATH . 'jBundle.class.php');
 require (JELIX_LIB_CORE_PATH . 'jLocale.class.php');
+require (JELIX_LIB_CORE_PATH . 'jLog.class.php');
 require (JELIX_LIB_CORE_PATH . 'jIncluder.class.php');
 require (JELIX_LIB_CORE_PATH . 'jSession.class.php');
 
@@ -137,18 +138,25 @@ spl_autoload_register("jelix_autoload");
  * file with a http error (or lib/jelix/installer/closed.html), and exit.
  * This function should be called in all entry point, before the creation of the coordinator.
  * @see jAppManager
+ * @todo migrate the code to jAppManager or jApp
  */
-function checkAppOpened(){
-    if (file_exists(JELIX_APP_CONFIG_PATH.'CLOSED')) {
-        $message = file_get_contents(JELIX_APP_CONFIG_PATH.'CLOSED');
+function checkAppOpened() {
+    if (!jApp::isInit()) {
+        header("HTTP/1.1 500 Application not available");
+        header('Content-type: text/html');
+        echo "checkAppOpened: jApp is not initialized!";
+        exit(1);
+    }
+    if (file_exists(jApp::configPath('CLOSED'))) {
+        $message = file_get_contents(jApp::configPath('CLOSED'));
 
         if (php_sapi_name() == 'cli') {
             echo "Application closed.". ($message?"\n$message\n":"\n");
             exit(1);
         }
 
-        if (file_exists(JELIX_APP_PATH.'install/closed.html')) {
-            $file = JELIX_APP_PATH.'install/closed.html';
+        if (file_exists(jApp::appPath('install/closed.html'))) {
+            $file = jApp::appPath('install/closed.html');
         }
         else
             $file = JELIX_LIB_PATH.'installer/closed.html';
@@ -160,12 +168,12 @@ function checkAppOpened(){
     }
 }
 
-
 /**
  * check if the application is not installed. If the app is installed, an
  * error message appears and the scripts ends.
  * It should be called only by some scripts
  * like an installation wizard, not by entry point.
+ * @todo migrate the code to jAppManager or jApp
  */
 function checkAppNotInstalled() {
     if (isAppInstalled()) {
@@ -181,6 +189,9 @@ function checkAppNotInstalled() {
     }
 }
 
+/**
+ * @todo migrate the code to jAppManager or jApp
+ */
 function isAppInstalled() {
-    return file_exists(JELIX_APP_CONFIG_PATH.'installer.ini.php');
+    return file_exists(jApp::configPath('installer.ini.php'));
 }

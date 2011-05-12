@@ -6,7 +6,7 @@
 * @contributor Thibault Piront (nuKs)
 * @contributor Loic Mathaud
 * @contributor Hadrien Lanneau
-* @copyright   2005-2010 Laurent Jouanneau
+* @copyright   2005-2011 Laurent Jouanneau
 * @copyright   2007 Thibault Piront
 * @copyright   2006 Loic Mathaud, 2010 Hadrien Lanneau
 * Some parts of this file are took from an experimental branch of the Copix project (CopixUrl.class.php, Copix 2.3dev20050901, http://www.copix.org),
@@ -147,7 +147,7 @@ class jUrl extends jUrlBase {
 
     /**
     * Gets the url corresponding to an action, in the given format
-    * @param string $actSel  action selector. You can use # instead of the module 
+    * @param string $actSel  action selector. You can use # instead of the module
     *                or the action name, to specify the current url.
     * @param array $params associative array with the parameters
     * @param integer $what the format you want : one of the jUrl const,
@@ -215,17 +215,6 @@ class jUrl extends jUrlBase {
     }
 
     /**
-     * Parse a url from the request
-     * @param jRequest $request
-     * @param array  $params            url parameters ($_REQUEST, or $_GET)
-     * @return jUrlAction
-     * @since 1.1
-     */
-    static function parseFromRequest($request, $params ){
-         return jUrl::getEngine()->parseFromRequest($request, $params);
-    }
-
-    /**
      * escape and simplier a string to be a part of an url path
      * remove or replace not allowed characters etc..
      * @param string $str the string to escape
@@ -252,7 +241,7 @@ class jUrl extends jUrlBase {
             // then we replace all spaces by a -
             $str = preg_replace("/( +)/","-",trim($str));
             // we convert all character to lower case
-            $str = strtolower($str);
+            $str = urlencode(strtolower($str));
             return $str;
         }else{
             return urlencode (str_replace (array ('-', ' '), array ('--','-'), $str));
@@ -279,14 +268,9 @@ class jUrl extends jUrlBase {
         if($engine === null || $reset){
             global $gJConfig;
             $name = $gJConfig->urlengine['engine'];
-            if( !isset($gJConfig->_pluginsPathList_urls[$name])
-                || !file_exists($gJConfig->_pluginsPathList_urls[$name]) ){
-                    throw new jException('jelix~errors.urls.engine.notfound', $name);
-            }
-            require_once($gJConfig->_pluginsPathList_urls[$name].$name.'.urls.php');
-
-            $cl = $name.'UrlEngine';
-            $engine = new $cl();
+            $engine = jApp::loadPlugin($name, 'urls', '.urls.php', $name.'UrlEngine');
+            if(is_null($engine))
+                throw new jException('jelix~errors.urls.engine.notfound', $name);
         }
         return $engine;
     }

@@ -19,6 +19,7 @@ Brunto
 Cedric
  - bug fix in jFile::read
 
+
 Uriel Corfa
  - Support of class datasources in jForms (#323)
  - contribution à jResponseTcpdf (#131)
@@ -154,6 +155,9 @@ Steven Jehannet (aka Catsoup)
  - meta_html plugin should allow additionnal parameters (#996)
  - fixed issue with history plugin and session (#1068)
  - fixed issue in the gravatar plugin (#1172)
+ - fixed bug in jdao for sqlite + count+ distinct (#1225)
+ - jforms, fixed bad detection in modified controls (#1234)
+ - jforms, javascript, fixed bug with grouped data in ajax context (#1325)
 
 Nicolas Jeudy (aka njeudy)
  - auth driver: jAuthDriverLDS (pour les annuaires ldap LDS)
@@ -180,6 +184,7 @@ Hadrien Lanneau
  - bug on jDateTime::now() (#1164)
  - jCrypt : default key in configuration (#1137)
  - jUrl::getFull() (#1186)
+ - fixed an error in jLog with jRequest (#1273)
 
 Nicolas Lassalle
  - bug fix in jResponseBinary (#188)
@@ -207,9 +212,12 @@ Kévin Lepeltier (aka Lipki)
  - plugin coord history (#507)
  - improvement in jMailer (#530)
 
-Vincent V (aka Litchi)
+Vincent Viaud (aka Litchi)
  - bug fix in jforms_jquery.js (#1132)
  - fixed misprint in ldap plugin (#1219)
+ - acl listener for jauth::logout (#1236)
+ - modifier round (#1206)
+ - fixed auth_url_return transmission during a logout (#1258)
 
 Hugues Magnier (aka BaGroN)
  - tpl plugin stripws (#140)
@@ -267,6 +275,9 @@ Laurent Raufaste (aka analogue)
  - patches on postgresql driver (#123, #671, #672, #674)
  - replaced getParam (deprecated) with param in jZone (#680)
 
+Rob2
+  - image plugin: alt attribute is not generated when it is empty (#1240)
+
 Philippe Schelté (aka dubphil)
  - plugin tpl cycle (#149)
  - error in checkTrustedModules function (#715)
@@ -279,6 +290,8 @@ Brice Tence (aka brayce/bricet)
  - fixed bug in jInstallChecker (#1087)
  - introduced optional jMinifier for jResponseHtml for JS/CSS concatenation and minification (#860)
  - type attribut on link tag should be optional (#1188)
+ - added lock on jCache::call to prevent multiple calls on CPU high-consuming functions (ticket #1237)
+ - fixed the support of meta in included template (#1196)
 
 Christophe Thiriot (aka Doubleface)
  - testor

@@ -23,7 +23,7 @@ class jSelectorUrlCfgSig extends jSelectorCfg {
         $o = new jSignificantUrlsCompiler();
         return $o;
     }
-    public function getCompiledFilePath (){ return JELIX_APP_TEMP_PATH.'compiled/urlsig/'.$this->file.'.creationinfos.php';}
+    public function getCompiledFilePath (){ return jApp::tempPath('compiled/urlsig/'.$this->file.'.creationinfos.php');}
 }
 
 /**
@@ -54,7 +54,6 @@ class jSelectorUrlHandler extends jSelectorClass {
     }
 
 }
-
 /**
  * interface for user url handler
  * @package  jelix
@@ -77,7 +76,6 @@ interface jIUrlSignificantHandler {
     */
     public function create($urlact, $url);
 }
-
 /**
  * an url engine to parse,analyse and create significant url
  * it needs an urls.xml file in the config directory (see documentation)
@@ -115,12 +113,13 @@ class significantUrlEngine implements jIUrlEngine {
             $sel = new jSelectorUrlCfgSig($gJConfig->urlengine['significantFile']);
             jIncluder::inc($sel);
             $snp  = $gJConfig->urlengine['urlScriptIdenc'];
-            $file = JELIX_APP_TEMP_PATH.'compiled/urlsig/'.$sel->file.'.'.$snp.'.entrypoint.php';
+            $file = jApp::tempPath('compiled/urlsig/'.$sel->file.'.'.$snp.'.entrypoint.php');
             if (file_exists($file)) {
                 require($file);
                 $this->dataCreateUrl = & $GLOBALS['SIGNIFICANT_CREATEURL']; // fourni via le jIncluder ligne 99
                 $this->dataParseUrl = & $GLOBALS['SIGNIFICANT_PARSEURL'][$snp];
-                return $this->_parse($request->urlScript, $request->urlPathInfo, $params);
+                $isHttps = ($request->getProtocol() == 'https://');
+                return $this->_parse($request->urlScript, $request->urlPathInfo, $params, $isHttps);
             }
         }
 
@@ -154,12 +153,12 @@ class significantUrlEngine implements jIUrlEngine {
                 $snp = substr($snp,0,$pos);
             }
             $snp = rawurlencode($snp);
-            $file = JELIX_APP_TEMP_PATH.'compiled/urlsig/'.$sel->file.'.'.$snp.'.entrypoint.php';
+            $file = jApp::tempPath('compiled/urlsig/'.$sel->file.'.'.$snp.'.entrypoint.php');
             if (file_exists($file)) {
                 require($file);
                 $this->dataCreateUrl = & $GLOBALS['SIGNIFICANT_CREATEURL']; // fourni via le jIncluder ligne 127
                 $this->dataParseUrl = & $GLOBALS['SIGNIFICANT_PARSEURL'][$snp];
-                return $this->_parse($scriptNamePath, $pathinfo, $params);
+                return $this->_parse($scriptNamePath, $pathinfo, $params, false);
             }
         }
         $urlact = new jUrlAction($params);
@@ -171,9 +170,10 @@ class significantUrlEngine implements jIUrlEngine {
     * @param string $scriptNamePath    /path/index.php
     * @param string $pathinfo          the path info part of the url (part between script name and query)
     * @param array  $params            url parameters (query part e.g. $_REQUEST)
+    * @param boolean $isHttps          says if the given url is asked with https or not
     * @return jUrlAction
     */
-    protected function _parse($scriptNamePath, $pathinfo, $params){
+    protected function _parse($scriptNamePath, $pathinfo, $params, $isHttps){
         global $gJConfig;
 
         $urlact = null;
@@ -187,8 +187,8 @@ class significantUrlEngine implements jIUrlEngine {
                 continue;
             }
 
-            if (count($infoparsing) < 6) {
-                list($module, $action, $reg, $selectorHandler, $secondariesActions) = $infoparsing;
+            if (count($infoparsing) < 7) {
+                list($module, $action, $reg, $selectorHandler, $secondariesActions, $needHttps) = $infoparsing;
                 $url2 = clone $url;
                 if ($reg != '') {
                     if (preg_match($reg, $pathinfo, $m))
@@ -235,7 +235,8 @@ class significantUrlEngine implements jIUrlEngine {
                 5=>array('bla'=>'whatIWant' ), // list of static values
                 6=>false or array('secondaries','actions')
                 */
-                list($module, $action, $reg, $dynamicValues, $escapes, $staticValues, $secondariesActions) = $infoparsing;
+                list($module, $action, $reg, $dynamicValues, $escapes,
+                     $staticValues, $secondariesActions, $needHttps) = $infoparsing;
                 if (isset($params['module']) && $params['module'] !== $module)
                     continue;
 
@@ -295,6 +296,11 @@ class significantUrlEngine implements jIUrlEngine {
                     $urlact = new jUrlAction(array('module'=>'jelix', 'action'=>'error:notfound'));
                 }
             }
+        }
+        else if ($needHttps && ! $isHttps) {
+            // the url is declared for HTTPS, but the request does not come from HTTPS
+            // -> 404 not found
+            $urlact = new jUrlAction(array('module'=>'jelix', 'action'=>'error:notfound'));
         }
         return $urlact;
     }

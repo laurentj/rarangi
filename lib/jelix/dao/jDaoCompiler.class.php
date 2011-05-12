@@ -3,7 +3,7 @@
 * @package    jelix
 * @subpackage dao
 * @author      Laurent Jouanneau
-* @copyright   2005-2009 Laurent Jouanneau
+* @copyright   2005-2010 Laurent Jouanneau
 * Idea of this class was get originally from the Copix project
 * (CopixDaoCompiler, Copix 2.3dev20050901, http://www.copix.org)
 * no more line of code are copyrighted by CopixTeam
@@ -47,19 +47,14 @@ class jDaoCompiler  implements jISimpleCompiler {
         }
 
         global $gJConfig;
-        if(!isset($gJConfig->_pluginsPathList_db[$selector->driver])
-            || !file_exists($gJConfig->_pluginsPathList_db[$selector->driver]) ){
+        $tools = jApp::loadPlugin($selector->driver, 'db', '.dbtools.php', $selector->driver.'DbTools');
+        if(is_null($tools))
             throw new jException('jelix~db.error.driver.notfound', $selector->driver);
-        }
-        $path = $gJConfig->_pluginsPathList_db[$selector->driver].$selector->driver;
-        require_once($path.'.dbtools.php');
-        $class = $selector->driver.'DbTools';
-        $tools = new $class(null);
 
         $parser = new jDaoParser ($selector);
         $parser->parse(simplexml_import_dom($doc), $tools);
 
-        require_once($path.'.daobuilder.php');
+        require_once($gJConfig->_pluginsPathList_db[$selector->driver].$selector->driver.'.daobuilder.php');
         $class = $selector->driver.'DaoBuilder';
         $generator = new $class ($selector, $tools, $parser);
 

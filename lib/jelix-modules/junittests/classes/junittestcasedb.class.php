@@ -20,7 +20,7 @@ class jUnitTestCaseDb extends jUnitTestCase {
         $db->exec('DELETE FROM '.$db->encloseName($table));
     }
 
-    function insertRecordsIntoTable($table, $fields, $records, $emptyBefore=false){
+    public function insertRecordsIntoTable($table, $fields, $records, $emptyBefore=false){
         if($emptyBefore)
             $this->emptytable($table);
         $db = jDb::getConnection($this->dbProfile);

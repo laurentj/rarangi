@@ -5,7 +5,7 @@
 * @subpackage  core_selector
 * @author      Laurent Jouanneau
 * @contributor Loic Mathaud
-* @copyright   2005-2007 Laurent Jouanneau, 2007 Loic Mathaud
+* @copyright   2005-2011 Laurent Jouanneau, 2007 Loic Mathaud
 * @link        http://www.jelix.org
 * @licence    GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
@@ -26,7 +26,7 @@ class jSelectorDao extends jSelectorModule {
 
     function __construct($sel, $driver, $isprofile=true){
         if ($isprofile) {
-            $p = jDb::getProfile($driver);
+            $p = jProfiles::get('jdb', $driver);
             if ($p['driver'] == 'pdo') {
                 $this->driver = substr($p['dsn'], 0, strpos($p['dsn'],':'));
             }
@@ -49,7 +49,7 @@ class jSelectorDao extends jSelectorModule {
         }
 
         // on regarde si le dao a été redéfini
-        $overloadedPath = JELIX_APP_VAR_PATH.'overloads/'.$this->module.'/'.$this->_dirname.$this->resource.$this->_suffix;
+        $overloadedPath = jApp::varPath('overloads/'.$this->module.'/'.$this->_dirname.$this->resource.$this->_suffix);
         if (is_readable ($overloadedPath)){
            $this->_path = $overloadedPath;
            $this->_where = 'overloaded/';
@@ -67,7 +67,7 @@ class jSelectorDao extends jSelectorModule {
     protected function _createCachePath(){
         // on ne partage pas le même cache pour tous les emplacements possibles
         // au cas où un overload était supprimé
-        $this->_cachePath = JELIX_APP_TEMP_PATH.'compiled/daos/'.$this->_where.$this->module.'~'.$this->resource.'~'.$this->driver.$this->_cacheSuffix;
+        $this->_cachePath = jApp::tempPath('compiled/daos/'.$this->_where.$this->module.'~'.$this->resource.'~'.$this->driver.$this->_cacheSuffix);
     }
 
     public function getDaoClass(){

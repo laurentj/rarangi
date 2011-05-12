@@ -19,9 +19,9 @@ class createformCommand extends JelixScriptCommand {
     public  $help=array(
         'fr'=>"
     Crée un nouveau fichier jforms, soit vide, soit un formulaire à partir d'un fichier dao
-    
+
     Si l'option -createlocales est présente, créé les fichiers locales avec les champs du formulaire
-    
+
     MODULE: nom du module concerné.
     FORM : nom du formulaire.
     DAO   : sélecteur du dao concerné. Si non indiqué, le fichier jforms sera vide.",
@@ -30,7 +30,7 @@ class createformCommand extends JelixScriptCommand {
     Create a new jforms file, from a jdao file.
 
     If you give the -createlocales option, it will create the locales files with the form's values.
-    
+
     MODULE : module name where to create the form
     FORM : name of the form
     DAO    : selector of the dao on which the form will be based. If not given, the jforms file will be empty",
@@ -39,7 +39,7 @@ class createformCommand extends JelixScriptCommand {
 
     public function run(){
 
-        jxs_init_jelix_env();
+        $this->loadAppConfig();
 
         $path = $this->getModulePath($this->_parameters['module']);
 
@@ -56,7 +56,7 @@ class createformCommand extends JelixScriptCommand {
             $locale_filename_fr = $path.'locales/fr_FR/';
             $this->createDir($locale_filename_fr);
             $locale_filename_fr.=strtolower($this->_parameters['form']).'.UTF-8.properties';
-            
+
             $locale_filename_en = $path.'locales/en_EN/';
             $this->createDir($locale_filename_en);
             $locale_filename_en.=strtolower($this->_parameters['form']).'.UTF-8.properties';
@@ -68,9 +68,9 @@ class createformCommand extends JelixScriptCommand {
         $dao = $this->getParam('dao');
         if ($dao === null) {
             if ($this->getOption('-createlocales')) {
-                $locale_content = "form.ok=OK\n"; 
-                $this->createFile($locale_filename_fr, 'locales.tpl', array('content'=>$locale_content)); 
-                $this->createFile($locale_filename_en, 'locales.tpl', array('content'=>$locale_content)); 
+                $locale_content = "form.ok=OK\n";
+                $this->createFile($locale_filename_fr, 'locales.tpl', array('content'=>$locale_content));
+                $this->createFile($locale_filename_en, 'locales.tpl', array('content'=>$locale_content));
             }
             $this->createFile($filename,'module/form.xml.tpl', array('content'=>'<!-- add control declaration here -->'.$submit));
             return;
@@ -81,13 +81,13 @@ class createformCommand extends JelixScriptCommand {
         jContext::push($this->_parameters['module']);
 
         $tools = jDb::getConnection()->tools();
-        
+
         // we're going to parse the dao
         $selector = new jSelectorDao($dao,'');
 
         $doc = new DOMDocument();
         $daoPath = $selector->getPath();
-        
+
         if(!$doc->load($daoPath)){
            throw new jException('jelix~daoxml.file.unknown', $daoPath);
         }
@@ -156,7 +156,7 @@ class createformCommand extends JelixScriptCommand {
             }
             if($datatype != '')
                 $attr.=' type="'.$datatype.'"';
-            
+
             if ($this->getOption('-createlocales')) {
                 $locale_content .= 'form.'.$name.'='. ucwords(str_replace('_',' ',$name))."\n";
                 $content.="\n\n<$tag ref=\"$name\"$attr>\n\t<label locale='".$locale_base.$name."' />\n</$tag>";
@@ -174,4 +174,3 @@ class createformCommand extends JelixScriptCommand {
         $this->createFile($filename,'module/form.xml.tpl', array('content'=>$content.$submit));
     }
 }
-

@@ -13,6 +13,8 @@
  *
  */
 include (LIB_PATH . 'intuition/Intuition.inc');
+require_once(dirname(__FILE__).'/intuition.dbresultset.php');
+
 /**
 * @package    jelix
 * @subpackage db_driver
@@ -146,4 +148,24 @@ class intuitionDbConnection extends jDbConnection {
     protected function _quote ($text, $binary) {
         return quote ($text);
     }
+
+    /**
+     *
+     * @param integer $id the attribut id
+     * @return string the attribute value
+     * @see PDO::getAttribute()
+     */
+    public function getAttribute($id) {
+        return "";
+    }
+
+    /**
+     * 
+     * @param integer $id the attribut id
+     * @param string $value the attribute value
+     * @see PDO::setAttribute()
+     */
+    public function setAttribute($id, $value) {
+    }
+
 }

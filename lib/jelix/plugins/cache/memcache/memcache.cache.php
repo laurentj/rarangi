@@ -56,7 +56,14 @@ class memcacheCacheDriver implements jICacheDriver {
 
     public function __construct($params){
 
-        $this->profil_name = $params['profile'];
+        if (!extension_loaded('memcache')) {
+            throw new jException('jelix~cache.error.memcache.extension.missing',array($this->profil_name, ''));
+        }
+        if (version_compare(phpversion('memcache'), '3.0.1') == -1) { // memcache >= 3.0.1
+            throw new jException('jelix~cache.error.memcache.extension.badversion.3',array($this->profil_name));
+        }
+
+        $this->profil_name = $params['_name'];
 
         if (isset($params['enabled'])) {
             $this->enabled = ($params['enabled'])?true:false;
@@ -66,11 +73,7 @@ class memcacheCacheDriver implements jICacheDriver {
             $this->ttl = $params['ttl'];
         }
 
-        try{
-            $this->_memcache = new Memcache;
-        }catch(Exception $e){
-            throw new jException('jelix~cache.error.memcache.extension.missing',array($this->profil_name, $e->getMessage()));
-        }
+        $this->_memcache = new Memcache;
 
         if(isset($params['servers'])){
             $this->_servers = $params['servers'];
@@ -80,7 +83,7 @@ class memcacheCacheDriver implements jICacheDriver {
         $fails = 0;
         for ($i = 0; $i<count($servers); $i++) {
             list($server,$port) = explode(':', $servers[$i]);
-            if (!$this->_memcache->addServer($server, $port)) {
+            if (!$this->_memcache->addServer($server, (int)$port)) {
                 $fails++;
             }
         }
@@ -126,8 +129,17 @@ class memcacheCacheDriver implements jICacheDriver {
     * @return boolean       false if failure
     */
     public function increment ($key,$var=1){
-        if (!is_numeric($var) || !is_numeric($this->get($key))) {
+        if (!is_numeric($var)) {
             return false;
+        }
+        $val = $this->get($key);
+        if(!is_numeric($val)) {
+            return false;
+        }else if (is_float($val)) {
+            $val = ((int)$val) + $var;
+            if($this->_memcache->set($key, $val))
+                return $val;
+            else return false;
         }
         return $this->_memcache->increment($key,$var);
     }
@@ -138,9 +150,18 @@ class memcacheCacheDriver implements jICacheDriver {
     * @param mixed  $var    value used
     * @return boolean       false if failure
     */
-    public function decrement ($key,$var=1){
-        if(!is_numeric($var) || !is_numeric($this->get($key))){
+    public function decrement ($key, $var=1) {
+        if (!is_numeric($var)) {
             return false;
+        }
+        $val = $this->get($key);
+        if(!is_numeric($val)) {
+            return false;
+        }else if (is_float($val)) {
+            $val = ((int)$val) - $var;
+            if($this->_memcache->set($key, $val))
+                return $val;
+            else return false;
         }
         return $this->_memcache->decrement($key,$var);
     }

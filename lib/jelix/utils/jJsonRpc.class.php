@@ -4,7 +4,7 @@
 * @subpackage  utils
 * @author      Laurent Jouanneau
 * @contributor Julien ISSLER
-* @copyright   2005-2007 Laurent Jouanneau
+* @copyright   2005-2011 Laurent Jouanneau
 * @copyright   2007 Julien Issler
 * @link        http://www.jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
@@ -38,9 +38,7 @@ class jJsonRpc {
      * @return string jsonrcp request content
      */
     public static function encodeRequest($methodname, $params, $id=1){
-
         return '{"method":"'.$methodname.'","params":'.json_encode($params).',"id":'.json_encode($id).'}';
-
     }
 
     /**
@@ -51,7 +49,6 @@ class jJsonRpc {
     public static function decodeResponse($content){
         // {result:.. , error:.. , id:.. }
         return json_decode($content,true);
-
     }
 
     /**

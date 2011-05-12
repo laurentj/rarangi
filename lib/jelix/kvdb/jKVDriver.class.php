@@ -9,7 +9,6 @@
  * @link     http://www.jelix.org
  * @licence  http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
  */
-
 /**
  * interface for KV driver which store values in a persistent manner (in a file...)
  */
@@ -41,7 +40,6 @@ interface jIKVttl {
      */
     public function garbage();
 }
-
 /**
  *
  */
@@ -63,7 +61,6 @@ abstract class jKVDriver {
     * Profile for the connection in the kvdb INIfile.
     *
     * @var array
-    * @see KVDB_PROFILE_FILE
     */
    protected $_profile;
 
@@ -98,7 +95,7 @@ abstract class jKVDriver {
     public function __construct($profile) {
         $this->_profile     = &$profile;
         $this->_driverName  = $profile['driver'];
-        $this->_profileName = $profile['name'];
+        $this->_profileName = $profile['_name'];
         $this->_connection = $this->_connect();
     }
 

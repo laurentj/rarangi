@@ -4,7 +4,7 @@
 * @subpackage core
 * @author     Laurent Jouanneau
 * @contributor Yannick Le Guédart
-* @copyright  2005-2010 Laurent Jouanneau, 2010 Yannick Le Guédart
+* @copyright  2005-2011 Laurent Jouanneau, 2010 Yannick Le Guédart
 * @link        http://www.jelix.org
 * @licence    GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
@@ -39,7 +39,7 @@ abstract class jRequest {
     public $defaultResponseType = '';
 
     /**
-     * the path of the entry point in the url
+     * the path of the entry point in the url (basePath included)
      * if the url is /foo/index.php/bar, its value is /foo/
      * @var string
      */
@@ -53,7 +53,7 @@ abstract class jRequest {
     public $urlScriptName;
 
     /**
-     * the path to the entry point in the url
+     * the path to the entry point in the url (basePath included)
      * if the url is /foo/index.php/bar, its value is /foo/index.php
      * @var string
      */
@@ -183,24 +183,44 @@ abstract class jRequest {
 
         return $response;
     }
-    
+
     /**
      * return the ip address of the user
      * @return string the ip
      */
     function getIP() {
         if (isset ($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']){
-            return $_SERVER['HTTP_X_FORWARDED_FOR'];
-        }else if (isset ($_SERVER['HTTP_CLIENT_IP']) && $_SERVER['HTTP_CLIENT_IP']){
+            // it may content ips of all traversed proxies.
+            $list = preg_split('/[\s,]+/', $_SERVER['HTTP_X_FORWARDED_FOR']);
+            $list = array_reverse($list);
+            $lastIp = '';
+            foreach($list as $ip) {
+                $ip = trim($ip);
+                if(preg_match('/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/',$ip,$m)) {
+                    if ($m[1] == '10' || $m[1] == '010'
+                        || ($m[1] == '172' && (intval($m[2]) & 240 == 16))
+                        || ($m[1] == '192' && $m[2] == '168'))
+                        break; // stop at first private address. we just want the last public address
+                    $lastIp = $ip;
+                }
+                elseif (preg_match('/^(?:[a-f0-9]{1,4})(?::(?:[a-f0-9]{1,4})){7}$/i',$ip)) {
+                    $lastIp = $ip;
+                }
+            }
+            if ($lastIp)
+                return $lastIp;
+        }
+
+        if (isset ($_SERVER['HTTP_CLIENT_IP']) && $_SERVER['HTTP_CLIENT_IP']){
             return  $_SERVER['HTTP_CLIENT_IP'];
         }else{
             return $_SERVER['REMOTE_ADDR'];
         }
     }
-    
+
     /**
      * return the protocol
-     * @return string  http or https
+     * @return string  http:// or https://
      * @since 1.2
      */
    function getProtocol() {
@@ -208,6 +228,18 @@ abstract class jRequest {
       if ($proto === null)
          $proto = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] && $_SERVER['HTTPS'] != 'off' ? 'https://':'http://');
       return $proto;
+   }
+
+   /**
+    * says if this is an ajax request
+    * @return boolean true if it is an ajax request
+    * @since 1.3a1
+    */
+   function isAjax() {
+      if (isset($_SERVER['HTTP_X_REQUESTED_WITH']))
+         return ($_SERVER['HTTP_X_REQUESTED_WITH'] === "XMLHttpRequest");
+      else
+         return false;
    }
 
    /**
@@ -287,4 +319,3 @@ abstract class jRequest {
 
 
 }
-

@@ -15,6 +15,7 @@
 * @link      http://www.jelix.org
 * @licence  http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
+require_once(dirname(__FILE__).'/mysql.dbresultset.php');
 
 /**
  *
@@ -136,7 +137,7 @@ class mysqlDbConnection extends jDbConnection {
 
 
     public function lastInsertId($fromSequence=''){// on n'a pas besoin de l'argument pour mysql
-        return mysql_insert_id ();
+        return mysql_insert_id ($this->_connection);
     }
 
     /**
@@ -153,6 +154,34 @@ class mysqlDbConnection extends jDbConnection {
      */
     protected function _quote($text, $binary) {
         return mysql_real_escape_string($text, $this->_connection);
+    }
+
+    /**
+     *
+     * @param integer $id the attribut id
+     * @return string the attribute value
+     * @see PDO::getAttribute()
+     */
+    public function getAttribute($id) {
+        switch($id) {
+            case self::ATTR_CLIENT_VERSION:
+                return mysql_get_client_info();
+            case self::ATTR_SERVER_VERSION:
+                return mysql_get_server_info($this->_connection);
+                break;
+            case self::ATTR_SERVER_INFO:
+                return mysql_get_host_info($this->_connection);
+        }
+        return "";
+    }
+
+    /**
+     * 
+     * @param integer $id the attribut id
+     * @param string $value the attribute value
+     * @see PDO::setAttribute()
+     */
+    public function setAttribute($id, $value) {
     }
 
 }

@@ -56,7 +56,7 @@ class jInstallerEntryPoint {
         $this->configFile = $configFile;
         $this->scriptName =  ($this->isCliScript?$file:'/'.$file);
         $this->file = $file;
-        $this->configIni = new jIniMultiFilesModifier($defaultConfig, JELIX_APP_CONFIG_PATH.$configFile);
+        $this->configIni = new jIniMultiFilesModifier($defaultConfig, jApp::configPath($configFile));
         $this->config = jConfigCompiler::read($configFile, true,
                                               $this->isCliScript,
                                               $this->scriptName);
@@ -84,17 +84,4 @@ class jInstallerEntryPoint {
     function getModule($moduleName) {
         return new jInstallerModuleInfos($moduleName, $this->config->modules);
     }
-
-    /**
-     * @param string $moduleName the module name
-     * @return boolean
-     */
-    function isModuleInstalled($moduleName) {
-        $n = $moduleName.'.installed';
-        if (isset($this->config->modules[$n]))
-            return $this->config->modules[$n];
-        else
-            return false;
-    }
-
 }

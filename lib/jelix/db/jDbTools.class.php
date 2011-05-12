@@ -110,9 +110,9 @@ abstract class jDbTools {
     protected $_conn;
 
     /**
-    *
+    * @param jDbConnection $connector the connection to a database
     */
-    function __construct( $connector){
+    function __construct($connector = null){
         $this->_conn = $connector;
     }
 
@@ -263,16 +263,16 @@ abstract class jDbTools {
 
     /**
     * returns the table list
-    * @deprecated since 1.2
     */
     abstract public function getTableList ();
 
     /**
-    * return the field list of a given table
-    * @return array  array of jDbFieldProperties
-    * @deprecated since 1.2
+    * retrieve the list of fields of a table
+    * @param string $tableName the name of the table
+    * @param string $sequence  the sequence used to auto increment the primary key
+    * @return   array    keys are field names and values are jDbFieldProperties objects
     */
-    abstract public function getFieldList ($tableName);
+    abstract public function getFieldList ($tableName, $sequence='');
 
     /**
      * regular expression to detect comments and end of query

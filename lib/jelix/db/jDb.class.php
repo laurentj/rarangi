@@ -2,9 +2,10 @@
 /**
 * @package     jelix
 * @subpackage  db
-* @author     Laurent Jouanneau
-* @contributor Yannick Le Guédart, Laurent Raufaste
-* @copyright  2005-2010 Laurent Jouanneau
+* @author      Laurent Jouanneau
+* @contributor Yannick Le Guédart, Laurent Raufaste, Julien Issler
+* @copyright   2005-2011 Laurent Jouanneau
+* @copyright   2011 Julien Issler
 *
 * API ideas of this class were get originally from the Copix project (CopixDbFactory, Copix 2.3dev20050901, http://www.copix.org)
 * No lines of code are copyrighted by CopixTeam
@@ -20,6 +21,62 @@ require(JELIX_LIB_PATH.'db/jDbConnection.class.php');
 require(JELIX_LIB_PATH.'db/jDbResultSet.class.php');
 
 /**
+ * class that handles a sql query for a logger
+ */
+class jSQLLogMessage extends jLogMessage {
+
+    protected $startTime = 0;
+    protected $endTime = 0;
+    protected $trace = array();
+
+    public function __construct($message) {
+        $this->category = 'sql';
+        $this->message = $message;
+        $this->startTime = microtime(true);
+
+        $this->trace = debug_backtrace();
+        array_shift($this->trace); // remove the current __construct call
+    }
+
+    public function endQuery() {
+        $this->endTime = microtime(true);
+    }
+
+    public function getTrace() {
+        return $this->trace;
+    }
+
+    public function getTime() {
+        return $this->endTime - $this->startTime;
+    }
+
+    public function getDao() {
+        foreach ($this->trace as $t) {
+            if (isset($t['file']) && preg_match('/compiled\/daos\/.+\/(.+)~(.+)~.+\.php$/', $t['file'], $m)) {
+                return $m[1].'~'.$m[2];
+            }
+        }
+        return '';
+    }
+
+    public function getFormatedMessage() {
+        $message = $this->message."\n".$this->getTime().'ms';
+        $dao = $this->getDao();
+        if ($dao)
+            $message.=', from dao:'.$dao."\n";
+
+        $traceLog="";
+        foreach($this->trace as $k=>$t){
+            $traceLog.="\n\t$k\t".(isset($t['class'])?$t['class'].$t['type']:'').$t['function']."()\t";
+            $traceLog.=(isset($t['file'])?$t['file']:'[php]').' : '.(isset($t['line'])?$t['line']:'');
+        }
+
+        return $message.$traceLog;
+    }
+}
+
+
+/**
  * factory for database connector and other db utilities
  * @package  jelix
  * @subpackage db
@@ -27,35 +84,14 @@ require(JELIX_LIB_PATH.'db/jDbResultSet.class.php');
 class jDb {
 
     /**
-     * @var array list of profiles currently used
-     */
-    static private $_profiles = null;
-    
-    /**
-     * @var array list of opened connections
-     */
-    static private $_cnxPool = array();
-
-    /**
     * return a database connector. It uses a temporay pool of connection to reuse
     * currently opened connections.
-    * 
+    *
     * @param string  $name  profile name to use. if empty, use the default one
     * @return jDbConnection  the connector
     */
-    public static function getConnection ($name = null) {
-        $profile = self::getProfile ($name);
-
-        if (!$name) {
-            // we set the name to avoid two connection for a same profile, when it is the default profile
-            // and when we call getConnection two times, one with no name and on with the name
-            $name = $profile['name'];
-        }
-
-        if (!isset(self::$_cnxPool[$name])) {
-            self::$_cnxPool[$name] = self::_createConnector($profile);
-        }
-        return self::$_cnxPool[$name];
+    public static function getConnection ($name = '') {
+        return jProfiles::getOrStoreInPool('jdb', $name, array('jDb', '_createConnector'));
     }
 
     /**
@@ -82,7 +118,7 @@ class jDb {
     /**
     * load properties of a connector profile
     *
-    * a profile is a section in the dbprofils.ini.php file
+    * a profile is a section in the profiles.ini.php file
     *
     * the given name can be a profile name (it should correspond to a section name
     * in the ini file), or an alias of a profile. An alias is a parameter name
@@ -92,52 +128,10 @@ class jDb {
     * @param string   $name  profile name or alias of a profile name. if empty, use the default profile
     * @param boolean  $noDefault  if true and if the profile doesn't exist, throw an error instead of getting the default profile
     * @return array  properties
+    * @deprecated use jProfiles::get instead
     */
     public static function getProfile ($name='', $noDefault = false) {
-        global $gJConfig;
-        if (self::$_profiles === null) {
-            self::$_profiles = parse_ini_file(JELIX_APP_CONFIG_PATH.$gJConfig->dbProfils , true);
-        }
-
-        if ($name == '')
-            $name = 'default';
-        $targetName = $name;
-
-        if (isset(self::$_profiles[$name])) {
-            if (is_string(self::$_profiles[$name])) {
-                $targetName = self::$_profiles[$name];
-            }
-            else { // this is an array, and so a section
-                self::$_profiles[$name]['name'] = $name;
-                return self::$_profiles[$name];
-            }
-        }
-        // if the profile doesn't exist, we take the default one
-        elseif (!$noDefault && isset(self::$_profiles['default'])) {
-            trigger_error(jLocale::get('jelix~db.error.profile.use.default', $name), E_USER_NOTICE);
-            if (is_string(self::$_profiles['default'])) {
-                $targetName = self::$_profiles['default'];
-            }
-            else {
-                self::$_profiles['default']['name'] = 'default';
-                return self::$_profiles['default'];
-            }
-        }
-        else {
-            if ($name == 'default')
-                throw new jException('jelix~db.error.default.profile.unknown');
-            else
-                throw new jException('jelix~db.error.profile.type.unknown',$name);
-        }
-
-        if (isset(self::$_profiles[$targetName]) && is_array(self::$_profiles[$targetName])) {
-            self::$_profiles[$name] = self::$_profiles[$targetName];
-            self::$_profiles[$name]['name'] = $name;
-            return self::$_profiles[$name];
-        }
-        else {
-            throw new jException('jelix~db.error.profile.unknown', $targetName);
-        }
+        return jProfiles::get('jdb', $name, $noDefault);
     }
 
     /**
@@ -157,28 +151,19 @@ class jDb {
     }
 
     /**
-    * create a connector
+    * create a connector. internal use (callback method for jProfiles)
     * @param array  $profile  profile properties
     * @return jDbConnection|jDbPDOConnection  database connector
     */
-    private static function _createConnector ($profile) {
+    public static function _createConnector ($profile) {
         if ($profile['driver'] == 'pdo' || (isset($profile['usepdo']) && $profile['usepdo'])) {
             $dbh = new jDbPDOConnection($profile);
             return $dbh;
         }
         else {
-            global $gJConfig;
-            if (!isset($gJConfig->_pluginsPathList_db[$profile['driver']])
-                || !file_exists($gJConfig->_pluginsPathList_db[$profile['driver']])) {
+            $dbh = jApp::loadPlugin($profile['driver'], 'db', '.dbconnection.php', $profile['driver'].'DbConnection', $profile);
+            if (is_null($dbh))
                 throw new jException('jelix~db.error.driver.notfound', $profile['driver']);
-            }
-            $p = $gJConfig->_pluginsPathList_db[$profile['driver']].$profile['driver'];
-            require_once($p.'.dbconnection.php');
-            require_once($p.'.dbresultset.php');
-
-            //creating of the connection
-            $class = $profile['driver'].'DbConnection';
-            $dbh = new $class ($profile);
             return $dbh;
         }
     }
@@ -187,29 +172,21 @@ class jDb {
      * create a temporary new profile
      * @param string $name the name of the profile
      * @param array|string $params parameters of the profile. key=parameter name, value=parameter value.
-     *                      same kind of parameters we found in dbprofils.ini.php
+     *                      same kind of parameters we found in profiles.ini.php
      *                      we can also indicate a name of an other profile, to create an alias
+     * @deprecated since 1.3, use jProfiles::createVirtualProfile instead
      */
     public static function createVirtualProfile ($name, $params) {
-        global $gJConfig;
-        if ($name == '') {
-           throw new jException('jelix~db.error.virtual.profile.no.name');
-        }
-
-        if (self::$_profiles === null) {
-            self::$_profiles = parse_ini_file (JELIX_APP_CONFIG_PATH . $gJConfig->dbProfils, true);
-        }
-        self::$_profiles[$name] = $params;
-        unset (self::$_cnxPool[$name]);
+        jProfiles::createVirtualProfile('jdb',$name, $params);
     }
-    
+
     /**
      * clear the loaded profiles to force to reload the db profiles file.
      * WARNING: it closes all opened connections !
      * @since 1.2
+     * @deprecated since 1.3, use jProfiles::clear instead
      */
     public static function clearProfiles() {
-        self::$_profiles = null;
-        self::$_cnxPool  = array();
+        jProfiles::clear();
     }
 }

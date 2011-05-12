@@ -8,6 +8,7 @@
 * @link      http://www.jelix.org
 * @licence  http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
+require_once(dirname(__FILE__).'/sqlite.dbresultset.php');
 
 /**
  *
@@ -63,9 +64,9 @@ class sqliteDbConnection extends jDbConnection {
         $funcconnect= (isset($this->profile['persistent']) && $this->profile['persistent']? 'sqlite_popen':'sqlite_open');
         $db = $this->profile['database'];
         if (preg_match('/^(app|lib|var)\:/', $db))
-            $path = str_replace(array('app:','lib:','var:'), array(JELIX_APP_PATH, LIB_PATH, JELIX_APP_VAR_PATH), $db);
+            $path = str_replace(array('app:','lib:','var:'), array(jApp::appPath(), LIB_PATH, jApp::varPath()), $db);
         else
-            $path = JELIX_APP_VAR_PATH.'db/sqlite/'.$db;
+            $path = jApp::varPath('db/sqlite/'.$db);
 
         if ($cnx = @$funcconnect($path)) {
             return $cnx;
@@ -118,6 +119,31 @@ class sqliteDbConnection extends jDbConnection {
     */
     protected function _quote($text, $binary) {
         return sqlite_escape_string($text);
+    }
+
+
+    /**
+     *
+     * @param integer $id the attribut id
+     * @return string the attribute value
+     * @see PDO::getAttribute()
+     */
+    public function getAttribute($id) {
+        switch($id) {
+            case self::ATTR_CLIENT_VERSION:
+            case self::ATTR_SERVER_VERSION:
+                return sqlite_libversion();
+        }
+        return "";
+    }
+
+    /**
+     * 
+     * @param integer $id the attribut id
+     * @param string $value the attribute value
+     * @see PDO::setAttribute()
+     */
+    public function setAttribute($id, $value) {
     }
 
 }

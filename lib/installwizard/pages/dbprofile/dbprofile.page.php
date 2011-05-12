@@ -6,7 +6,7 @@
 * @package     InstallWizard
 * @subpackage  pages
 * @author      Laurent Jouanneau
-* @copyright   2010 Laurent Jouanneau
+* @copyright   2010-2011 Laurent Jouanneau
 * @link        http://jelix.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
@@ -35,7 +35,7 @@ class dbprofileWizPage extends installWizardPage {
         if (count($ignoreProfiles)) {
             $newsections = array();
             foreach($sections as $profile) {
-                if(!in_array($profile, $ignoreProfiles))
+                if(!in_array(substr($profile,4), $ignoreProfiles))
                     $newsections[] = $profile;
             }
             $tpl->assign('profiles', $newsections);
@@ -74,7 +74,7 @@ class dbprofileWizPage extends installWizardPage {
 
     function process() {
 
-        $ini = new jIniFileModifier(JELIX_APP_CONFIG_PATH.'dbprofils.ini.php');
+        $ini = new jIniFileModifier(jApp::configPath('profiles.ini.php'));
         $hasErrors = false;
         $_SESSION['dbprofiles']['data'] = $_POST;
 
@@ -115,8 +115,8 @@ class dbprofileWizPage extends installWizardPage {
             $params['database'] = $database;
             $ini->setValue('database', $database, $profile);
 
-
             $params['driver'] = $realdriver;
+            $ini->setValue('driver', $realdriver, $profile);
             if ($realdriver != 'sqlite') {
 
                 $host = trim($_POST['host'][$profile]);
@@ -126,6 +126,12 @@ class dbprofileWizPage extends installWizardPage {
                 else {
                     $ini->setValue('host', $host, $profile);
                     $params['host'] = $host;
+                }
+
+                $port = trim($_POST['port'][$profile]);
+                if ($port != '') {
+                    $ini->setValue('port', $port, $profile);
+                    $params['port'] = $port;
                 }
 
                 $user = trim($_POST['user'][$profile]);
@@ -149,6 +155,15 @@ class dbprofileWizPage extends installWizardPage {
                 if ($_POST['passwordconfirm'][$profile] != $password) {
                     $errors[] = $this->locales['error.invalid.confirm.password'];
                 }
+
+                if ($realdriver == 'pgsql') {
+                    $search_path = trim($_POST['search_path'][$profile]);
+                    $params['search_path'] = $search_path;
+                    if ($search_path != '') {
+                        $ini->setValue('search_path', $search_path, $profile);
+                    }
+                }
+
             }
 
             if (!count($errors)) {
@@ -181,19 +196,19 @@ class dbprofileWizPage extends installWizardPage {
     }
 
     protected function loadProfiles () {
-        $file = JELIX_APP_CONFIG_PATH.'dbprofils.ini.php';
+        $file = jApp::configPath('profiles.ini.php');
 
         if (file_exists($file)) {
 
         }
-        elseif (file_exists(JELIX_APP_CONFIG_PATH.'dbprofils.ini.php.dist')) {
-             copy(JELIX_APP_CONFIG_PATH.'dbprofils.ini.php.dist', $file);
+        elseif (file_exists(jApp::configPath('profiles.ini.php.dist'))) {
+             copy(jApp::configPath('profiles.ini.php.dist'), $file);
         }
         else {
             file_put_contents($file, ";<?php die(''); ?>
 ;for security reasons, don't remove or modify the first line
 
-[default]
+[jdb:default]
 driver=mysql
 database=
 host=localhost
@@ -211,16 +226,23 @@ table_prefix=
             'driver'=>array(),
             'database'=>array(),
             'host'=>array(),
+            'port'=>array(),
             'user'=>array(),
             'password'=>array(),
             'passwordconfirm'=>array(),
             'persistent'=>array(),
             'table_prefix'=>array(),
             'force_encoding'=>array(),
+            'search_path'=>array()
         );
 
         $profiles = $ini->getSectionList();
+        $dbprofileslist = array();
         foreach($profiles as $profile) {
+            if (strpos($profile,'jdb:') !== 0)
+                continue;
+            $dbprofileslist[] = $profile;
+
             $driver = $ini->getValue('driver', $profile);
             if ($driver == 'pdo') {
                 $dsn = $ini->getValue('dsn', $profile);
@@ -239,24 +261,38 @@ table_prefix=
                     $host = $ini->getValue('database', $profile);
                     $data['database'][$profile] = ($host===null?'':$host);
                 }
+                if (preg_match("/port=([^;]*)(;|$)/", $dsn, $m)) {
+                    $data['port'][$profile] = $m[1];
+                }
+                else {
+                    $port = $ini->getValue('port', $profile);
+                    $data['port'][$profile] = ($port===null?'':$port);
+                }
             }
             else {
                 $usepdo = (bool)$ini->getValue('usepdo', $profile);
                 $data['driver'][$profile] = $ini->getValue('driver', $profile).($usepdo?'_pdo':'');
                 $data['database'][$profile] = $ini->getValue('database', $profile);
                 $data['host'][$profile] = $ini->getValue('host', $profile);
+                $data['port'][$profile] = $ini->getValue('port', $profile);
             }
 
             $data['user'][$profile] = $ini->getValue('user', $profile);
             $data['password'][$profile] = $ini->getValue('password', $profile);
             $data['passwordconfirm'][$profile] = $data['password'][$profile];
             $data['persistent'][$profile] = $ini->getValue('persistent', $profile);
-            $data['force_encoding'][$profile] = $ini->getValue('force_encoding', $profile);
+
+            $force_encoding = $ini->getValue('force_encoding',$profile);
+            if ($force_encoding === null)
+                $force_encoding = true;
+            $data['force_encoding'][$profile]= $force_encoding;
+
             $data['table_prefix'][$profile] = $ini->getValue('table_prefix', $profile);
+            $data['search_path'][$profile] = $ini->getValue('search_path', $profile);
             $data['errors'][$profile] = array();
         }
 
-        $_SESSION['dbprofiles']['profiles'] = $profiles;
+        $_SESSION['dbprofiles']['profiles'] = $dbprofileslist;
         $_SESSION['dbprofiles']['data'] = $data;
     }
 
@@ -264,7 +300,14 @@ table_prefix=
         if(!function_exists('mssql_connect')) {
             throw new Exception($this->locales['error.extension.mssql.not.installed']);
         }
-        if ($cnx = @mssql_connect ($params['host'], $params['user'], $params['password'])) {
+        $host = $params['host'];
+        if(isset($params['port']) && $params['port']) {
+            if(DIRECTORY_SEPARATOR === '\\')
+                $host.=','.$params['port'];
+            else
+                $host.=':'.$params['port'];
+        }
+        if ($cnx = @mssql_connect ($host, $params['user'], $params['password'])) {
             if(!mssql_select_db ($params['database'], $cnx))
                 throw new Exception($this->locales['error.no.database']);
             mssql_close($cnx);
@@ -279,7 +322,11 @@ table_prefix=
         if(!function_exists('mysql_connect')) {
             throw new Exception($this->locales['error.extension.mysql.not.installed']);
         }
-        if ($cnx = @mysql_connect ($params['host'], $params['user'], $params['password'])) {
+        $host = $params['host'];
+        if(isset($params['port']) && $params['port']) {
+            $host.=':'.$params['port'];
+        }
+        if ($cnx = @mysql_connect ($host, $params['user'], $params['password'])) {
             if(!mysql_select_db ($params['database'], $cnx))
                 throw new Exception($this->locales['error.no.database']);
             mysql_close($cnx);
@@ -291,6 +338,8 @@ table_prefix=
     }
 
     protected function check_oci($params) {
+        throw new Exception('oci not supported');
+        return false;
     }
 
     protected function check_pgsql($params) {
@@ -301,11 +350,11 @@ table_prefix=
         $str = '';
 
         // we do a distinction because if the host is given == TCP/IP connection else unix socket
-        if($params['host'] != '')
+        if($params['host'] != '') {
             $str = 'host=\''.$params['host'].'\''.$str;
-
-        if (isset($params['port'])) {
-            $str .= ' port=\''.$params['port'].'\'';
+            if (isset($params['port']) && $params['port']) {
+                $str .= ' port=\''.$params['port'].'\'';
+            }
         }
 
         if ($params['database'] != '') {
@@ -339,7 +388,7 @@ table_prefix=
         if(!function_exists('sqlite_open')) {
             throw new Exception($this->locales['error.extension.sqlite.not.installed']);
         }
-        if ($cnx = @sqlite_open (JELIX_APP_VAR_PATH. 'db/sqlite/'.$params['database'])) {
+        if ($cnx = @sqlite_open (jApp::varPath('db/sqlite/'.$params['database']))) {
             sqlite_close($cnx);
         }
         else {
@@ -355,12 +404,15 @@ table_prefix=
             $password = '';
         }
         else {
+            if (isset($params['port']) && $params['port'])
+                $dsn.= ';port='.$params['port'];
             $user = $params['user'];
             $password = $params['password'];
         }
 
         unset ($params['driver']);
         unset ($params['host']);
+        unset ($params['port']);
         unset ($params['database']);
         unset ($params['user']);
         unset ($params['password']);

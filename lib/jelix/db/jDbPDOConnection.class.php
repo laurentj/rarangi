@@ -48,7 +48,7 @@ class jDbPDOConnection extends PDO {
             $dsn = $profile['dsn'];
             unset($prof['dsn']);
             if ($this->dbms == 'sqlite')
-                $dsn = str_replace(array('app:','lib:','var:'), array(JELIX_APP_PATH, LIB_PATH, JELIX_APP_VAR_PATH), $dsn);
+                $dsn = str_replace(array('app:','lib:','var:'), array(jApp::appPath(), LIB_PATH, jApp::varPath()), $dsn);
         }
         else {
             $this->dbms = $profile['driver'];
@@ -58,9 +58,9 @@ class jDbPDOConnection extends PDO {
                 $dsn = $this->dbms.':host='.$profile['host'].';dbname='.$db;
             else {
                 if (preg_match('/^(app|lib|var)\:/', $db, $m))
-                    $dsn = 'sqlite:'.str_replace(array('app:','lib:','var:'), array(JELIX_APP_PATH, LIB_PATH, JELIX_APP_VAR_PATH), $db);
+                    $dsn = 'sqlite:'.str_replace(array('app:','lib:','var:'), array(jApp::appPath(), LIB_PATH, jApp::varPath()), $db);
                 else
-                    $dsn = 'sqlite:'.JELIX_APP_VAR_PATH.'db/sqlite/'.$db;
+                    $dsn = 'sqlite:'.jApp::varPath('db/sqlite/'.$db);
             }
         }
         if(isset($prof['usepdo']))
@@ -110,22 +110,42 @@ class jDbPDOConnection extends PDO {
      * fetch method of classes which inherit of PDOStatement.
      * so, we cannot indicate to fetch object directly in jDbPDOResultSet::fetch().
      * So we overload query() to do it.
-     * TODO check if this is always the case in PHP 5.3
+     * TODO check if this is still the case in PHP 5.3
      */
     public function query() {
         $args = func_get_args();
+
         switch (count($args)) {
         case 1:
+            $log = new jSQLLogMessage($args[0]);
             $rs = parent::query($args[0]);
+            $log->endQuery();
+            jLog::log($log,'sql');
             $rs->setFetchMode(PDO::FETCH_OBJ);
             return $rs;
         case 2:
-            return parent::query($args[0], $args[1]);
+            $log = new jSQLLogMessage($args[0]);
+            $result = parent::query($args[0], $args[1]);
+            $log->endQuery();
+            jLog::log($log,'sql');
+            return $result;
         case 3:
-            return parent::query($args[0], $args[1], $args[2]);
+            $log = new jSQLLogMessage($args[0]);
+            $result = parent::query($args[0], $args[1], $args[2]);
+            $log->endQuery();
+            jLog::log($log,'sql');
+            return $result;
         default:
             throw new Exception('jDbPDOConnection: bad argument number in query');
         }
+    }
+
+    public function exec($query) {
+        $log = new jSQLLogMessage($query);
+        $result = parent::exec($query);
+        $log->endQuery();
+        jLog::log($log,'sql');
+        return $result;
     }
 
     /**
@@ -142,6 +162,11 @@ class jDbPDOConnection extends PDO {
             }
             elseif ($this->dbms == 'pgsql') {
                 $queryString .= ' LIMIT '.intval($limitCount).' OFFSET '.intval($limitOffset);
+            }
+            elseif ($this->dbms == 'oci') {
+                $limitOffset = $limitOffset + 1; // rnum begins at 1
+                $queryString = 'SELECT * FROM ( SELECT ocilimit.*, rownum rnum FROM ('.$queryString.') ocilimit WHERE
+                    rownum<'.(intval($limitOffset)+intval($limitCount)).'  ) WHERE rnum >='.intval($limitOffset);
             }
         }
         return $this->query ($queryString);
@@ -229,22 +254,15 @@ class jDbPDOConnection extends PDO {
      * @var jDbTools
      */
     protected $_tools = null;
-    
+
     /**
      * @return jDbTools
      */
     public function tools () {
         if (!$this->_tools) {
-            global $gJConfig;
-    #ifnot ENABLE_OPTIMIZED_SOURCE
-            if (!isset($gJConfig->_pluginsPathList_db[$this->dbms])
-                || !file_exists($gJConfig->_pluginsPathList_db[$this->dbms])) {
+            $this->_tools = jApp::loadPlugin($this->dbms, 'db', '.dbtools.php', $this->dbms.'DbTools', $this);
+            if (is_null($this->_tools))
                 throw new jException('jelix~db.error.driver.notfound', $this->dbms);
-            }
-    #endif
-            require_once($gJConfig->_pluginsPathList_db[$this->dbms].$this->dbms.'.dbtools.php');
-            $class = $this->dbms.'DbTools';
-            $this->_tools = new $class($this);
         }
 
         return $this->_tools;

@@ -4,7 +4,7 @@
 * @subpackage coord_plugin
 * @author     Gerald Croes, Laurent Jouanneau
 * @contributor Julien Issler
-* @copyright  2001-2005 CopixTeam, 2005-2007 Laurent Jouanneau
+* @copyright  2001-2005 CopixTeam, 2005-2011 Laurent Jouanneau
 * Some parts of this file are took from Copix Framework v2.3dev20050901, magicquotes.plugin.php,
 * copyrighted by CopixTeam and released under GNU Lesser General Public Licence
 * author : Gerald Croes, Laurent Jouanneau
@@ -43,18 +43,18 @@ class MagicQuotesCoordPlugin implements jICoordPlugin {
             foreach ($_FILES as $key=>$elem)
                 $_FILES[$key] = $this->_stripSlashes ($elem);
         }
-        set_magic_quotes_runtime(0);
+        @set_magic_quotes_runtime(0);
     }
 
     /**
-    * enleve tout les slashes d'une chaine ou d'un tableau de chaine
+    * enleve tous les slashes d'une chaine ou d'un tableau de chaine
     * @param string/array   $string
     * @return string/array   l'objet transformé
     */
     protected function _stripSlashes ($string){
         if (is_array ($string)){
             $toReturn = array ();
-            // c'est un tableau, on traite un à un tout les elements du tableau
+            // c'est un tableau, on traite un à un tous les elements du tableau
             foreach ($string as $key=>$elem){
                 $toReturn[$key] = $this->_stripSlashes ($elem);
             }
@@ -80,4 +80,3 @@ class MagicQuotesCoordPlugin implements jICoordPlugin {
     */
     public function afterProcess (){}
 }
-

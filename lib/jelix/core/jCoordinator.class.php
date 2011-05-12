@@ -4,7 +4,7 @@
 * @subpackage   core
 * @author       Laurent Jouanneau
 * @contributor  Thibault Piront (nuKs), Julien Issler, Dominique Papin
-* @copyright    2005-2010 laurent Jouanneau
+* @copyright    2005-2011 laurent Jouanneau
 * @copyright    2007 Thibault Piront
 * @copyright    2008 Julien Issler
 * @copyright    2008-2010 Dominique Papin
@@ -60,17 +60,16 @@ class jCoordinator {
     public $actionName;
 
     /**
-     * List of all errors
-     * @var array
+     * List of all errors appears during the initialisation
+     * @var array array of jLogErrorMessage
      */
-    public $errorMessages=array();
+    protected $initErrorMessages=array();
 
     /**
-     * List of all log messages
-     * @var array
-     * @since 1.0
+     * the current error message
+     * @var jLogErrorMessage
      */
-    public $logMessages=array();
+    protected $errorMessage = null;
 
     /**
      * @param  string $configFile name of the ini file to configure the framework
@@ -80,6 +79,9 @@ class jCoordinator {
      */
     function __construct ($configFile, $enableErrorHandler=true) {
         global $gJCoord, $gJConfig;
+
+        // temporary init. Remove this line when JELIX_APP_* support will be removed completely from Jelix
+        jApp::initLegacy();
 
         $gJCoord =  $this;
 
@@ -92,6 +94,7 @@ class jCoordinator {
         $gJConfig = jConfig::load($configFile);
 
         date_default_timezone_set($gJConfig->timeZone);
+
         $this->_loadPlugins();
     }
 
@@ -105,10 +108,14 @@ class jCoordinator {
             // the config compiler has removed all deactivated plugins
             // so we don't have to check if the value $conf is empty or not
             if ($conf == '1') {
-                $conf = array();
+                $confname = 'coordplugin_'.$name;
+                if (isset($gJConfig->confname))
+                    $conf = $gJConfig->confname;
+                else
+                    $conf = array();
             }
             else {
-                $conff = JELIX_APP_CONFIG_PATH.$conf;
+                $conff = jApp::configPath($conf);
                 if (false === ($conf = parse_ini_file($conff,true)))
                     throw new Exception("Error in the configuration file of plugin $name ($conff)!", 13);
             }
@@ -128,6 +135,12 @@ class jCoordinator {
         global $gJConfig;
 
         $this->request = $request;
+
+        // let's log messages appeared during init
+        foreach($this->initErrorMessages as $msg) {
+            jLog::log($msg, $msg->getCategory());
+        }
+
         $this->request->init();
         jSession::start();
 
@@ -199,9 +212,7 @@ class jCoordinator {
             $this->plugins[$name]->beforeOutput ();
         }
 
-        if(!$this->response->output()){
-            $this->response->outputErrors();
-        }
+        $this->response->output();
 
         foreach ($this->plugins as $name => $obj){
             $this->plugins[$name]->afterProcess ();
@@ -266,8 +277,6 @@ class jCoordinator {
 
     /**
      * Handle an error event. Called by error handler and exception handler.
-     * Responses object should take care of the errorMessages property to display errors.
-     * @param string  $toDo    a string which contains keyword indicating what to do with the error
      * @param string  $type    error type : 'error', 'warning', 'notice'
      * @param integer $code    error code
      * @param string  $message error message
@@ -276,156 +285,114 @@ class jCoordinator {
      * @param array   $trace   the stack trace
      * @since 1.1
      */
-    public function handleError($toDo, $type, $code, $message, $file, $line, $trace){
+    public function handleError($type, $code, $message, $file, $line, $trace){
         global $gJConfig;
-        if ($gJConfig)
-            $conf = $gJConfig->error_handling;
-        else {
-            $conf = array(
-                'messageLogFormat'=>'%date%\t[%code%]\t%msg%\t%file%\t%line%\n\t%url%\n',
-                'quietMessage'=>'A technical error has occured. Sorry for this trouble.',
-                'logFile'=>'error.log',
-            );
-        }
 
-        $url = isset($_SERVER['REQUEST_URI'])?$_SERVER['REQUEST_URI']:'Unknow requested URI';
-        // url params including module and action
+        $errorLog = new jLogErrorMessage($type, $code, $message, $file, $line, $trace);
+
         if ($this->request) {
-            $params = str_replace("\n", ' ', var_export($this->request->params, true));
-            $remoteAddr = $this->request->getIP();
+            // we have config, so we can process "normally"
+            $errorLog->setFormat($gJConfig->error_handling['messageLogFormat']);
+            jLog::log($errorLog, $type);
+
+            // if non fatal error, it is finished
+            if ($type != 'error')
+                return;
+
+            $this->errorMessage = $errorLog;
+
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+
+            // fatal error, we should output errors
+            if ($this->request->isAjax()) {
+                if ($this->response)
+                    $resp = $this->response;
+                else {
+                    require_once(JELIX_LIB_CORE_PATH.'response/jResponseText.class.php');
+                    $resp = new jResponseText();
+                }
+            }
+            else if (isset($_SERVER['HTTP_ACCEPT']) && strstr($_SERVER['HTTP_ACCEPT'],'text/html')) {
+                require_once(JELIX_LIB_CORE_PATH.'response/jResponseBasicHtml.class.php');
+                $resp = $this->response = new jResponseBasicHtml();
+            }
+            elseif($this->response) {
+                $resp = $this->response;
+            }
+            else {
+                try {
+                    $this->initDefaultResponseOfRequest(true);
+                }
+                catch(Exception $e) {
+                    require_once(JELIX_LIB_CORE_PATH.'response/jResponseBasicHtml.class.php');
+                    $this->response = new jResponseBasicHtml();
+                }
+                $resp = $this->response;
+            }
+            $resp->outputErrors();
+            jSession::end();
+        }
+        // for non fatal error appeared during init, let's just store it for loggers later
+        elseif ($type != 'error') {
+            $this->initErrorMessages[] = $errorLog;
+            return;
         }
         else {
-            $params = isset($_SERVER['QUERY_STRING'])?$_SERVER['QUERY_STRING']:'';
-            // When we are in cmdline we need to fix the remoteAddr
-            $remoteAddr = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '127.0.0.1';
-        }
-
-        // formatting message
-        $messageLog = strtr($conf['messageLogFormat'], array(
-            '%date%' => date("Y-m-d H:i:s"),
-            '%ip%'   => $remoteAddr,
-            '%typeerror%'=>$type,
-            '%code%' => $code,
-            '%msg%'  => $message,
-            '%url%'  => $url,
-            '%params%'=>$params,
-            '%file%' => $file,
-            '%line%' => $line,
-            '\t' =>"\t",
-            '\n' => "\n"
-        ));
-
-        $traceLog = '';
-        if(strpos($toDo , 'TRACE') !== false){
-            $messageLog.="\ttrace:";
-            foreach($trace as $k=>$t){
-                $traceLog.="\n\t$k\t".(isset($t['class'])?$t['class'].$t['type']:'').$t['function']."()\t";
-                $traceLog.=(isset($t['file'])?$t['file']:'[php]').' : '.(isset($t['line'])?$t['line']:'');
+            // fatal error appeared during init, let's display a page
+            while (ob_get_level()) {
+                ob_end_clean();
             }
-            $messageLog.=$traceLog."\n";
-        }
-
-        // the error should be shown by the response
-        $doEchoByResponse = true;
-
-        if ($this->request == null) {
-            $message = 'JELIX PANIC ! Error during initialization !! '.$message;
-            $doEchoByResponse = false;
-            $toDo.= ' EXIT';
-        }
-        elseif ($this->response == null) {
-            try {
-                $this->initDefaultResponseOfRequest();
+            // log into file
+            @error_log($errorLog->getFormatedMessage(),3, jApp::logPath('errors.log'));
+            // if accept text/html
+            if (isset($_SERVER['HTTP_ACCEPT']) && strstr($_SERVER['HTTP_ACCEPT'],'text/html')) {
+                if (file_exists(jApp::appPath('responses/error.en_US.php')))
+                    $file = jApp::appPath('responses/error.en_US.php');
+                else
+                    $file = JELIX_LIB_CORE_PATH.'response/error.en_US.php';
+                $HEADBOTTOM = '';
+                $BODYTOP = '';
+                $BODYBOTTOM = '';
+                $basePath = '';
+                header("HTTP/1.1 500 Internal jelix error");
+                header('Content-type: text/html');
+                include($file);
             }
-            catch(Exception $e) {
-                $message = 'Double error ! 1)'. $e->getMessage().'; 2)'.$message;
-                $doEchoByResponse = false;
-            }
-        }
-
-        $echoAsked = false;
-        // traitement du message
-        if(strpos($toDo , 'ECHOQUIET') !== false){
-            $echoAsked = true;
-            if(!$doEchoByResponse){
-                while (ob_get_level()) {
-                        ob_end_clean();
-                }
+            else {
+                // output text response
                 header("HTTP/1.1 500 Internal jelix error");
                 header('Content-type: text/plain');
-                echo 'JELIX PANIC ! Error during initialization !! ';
-            }elseif($this->addErrorMsg($type, $code, $conf['quietMessage'], '', '', '')){
-                $toDo.=' EXIT';
-            }
-        }elseif(strpos($toDo , 'ECHO') !== false){
-            $echoAsked = true;
-            if(!$doEchoByResponse){
-                while (ob_get_level()) {
-                        ob_end_clean();
-                }
-                header("HTTP/1.1 500 Internal jelix error");
-                header('Content-type: text/plain');
-                echo $messageLog;
-            }elseif($this->addErrorMsg($type, $code, $message, $file, $line, $traceLog)){
-                $toDo.=' EXIT';
+                echo 'Error during initialization.';
             }
         }
-
-        if(strpos($toDo , 'LOGFILE') !== false){
-            @error_log($messageLog,3, JELIX_APP_LOG_PATH.$conf['logFile']);
-        }
-        if(strpos($toDo , 'MAIL') !== false && $gJConfig){
-            error_log(wordwrap($messageLog,70),1, $conf['email'], str_replace(array('\\r','\\n'),array("\r","\n"),$conf['emailHeaders']));
-        }
-        if(strpos($toDo , 'SYSLOG') !== false){
-            error_log($messageLog,0);
-        }
-
-        if(strpos($toDo , 'EXIT') !== false){
-            if($doEchoByResponse) {
-                while (ob_get_level()) {
-                        ob_end_clean();
-                }
-                if ($this->response)
-                    $this->response->outputErrors();
-                else if($echoAsked) {
-                    header("HTTP/1.1 500 Internal jelix error");
-                    header('Content-type: text/plain');
-                    foreach($this->errorMessages as $msg)
-                        echo $msg."\n";
-                }
-            }
-            jSession::end();
-            exit(1);
-        }
+        exit(1);
     }
 
     /**
-     * Store an error/warning/notice message.
-     * @param  string $type  error type : 'error', 'warning', 'notice'
-     * @param  integer $code  error code
-     * @param  string $message error message
-     * @param  string $file    the file name where the error appear
-     * @param  integer $line  the line number where the error appear
-     * @return boolean    true= the process should stop now, false = the error manager do its job
+     * return the generic error message (errorMessage in the configuration).
+     * Replaced the %code% pattern in the message by the current error code
+     * @return string
      */
-    protected function addErrorMsg($type, $code, $message, $file, $line, $trace){
-        $this->errorMessages[] = array($type, $code, $message, $file, $line, $trace);
-        return !$this->response->acceptSeveralErrors();
+    public function getGenericErrorMessage() {
+        $msg = $GLOBALS['gJConfig']->error_handling['errorMessage'];
+        if ($this->errorMessage)
+            $code = $this->errorMessage->getCode();
+        else $code = '';
+        return str_replace('%code%', $code, $msg);
     }
 
     /**
-     * Store a log message. Responses object should take care
-     * of the logMessages properties to display them.
-     * @param  string $message error message
-     * @since 1.0
+     * @return jLogErrorMessage  the current error
+     * @since 1.3a1
      */
-    public function addLogMsg($message, $type='default'){
-        $this->logMessages[$type][] = $message;
+    public function getErrorMessage() {
+        return $this->errorMessage;
     }
 
     /**
-    * gets a given plugin if registered
+    * gets a given coordinator plugin if registered
     * @param string   $pluginName   the name of the plugin
     * @param boolean  $required  says if the plugin is required or not. If true, will generate an exception if the plugin is not registered.
     * @return jICoordPlugin
@@ -444,7 +411,7 @@ class jCoordinator {
     }
 
     /**
-    * Says if the given plugin $name is enabled
+    * Says if the given coordinator plugin $name is enabled
     * @param string $pluginName
     * @return boolean true : plugin is ok
     */

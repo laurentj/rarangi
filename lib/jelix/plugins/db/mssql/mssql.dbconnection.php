@@ -7,6 +7,7 @@
  * @link     http://www.jelix.org
  * @licence  http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
  */
+require_once(dirname(__FILE__).'/mssql.dbresultset.php');
 
 /**
  * @experimental
@@ -127,7 +128,8 @@ class mssqlDbConnection extends jDbConnection {
         }
     }
     /**
-     * (non-PHPdoc)
+     * WARNING: it doesn't take care about offset and number.
+     * @notimplemented
      * @see lib/jelix/db/jDbConnection#_doLimitQuery()
      */
     protected function _doLimitQuery ($queryString, $offset, $number){
@@ -165,5 +167,24 @@ class mssqlDbConnection extends jDbConnection {
      */
     protected function _quote($text, $binary){
         return str_replace( "'", "''", $text );
+    }
+
+    /**
+     *
+     * @param integer $id the attribut id
+     * @return string the attribute value
+     * @see PDO::getAttribute()
+     */
+    public function getAttribute($id) {
+        return "";
+    }
+
+    /**
+     * 
+     * @param integer $id the attribut id
+     * @param string $value the attribute value
+     * @see PDO::setAttribute()
+     */
+    public function setAttribute($id, $value) {
     }
 }
