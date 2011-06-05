@@ -1,14 +1,14 @@
 <?php
 /**
 * @package   tests
-* @subpackage 
+* @subpackage
 * @author    yourname
 * @copyright 2010 yourname
 * @link      http://www.yourwebsite.undefined
 * @license    All right reserved
 */
 
-require_once ('../application-cli.init.php');
+require_once ('../application.init.php');
 
 checkAppOpened();
 
@@ -20,4 +20,3 @@ $config_file = 'cmdline/jelix.ini.php';
 
 $jelix = new jCmdlineCoordinator($config_file);
 $jelix->process(new jCmdLineRequest());
-

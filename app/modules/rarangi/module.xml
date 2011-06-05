@@ -10,6 +10,6 @@
         <homepageURL>http://rarangi.org</homepageURL>
     </info>
     <dependencies>
-        <jelix minversion="1.2pre.1529" maxversion="1.2.*"/>
+        <jelix minversion="1.2pre.1529" maxversion="1.3.*"/>
     </dependencies>
 </module>

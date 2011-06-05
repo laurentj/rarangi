@@ -13,6 +13,12 @@ modulesPath="lib:jelix-modules/,app:modules/"
 
 theme=default
 
+
+[modules]
+jelix.access=2
+rarangi.access=2
+rarangi_web.access=2
+
 [coordplugins]
 ;nom = nom_fichier_ini
 
@@ -24,19 +30,8 @@ html=myHtmlResponse
 
 [error_handling]
 messageLogFormat="%date%\t[%code%]\t%msg%\t%file%\t%line%\n"
-logFile=error.log
-email="root@localhost"
-emailHeaders="Content-Type: text/plain; charset=UTF-8\nFrom: webmaster@yoursite.com\nX-Mailer: Jelix\nX-Priority: 1 (Highest)\n"
-quietMessage="Une erreur technique est survenue. Désolé pour ce désagrément."
+errorMessage="Une erreur technique est survenue. Désolé pour ce désagrément."
 
-; mots clés que vous pouvez utiliser : ECHO, ECHOQUIET, EXIT, LOGFILE, SYSLOG, MAIL, TRACE
-default="ECHO EXIT"
-error="ECHO TRACE LOGFILE EXIT"
-warning="ECHO TRACE LOGFILE"
-notice=ECHO
-strict=ECHO
-; pour les exceptions, il y a implicitement un EXIT
-exception=ECHO
 
 
 
@@ -110,9 +105,11 @@ xmlrpc=on
 jsonrpc=on
 rdf=on
 
-[logfiles]
+[fileLogger]
 default=messages.log
 
+error=error.log
+warning=error.log
 [mailer]
 webmasterEmail="root@localhost"
 webmasterName=
@@ -163,7 +160,9 @@ start=1
 ; dao_selector = "jelix~jsession"
 ; dao_db_profile = ""
 
-[modules]
-jelix.access=2
-rarangi.access=2
-rarangi_web.access=2
+[logger]
+error=file
+warning=file
+[mailLogger]
+email="root@localhost"
+emailHeaders="root@localhost"

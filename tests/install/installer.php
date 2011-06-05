@@ -7,9 +7,8 @@
 * @license    All right reserved
 */
 
-require_once (dirname(__FILE__).'./../application-cli.init.php');
+require_once (dirname(__FILE__).'./../application.init.php');
 
 $installer = new jInstaller(new textInstallReporter());
 
 $installer->installApplication();
-

@@ -9,7 +9,7 @@
 * @licence  http://www.gnu.org/licenses/gpl.html GNU General Public Licence, see LICENCE file
 */
 
-require_once (dirname(__FILE__).'/../application-cli.init.php');
+require_once (dirname(__FILE__).'/../application.init.php');
 
 jAppManager::close();
 

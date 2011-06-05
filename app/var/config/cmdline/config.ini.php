@@ -10,12 +10,16 @@ startAction="default:index"
 enableTests=on
 
 [error_handling]
-logFile=error-cli.log
-default="ECHO EXIT LOGFILE"
-error="ECHO TRACE EXIT LOGFILE"
-warning="ECHO TRACE LOGFILE"
-notice="ECHO LOGFILE"
-strict=ECHO
-exception="ECHO TRACE LOGFILE"
 
 
+
+[fileLogger]
+default=error-cli.log
+error=error-cli.log
+warning=error-cli.log
+notice=error-cli.log
+[logger]
+default=file
+error="file,file"
+warning=file
+notice=file
