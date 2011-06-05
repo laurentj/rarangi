@@ -7,8 +7,9 @@
 * @contributor Gildas Givaja (bug #83)
 * @contributor Christophe Thiriot
 * @contributor Bastien Jaillot
-* @contributor Dominique Papin
+* @contributor Dominique Papin, Olivier Demah
 * @copyright   2005-2011 Laurent Jouanneau, 2006 Loic Mathaud, 2007 Gildas Givaja, 2007 Christophe Thiriot, 2008 Bastien Jaillot, 2008 Dominique Papin
+* @copyright   2011 Olivier Demah
 * @link        http://www.jelix.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
@@ -73,6 +74,12 @@ class createappCommand extends JelixScriptCommand {
         }
 
         $this->config = JelixScript::loadConfig($appName);
+        $this->config->infoIDSuffix = $this->config->newAppInfoIDSuffix;
+        $this->config->infoWebsite = $this->config->newAppInfoWebsite;
+        $this->config->infoLicence = $this->config->newAppInfoLicence;
+        $this->config->infoLicenceUrl = $this->config->newAppInfoLicenceUrl;
+        $this->config->newAppInfoLocale = $this->config->newAppInfoLocale;
+        $this->config->newAppInfoCopyright = $this->config->newAppInfoCopyright;
         $this->config->initAppPaths($appPath);
 
         jApp::setEnv('jelix-scripts');
@@ -162,6 +169,7 @@ class createappCommand extends JelixScriptCommand {
         $param['php_rp_conf'] = $this->convertRp($param['rp_conf']);
         $param['php_rp_www']  = $this->convertRp($param['rp_www']);
         $param['php_rp_cmd']  = $this->convertRp($param['rp_cmd']);
+        $param['php_rp_jelix']  = $this->convertRp($param['rp_jelix']);
 
         $this->createFile($appPath.'application.init.php','application.init.php.tpl',$param);
 
@@ -202,6 +210,12 @@ class createappCommand extends JelixScriptCommand {
             $rp = substr($rp, 2);
         if (strpos($rp, '../') !== false) {
             return 'realpath($appPath.\''.$rp."').'/'";
+        }
+        else if (DIRECTORY_SEPARATOR == '/' && $rp[0] == '/') {
+            return "'".$rp."'";
+        }
+        else if (DIRECTORY_SEPARATOR == '\\' && preg_match('/^[a-z]\:/i', $rp)) { // windows
+            return "'".$rp."'";
         }
         else {
             return '$appPath.\''.$rp."'";
