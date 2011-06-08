@@ -12,7 +12,7 @@
         </div>
 
         <div class="ra-tags">
-            {if $class->is_abstract}<span class="ra-tag-abstract">abstract</span>{/if}
+            {if $comp->is_abstract}<span class="ra-tag-abstract">abstract</span>{/if}
             {if $comp->is_deprecated}<span class="ra-tag-deprecated">deprecated</span>{/if}
             {if $comp->is_experimental}<span class="ra-tag-experimental">experimental</span>{/if}
         </div>
@@ -21,8 +21,8 @@
         <div class="ra-block" id="ra-class-properties">
             <h3>List of properties</h3>
             <div class="ra-class-properties">
-            {if count($properties)}
-              {foreach $properties as $comp}
+            {if count($class->properties)}
+              {foreach $class->properties as $comp}
               <div class="ra-class-property">
                 <h4 id="p-{$comp->name}"><a name="p-{$comp->name}"></a>{if $comp->type != 2}${/if}{$comp->name}</h4>
 
@@ -65,8 +65,8 @@
         <div class="ra-block" id="ra-class-methods">
             <h3>List of methods</h3>
             <div class="ra-class-methods">
-                {if count($methods)}
-                  {foreach $methods as $comp}
+                {if count($class->methods)}
+                  {foreach $class->methods as $comp}
                   <div class="ra-method-details" id="m-{$comp->name}">
                     <h4><a name="m-{$comp->name}"></a>{$comp->name}()</h4>
                     {include 'inc_comp_description'}
@@ -78,7 +78,7 @@
                         <span class="ra-method-return">{if $comp->return_datatype}{$comp->return_datatype}{else}void{/if}</span>
                         <span class="ra-method-name">{$comp->name}</span> (
                         {assign $pNumber=0}
-                        {foreach $method_parameters[$comp->name] as $k=>$param}
+                        {foreach $class->methodParameters[$comp->name] as $k=>$param}
                             {if $k>0},{/if}
                             <span class="ra-method-parameter">
                             {if $param->defaultvalue != ''} {assign $pNumber=$pNumber+1}
@@ -93,7 +93,7 @@
 
 
                     <dl class="ra-parameters">
-                        {foreach $method_parameters[$comp->name] as $k=>$param}
+                        {foreach $class->methodParameters[$comp->name] as $k=>$param}
                         {if $param->documentation}
                         <dt>{$param->type} <strong>${$param->name}</strong> {if $param->defaultvalue}= {$param->defaultvalue}{/if}</dt>
                         <dd>{$param->documentation|eschtml}</dd>{/if}
@@ -165,7 +165,7 @@
             <li><strong>Implemented by:</strong>
             {else}
             <li><strong>Implements:</strong>
-            {/if}{foreach $rel_implementation as $impl}
+            {/if}{foreach $relations->implementations as $impl}
                 {if $comp->is_interface}
             <a href="{jurl 'rarangi_web~components:classdetails', array('project'=>$project->name,'package'=>$impl->package,'classname'=>$impl->name)}">{$impl->name}</a>
                 {else}
@@ -174,15 +174,15 @@
             {/foreach}
             </li>
             <li><strong>Inherits from: </strong>
-            {if $mother_class}
-                {if $mother_class->is_interface}
-            <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$mother_class->package,'interfacename'=>$mother_class->name)}">{$mother_class->name}</a>
+            {if $class->mother_class}
+                {if $class->mother_class->is_interface}
+            <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$class->mother_class->package,'interfacename'=>$class->mother_class->name)}">{$class->mother_class->name}</a>
                 {else}
-            <a href="{jurl 'rarangi_web~components:classdetails', array('project'=>$project->name,'package'=>$mother_class->package,'classname'=>$mother_class->name)}">{$mother_class->name}</a>
+            <a href="{jurl 'rarangi_web~components:classdetails', array('project'=>$project->name,'package'=>$class->mother_class->package,'classname'=>$class->mother_class->name)}">{$class->mother_class->name}</a>
                 {/if}
             {/if}</li>
             <li><strong>Inherited by: </strong>
-            {foreach $descendants as $desc}
+            {foreach $relations->descendants as $desc}
                 {if $comp->is_interface}
             <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$desc->package,'interfacename'=>$desc->name)}">{$desc->name}</a>
                 {else}
@@ -191,10 +191,10 @@
             {/foreach}
             </li>
             <li><strong>Returned by: </strong>
-            {foreach $asfunctionreturn as $fct}
+            {foreach $relations->asFunctionReturn as $fct}
             <a href="{jurl 'rarangi_web~components:functiondetails', array('project'=>$project->name,'package'=>$fct->package,'functionname'=>$fct->name)}">{$fct->name}()</a>
             {/foreach}
-            {foreach $asmethodreturn as $meth}
+            {foreach $relations->asMethodReturn as $meth}
                 {if $meth->is_interface}
             <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$meth->package,'interfacename'=>$meth->name)}#m-{$meth->method_name}">{$meth->name}::{$meth->method_name}()</a>
                 {else}
@@ -204,10 +204,10 @@
 
             </li>
             <li><strong>As parameter for: </strong>
-            {foreach $asfunctionparameter as $fct}
+            {foreach $relations->asFunctionParameter as $fct}
             <a href="{jurl 'rarangi_web~components:functiondetails', array('project'=>$project->name,'package'=>$fct->package,'functionname'=>$fct->name)}">{$fct->name}()</a>
             {/foreach}
-            {foreach $asmethodparameter as $meth}
+            {foreach $relations->asMethodParameter as $meth}
                 {if $meth->is_interface}
             <a href="{jurl 'rarangi_web~components:interfacedetails', array('project'=>$project->name,'package'=>$meth->package,'interfacename'=>$meth->name)}#m-{$meth->method_name}">{$meth->name}::{$meth->method_name}()</a>
                 {else}

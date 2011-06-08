@@ -33,6 +33,7 @@
         <property name="user_tags" fieldname="user_tags" datatype="string"/>
 
         <property name="fullpath" fieldname="fullpath" table="f" datatype="string"/>
+        <property name="filename" fieldname="filename" table="f" datatype="string"/>
     </record>
     <factory>
         <method name="deleteByProject" type="delete">
@@ -60,7 +61,7 @@
                 <eq property="name" expr="$name" />
             </conditions>
         </method>
-        
+
         <method name="countByProject" type="count">
             <parameter name="project" />
             <conditions>

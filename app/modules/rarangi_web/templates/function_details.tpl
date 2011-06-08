@@ -20,7 +20,7 @@
             <div class="ra-datatype">Return : {if $comp->return_datatype}{$comp->return_datatype}{else}void{/if}
             {if $comp->return_description}<br/>{$comp->return_description}{/if}</div>
             <dl class="ra-parameters">
-                {foreach $function_parameters as $k=>$param}
+                {foreach $comp->parameters as $k=>$param}
                 <dt>{$param->type} <strong>${$param->name}</strong> {if $param->defaultvalue}= {$param->defaultvalue}{/if}</dt>
                 <dd>{$param->documentation|eschtml}</dd>
             {/foreach}</dl>
@@ -28,11 +28,11 @@
 
         <div class="ra-block">
             <h3 id="ra-internals">Others informations</h3>
-        
+
             {if $comp->internal}<div class="ra-internal-description">
             <strong>Internal documentation: </strong>
                 {$comp->internal|eschtml}</div>{/if}
-            
+
             <ul>
             {if $comp->copyright}<li><strong>Copyright:</strong> {$comp->copyright|eschtml}</li>{/if}
             {if $comp->license_label || $comp->license_text}
