@@ -9,8 +9,8 @@
         <property name="arg_number" fieldname="arg_number" datatype="mediumint" required="true"/>
         <property name="type" fieldname="type" datatype="varchar" default="" maxlength="255"/>
         <property name="name" fieldname="name" datatype="varchar" required="true" maxlength="150"/>
-        <property name="defaultvalue" fieldname="defaultvalue" datatype="varchar" default="" maxlength="255"/>        
-        <property name="documentation" fieldname="documentation" datatype="text" default="" />        
+        <property name="defaultvalue" fieldname="defaultvalue" datatype="varchar" default="" maxlength="255"/>
+        <property name="documentation" fieldname="documentation" datatype="text" default="" />
     </record>
     <factory>
         <method name="findByClass" type="select">
@@ -22,20 +22,5 @@
                 <orderitem property="arg_number" way="asc" />
             </order>
         </method>
-        <!--<method name="findByStage" type="select/selectfirst/delete/update/php">
-            <parameter name="" />
-            <values>
-                <value property="" value="" />
-            </values>
-            <conditions logic="and/or">
-                <eq property="" value="" />
-            </conditions>
-            <order>
-                <orderitem property="" way="asc/desc" />
-            </order>
-            <limit offset="" count=""/>
-            <body><![CDATA[
-            ]]></body>
-        </method>-->
     </factory>
 </dao>

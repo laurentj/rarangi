@@ -16,13 +16,13 @@
 #ra-page a:visited { color: #69717E; }
 
 #ra-location-breadcrumb {
-    
+
 }
 
 #ra-sidebar {
     width:25%;
     padding-top:0px;
-    font-size:0.8em;    
+    font-size:0.8em;
 }
 
 #ra-sidebar .ra-properties {
@@ -62,7 +62,7 @@
     margin:0 0 0 1em;
     padding:0 ;
     list-style-type: disc;
-    list-style-position: outide;
+    list-style-position: outside;
 }
 
 
@@ -108,13 +108,13 @@
     margin: 2em 0;
 }
 .ra-short-description {
-    font-size:1.3em;
-    font-weight:bold;
+    /*font-size:1.3em;
+    font-weight:bold;*/
 }
 
 .ra-text-description {
     margin-top:1em;
-    font-size:1.1em;
+    /*font-size:1.1em;*/
 }
 
 .ra-internal-description {
@@ -134,7 +134,7 @@
     -webkit-border-radius:4px;
     -moz-box-shadow: 0px 0px 10px 0 #999;
     text-shadow:#c69383 2px 2px 5px;
-    text-transform: uppercase; 
+    text-transform: uppercase;
 }
 
 .ra-tags .tag-abstract {
@@ -168,5 +168,3 @@
     display: inline;
     margin-right: 1em;
 }
-
-

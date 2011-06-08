@@ -1,19 +1,19 @@
 <div id="ra-page">
 {if $comp}
-  <div id="ra-content">
-    <h2>Global variable: {$comp->name|eschtml}</h2>
+    <div id="ra-content">
+        <h2>Global variable: {$comp->name|eschtml}</h2>
 
         <div class="ra-description-block">
-        {if $comp->short_description || $comp->description}
-        <p class="ra-short-description">{$comp->short_description|eschtml}</p>
-        <div class="ra-text-description">{$comp->description|eschtml}</div>
-        {/if}
-        {if $comp->is_deprecated && $comp->deprecated}<p>About deprecation: {$comp->deprecated|eschtml}</p>{/if}
+            {if $comp->short_description || $comp->description}
+            <p class="ra-short-description">{$comp->short_description|eschtml}</p>
+            <div class="ra-text-description">{$comp->description|eschtml}</div>
+            {/if}
+            {if $comp->is_deprecated && $comp->deprecated}<p>About deprecation: {$comp->deprecated|eschtml}</p>{/if}
         </div>
 
         <div class="ra-tags">
-        {if $comp->is_deprecated}<span class="ra-tag-deprecated">deprecated</span>{/if}
-        {if $comp->is_experimental}<span class="ra-tag-experimental">experimental</span>{/if}
+            {if $comp->is_deprecated}<span class="ra-tag-deprecated">deprecated</span>{/if}
+            {if $comp->is_experimental}<span class="ra-tag-experimental">experimental</span>{/if}
         </div>
 
         {if $comp->default_value}
@@ -23,8 +23,8 @@
         {/if}
 
         <div class="ra-block">
-        <h3 id="ra-internals">Others informations</h3>
-        
+            <h3 id="ra-internals">Others informations</h3>
+
             {if $comp->internal}<div class="ra-internal-description">
             <strong>Internal documentation: </strong>
                 {$comp->internal|eschtml}</div>{/if}
@@ -50,8 +50,8 @@
             </li>{/if}
             </ul>
         </div>
-  </div>
-  <div id="ra-sidebar">
+    </div>
+    <div id="ra-sidebar">
         <ul class="ra-properties">
             <li><strong>Project:</strong> <a href="{jurl 'rarangi_web~default:project',array('project'=>$project->name)}">{$project->name}</a></li>
             <li><strong>Package:</strong> <a href="{jurl 'rarangi_web~packages:details',array('project'=>$project->name, 'package'=>$package)}#globals">{$package}</a></li>
@@ -63,6 +63,7 @@
             {/if}
         </ul>
 
+        {if $comp->links || $comp->see || $comp->user_tags}
         <ul class="ra-properties">
             {if $comp->links}
             <li><strong>links: </strong>
@@ -74,11 +75,13 @@
                 <ul class="ra-see">{foreach $comp->see as $s}
                     <li>{$s|eschtml}</li>{/foreach}
                 </ul></li>{/if}
+            {if $comp->user_tags}
             {foreach $comp->user_tags as $t=>$c}
             <li><strong>{$t|eschtml}{if $c}: {/if}</strong>{$c|eschtml}</li>
-            {/foreach}
+            {/foreach}{/if}
         </ul>
-  </div>
+        {/if}
+    </div>
 {else}
     <h2>Global variable: {$compname}</h2>
     <div class="ra-block">

@@ -3,7 +3,7 @@
     <datasources>
         <primarytable name="class_methods" realname="class_methods" primarykey="name,class_id" />
     </datasources>
-    <record>   
+    <record>
         <property name="name" fieldname="name" datatype="string" required="true" maxlength="150"/>
         <property name="class_id" fieldname="class_id" datatype="int" required="true"/>
         <property name="project_id" fieldname="project_id" datatype="int" required="true"/>
@@ -42,6 +42,9 @@
                 <eq property="project_id" expr="$project" />
                 <eq property="class_id" expr="$class_id" />
             </conditions>
+            <order>
+                <orderitem property="name" way="asc" />
+            </order>
         </method>
         <method name="deleteByProject" type="delete">
             <parameter name="project" />
