@@ -1,17 +1,18 @@
+/* ======= styles for the main layout */
 
 /*
 HTML #8A95A6
 RGB 138/149/166
- 
+
 HTML #C9DAF2
 RGB 201/218/242
- 
+
 HTML #A6A48A
 RGB 166/164/138
- 
+
 HTML #F2E9C9
 RGB 242/233/201
- 
+
 HTML #595959
 RGB 89/89/89
 
@@ -80,13 +81,13 @@ body {
 	overflow-y: auto ;
 	overflow-x: hidden;
 }
-.jmenulist ul ul { 
+.jmenulist ul ul {
 	margin-left:180px;
 	margin: -0.5em 0 0 170px!important;
 	padding:0;
 }
 .jmenulist li  {
-	padding:6px 6px;	
+	padding:6px 6px;
 }
 .jmenulist a {
 	text-decoration:none;
@@ -114,5 +115,3 @@ body {
 	background-color:#595959;
 	color: white;
 }
-
-

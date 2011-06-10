@@ -8,7 +8,8 @@
             <p class="ra-short-description">{$comp->short_description|eschtml}</p>
             <div class="ra-text-description">{$comp->description|eschtml}</div>
             {/if}
-            {if $comp->is_deprecated && $comp->deprecated}<p>About deprecation: {$comp->deprecated|eschtml}</p>{/if}
+            {if $comp->is_deprecated && $comp->deprecated}
+                <p class="ra-deprecated">About deprecation: {$comp->deprecated|eschtml}</p>{/if}
         </div>
 
         <div class="ra-tags">
@@ -22,11 +23,11 @@
 
         <div class="ra-block">
             <h3 id="ra-internals">Others informations</h3>
-        
+
             {if $comp->internal}<div class="ra-internal-description">
             <strong>Internal documentation: </strong>
                 {$comp->internal|eschtml}</div>{/if}
-            
+
             <ul>
             {if $comp->copyright}<li><strong>Copyright:</strong> {$comp->copyright|eschtml}</li>{/if}
             {if $comp->license_label || $comp->license_text}

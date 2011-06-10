@@ -1,3 +1,5 @@
+/* =========  styles for the content of each page */
+
 
 #ra-page h2 {
     background-color:#8A95A6;
@@ -91,7 +93,7 @@
     text-align: center;
 }
 
-
+/* -- basic block of content */
 .ra-block {
     min-width: 60%;
     padding: 8px 20px;
@@ -104,17 +106,24 @@
     color: #474747;
 }
 
+/* -- the block for the main description of a component */
 .ra-description-block {
     margin: 2em 0;
 }
+
+/* descriptions for component, properties */
 .ra-short-description {
-    /*font-size:1.3em;
-    font-weight:bold;*/
+	/*font-size:1.3em;
+	font-weight:bold;*/
 }
 
 .ra-text-description {
-    margin-top:1em;
-    /*font-size:1.1em;*/
+	margin-top:1em;
+	/*font-size:1.1em;*/
+}
+
+.ra-deprecated {
+
 }
 
 .ra-internal-description {
@@ -122,26 +131,132 @@
     font-style:italic;
 }
 
+.ra-since {
+
+}
+
 .ra-tags {
     text-align:right;
     margin: 1em 0;
 }
 
-.ra-tags span {
-    padding:3px;
-    font-size:0.8em;
-    -moz-border-radius: 4px;
-    -webkit-border-radius:4px;
-    -moz-box-shadow: 0px 0px 10px 0 #999;
-    text-shadow:#c69383 2px 2px 5px;
-    text-transform: uppercase;
+	.ra-tags span {
+		padding:3px;
+		font-size:0.8em;
+		-moz-border-radius: 4px;
+		-webkit-border-radius:4px;
+		-moz-box-shadow: 0px 0px 10px 0 #999;
+		text-shadow:#c69383 2px 2px 5px;
+		text-transform: uppercase;
+	}
+
+	.ra-tags .ra-tag-abstract {
+		color: white;
+		background-color:blue;
+	}
+
+	.ra-tags .ra-tag-deprecated {
+	}
+
+	.ra-tags .ra-tag-experimental {
+	}
+
+
+.ra-class-properties {
+
+}
+	.ra-class-property {
+
+	}
+
+	.ra-class-property h4 {
+
+	}
+
+.ra-prototype {
+
 }
 
-.ra-tags .tag-abstract {
-    color: white;
-    background-color:blue;
+	.ra-type-access {
+
+	}
+
+	.ra-datatype {
+
+	}
+
+	.ra-method-return {
+
+	}
+	.ra-method-name {
+
+	}
+	.ra-method-parameter {
+
+	}
+		.ra-method-parameter .ra-datatype {
+
+		}
+		.ra-method-parameter-name {
+
+		}
+
+	.ra-property-name {
+
+	}
+
+	.ra-property-value {
+
+	}
+
+.ra-class-methods {
+
+}
+	.ra-method-details {
+
+	}
+
+	.ra-method-details h4{
+
+	}
+
+	dl.ra-parameters {
+
+	}
+	dl.ra-parameters dt {
+
+	}
+	dl.ra-parameters dd {
+	
+	}
+
+/* -- other component information (properties) */
+.ra-copyright {
+
+}
+.ra-licence {
+
+}
+	.ra-license-description {
+
+	}
+
+ul.ra-links {
+
 }
 
+ul.ra-see {
+
+}
+
+.ra-todo {
+
+}
+.ra-changelog {
+
+}
+
+/* ---- error page */
 #ra-errors-criterias {
 	background-color: #C9DAF2;
     padding:5px;

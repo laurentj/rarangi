@@ -8,7 +8,8 @@
             <p class="ra-short-description">{$comp->short_description|eschtml}</p>
             <div class="ra-text-description">{$comp->description|eschtml}</div>
             {/if}
-            {if $comp->is_deprecated && $comp->deprecated}<p>About deprecation: {$comp->deprecated|eschtml}</p>{/if}
+            {if $comp->is_deprecated && $comp->deprecated}
+                <p class="ra-deprecated">About deprecation: {$comp->deprecated|eschtml}</p>{/if}
         </div>
 
         <div class="ra-tags">
@@ -17,11 +18,11 @@
         </div>
 
         <div class="ra-block">
-            <div class="ra-datatype">Return : {if $comp->return_datatype}{$comp->return_datatype}{else}void{/if}
+            <div class="ra-datatype">Return : {if $comp->return_datatype}{$comp->return_datatype|implode:", "}{else}void{/if}
             {if $comp->return_description}<br/>{$comp->return_description}{/if}</div>
             <dl class="ra-parameters">
                 {foreach $comp->parameters as $k=>$param}
-                <dt>{$param->type} <strong>${$param->name}</strong> {if $param->defaultvalue}= {$param->defaultvalue}{/if}</dt>
+                <dt><span class="ra-datatype">{$param->type|implode:", "}</span> <strong>${$param->name}</strong> {if $param->defaultvalue}= {$param->defaultvalue}{/if}</dt>
                 <dd>{$param->documentation|eschtml}</dd>
             {/foreach}</dl>
         </div>
@@ -81,7 +82,7 @@
                 </ul></li>{/if}
             {if $comp->user_tags}
             {foreach $comp->user_tags as $t=>$c}
-            <li><strong>{$t|eschtml}{if $c}: {/if}</strong>{$c|eschtml}</li>
+            <li>User tag:<strong>{$t|eschtml}{if $c}: {/if}</strong>{$c|eschtml}</li>
             {/foreach}{/if}
         </ul>
         {/if}

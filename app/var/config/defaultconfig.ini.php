@@ -161,8 +161,14 @@ start=1
 ; dao_db_profile = ""
 
 [logger]
-error=file
-warning=file
+error=file,memory
+warning=file,memory
+notice=memory
+sql=memory
+
 [mailLogger]
 email="root@localhost"
 emailHeaders="root@localhost"
+
+[jResponseHtml]
+plugins=debugbar

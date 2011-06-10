@@ -18,8 +18,10 @@ default=error-cli.log
 error=error-cli.log
 warning=error-cli.log
 notice=error-cli.log
+
 [logger]
 default=file
-error="file,file"
+error=file
 warning=file
 notice=file
+sql=

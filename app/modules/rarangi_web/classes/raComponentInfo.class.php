@@ -59,41 +59,14 @@ class raComponentInfo {
             if ($class->mother_class) {
                 $class->mother_class = $dao->get($class->mother_class);
             }
-
-            if ($class->links)
-                $class->links = unserialize($class->links);
-
-            if ($class->see)
-                $class->see = unserialize($class->see);
-
-            if ($class->uses)
-                $class->uses = unserialize($class->uses);
-
-            if ($class->changelog)
-                $class->changelog = unserialize($class->changelog);
-
-            if ($class->user_tags)
-                $class->user_tags = unserialize($class->user_tags);
+            $this->unserializeInfo($class);
 
             $properties = array();
             if (!$class->is_interface) {
                 $rs_properties = jDao::get('rarangi~class_properties')->findByClass($project->id, $class->id);
                 foreach ($rs_properties as $prop) {
-                    if ($prop->links)
-                        $prop->links = unserialize($prop->links);
-
-                    if ($prop->see)
-                        $prop->see = unserialize($prop->see);
-
-                    if ($prop->uses)
-                        $prop->uses = unserialize($prop->uses);
-
-                    if ($prop->changelog)
-                        $prop->changelog = unserialize($prop->changelog);
-
-                    if ($prop->user_tags)
-                        $prop->user_tags = unserialize($prop->user_tags);
-
+                    $this->unserializeInfo($prop);
+                    $prop->datatype = $this->unserializeDatatype($prop->datatype);
                     $properties[] = $prop;
                 }
             }
@@ -102,6 +75,7 @@ class raComponentInfo {
             $rs_method_params = jDao::get('rarangi~method_parameters')->findByClass($class->id);
             $method_params = array();
             foreach ($rs_method_params as $p) {
+                $p->type = $this->unserializeDatatype($p->type);
                 if(!isset($method_params[$p->method_name]))
                     $method_params[$p->method_name] = array();
                 $method_params[$p->method_name][] = $p;
@@ -110,21 +84,8 @@ class raComponentInfo {
             $rs_methods = jDao::get('rarangi~class_methods')->findByClass($project->id, $class->id);
             $methods = array();
             foreach ($rs_methods as $meth) {
-                if ($meth->links)
-                    $meth->links = unserialize($meth->links);
-
-                if ($meth->see)
-                    $meth->see = unserialize($meth->see);
-
-                if ($meth->uses)
-                    $meth->uses = unserialize($meth->uses);
-
-                if ($meth->changelog)
-                    $meth->changelog = unserialize($meth->changelog);
-
-                if ($meth->user_tags)
-                    $meth->user_tags = unserialize($meth->user_tags);
-
+                $this->unserializeInfo($meth);
+                $meth->return_datatype = $this->unserializeDatatype($meth->return_datatype);
                 $methods[] = $meth;
                 if(!isset($method_params[$meth->name]))
                     $method_params[$meth->name] = array();
@@ -201,27 +162,16 @@ class raComponentInfo {
         $func = $dao->getByName($project->id, $functionname);
 
         if ($func) {
-            if ($func->links)
-                $func->links = unserialize($func->links);
-
-            if ($func->see)
-                $func->see = unserialize($func->see);
-
-            if ($func->uses)
-                $func->uses = unserialize($func->uses);
-
-            if ($func->changelog)
-                $func->changelog = unserialize($func->changelog);
-
-            if ($func->user_tags)
-                $func->user_tags = unserialize($func->user_tags);
-
+            $this->unserializeInfo($func);
+            $func->return_datatype = $this->unserializeDatatype($func->return_datatype);
             $rs_func_params = jDao::get('rarangi~function_parameters')->findByFunction($func->id);
             $func_params = array();
             foreach ($rs_func_params as $p) {
+                $p->type = $this->unserializeDatatype($p->type);
                 $func_params[] = $p;
             }
             $func->parameters = $func_params;
+
         }
         return $func;
     }
@@ -231,22 +181,32 @@ class raComponentInfo {
         $comp = $dao->getByName($project->id, $compname, ($isConst?2:0));
 
         if ($comp) {
-            if ($comp->links)
-                $comp->links = unserialize($comp->links);
-
-            if ($comp->see)
-                $comp->see = unserialize($comp->see);
-
-            if ($comp->uses)
-                $comp->uses = unserialize($comp->uses);
-
-            if ($comp->changelog)
-                $comp->changelog = unserialize($comp->changelog);
-
-            if ($comp->user_tags)
-                $comp->user_tags = unserialize($comp->user_tags);
+            $this->unserializeInfo($comp);
+            $comp->datatype = $this->unserializeDatatype($comp->datatype);
         }
 
         return $comp;
+    }
+
+    protected function unserializeInfo($comp) {
+
+        if ($comp->links)
+            $comp->links = unserialize($comp->links);
+
+        if ($comp->see)
+            $comp->see = unserialize($comp->see);
+
+        if ($comp->uses)
+            $comp->uses = unserialize($comp->uses);
+
+        if ($comp->changelog)
+            $comp->changelog = unserialize($comp->changelog);
+
+        if ($comp->user_tags)
+            $comp->user_tags = unserialize($comp->user_tags);
+    }
+
+    protected function unserializeDatatype($datatype) {
+        return explode('|', trim($datatype, '|'));
     }
 }

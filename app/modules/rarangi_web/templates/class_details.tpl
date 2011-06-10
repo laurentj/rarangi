@@ -8,7 +8,8 @@
             <p class="ra-short-description">{$comp->short_description|eschtml}</p>
             <div class="ra-text-description">{$comp->description|eschtml}</div>
             {/if}
-            {if $comp->is_deprecated && $comp->deprecated}<p>About deprecation: {$comp->deprecated|eschtml}</p>{/if}
+            {if $comp->is_deprecated && $comp->deprecated}
+                <p class="ra-deprecated">About deprecation: {$comp->deprecated|eschtml}</p>{/if}
         </div>
 
         <div class="ra-tags">
@@ -27,23 +28,21 @@
                 <h4 id="p-{$comp->name}"><a name="p-{$comp->name}"></a>{if $comp->type != 2}${/if}{$comp->name}</h4>
 
                 {if $comp->short_description || $comp->description}
-                <div class="ra-short-description">{$comp->short_description|eschtml}</div>
+                <p class="ra-short-description">{$comp->short_description|eschtml}</p>
                 <div class="ra-text-description">{$comp->description|eschtml}</div>
                 {/if}
-                {if $comp->is_deprecated && $comp->deprecated}<p>About deprecation: {$comp->deprecated|eschtml}</p>{/if}
-
+                {if $comp->is_deprecated && $comp->deprecated}<p class="ra-deprecated">About deprecation: {$comp->deprecated|eschtml}</p>{/if}
                 {if $comp->internal}<div class="ra-internal-description">{$comp->internal|eschtml}</div>{/if}
                 {if $comp->since}<div class="ra-since">Since {$comp->since|eschtml}</div>{/if}
-
 
                 <p class="ra-prototype">
                     <span class="ra-type-access">
                       {if $comp->type == 1}static{elseif $comp->type == 2}const{/if}
                       {if $comp->accessibility == 'PRO'}protected{elseif $comp->accessibility=='PRI'}private{else}public{/if}
                     </span>
-                    {if $comp->datatype}<span class="ra-datatype">{$comp->datatype}</span>{/if}
+                    {if $comp->datatype}<span class="ra-datatype">{$comp->datatype|implode:", "}</span>{/if}
                     <span class="ra-property-name">{if $comp->type != 2}${/if}{$comp->name}</span>
-                    {if $comp->defaultvalue != ''}<span class="ra-property-value">{$comp->defaultvalue|eschtml}</span>{/if}
+                    {if $comp->default_value != ''}<span class="ra-property-value">{$comp->default_value|eschtml}</span>{/if}
                 </p>
 
                 <div class="ra-tags">
@@ -75,39 +74,41 @@
                         <span class="ra-type-access">{if $comp->is_static == 1}static{/if} {if $comp->is_final == 1}final{/if}
                         {if $comp->is_abstract == 1}abstract{/if}
                         {if $comp->accessibility == 'PRO'}protected{elseif $comp->accessibility=='PRI'}private{else}public{/if}</span>
-                        <span class="ra-method-return">{if $comp->return_datatype}{$comp->return_datatype}{else}void{/if}</span>
+                        <span class="ra-method-return">{if $comp->return_datatype}{$comp->return_datatype|implode:", "}{else}void{/if}</span>
                         <span class="ra-method-name">{$comp->name}</span> (
                         {assign $pNumber=0}
                         {foreach $class->methodParameters[$comp->name] as $k=>$param}
                             {if $k>0},{/if}
                             <span class="ra-method-parameter">
-                            {if $param->defaultvalue != ''} {assign $pNumber=$pNumber+1}
-                            [{$param->type} <span class="ra-method-parameter-name">${$param->name}</span>
-                                = {$param->defaultvalue}
-                            {else}
-                            {$param->type} <span class="ra-method-parameter-name">${$param->name}</span>
-                            {/if}</span>
+                            {if $param->defaultvalue != ''} {assign $pNumber=$pNumber+1} [{/if}
+                            <span class="ra-datatype">{$param->type|implode:" / "}</span>
+                            <span class="ra-method-parameter-name">${$param->name}</span>
+                            {if $param->defaultvalue != ''} = {$param->defaultvalue}{/if}
+                            </span>
                         {/foreach}
                         {while $pNumber--}]{/while})</span>
                     </p>
 
-
                     <dl class="ra-parameters">
                         {foreach $class->methodParameters[$comp->name] as $k=>$param}
                         {if $param->documentation}
-                        <dt>{$param->type} <strong>${$param->name}</strong> {if $param->defaultvalue}= {$param->defaultvalue}{/if}</dt>
+                        <dt><span class="ra-datatype">{$param->type|implode:" / "}</span>
+                            <strong>${$param->name}</strong>
+                            {if $param->defaultvalue}= {$param->defaultvalue}{/if}</dt>
                         <dd>{$param->documentation|eschtml}</dd>{/if}
                     {/foreach}</dl>
 
                     {if $comp->return_datatype && $comp->return_description}
-                    <div class="ra-datatype">Return : {if $comp->return_datatype}{$comp->return_datatype}{else}void{/if}
+                    <div class="ra-method-return">Return : {if $comp->return_datatype}{$comp->return_datatype|implode:" / "}{else}void{/if}
                     {if $comp->return_description}<br/>{$comp->return_description}{/if}</div>{/if}
 
                     <div class="ra-tags">
-                    {if $class->is_deprecated}<span class="ra-tag-deprecated">deprecated</span>{/if}
-                    {if $class->is_experimental}<span class="ra-tag-experimental">experimental</span>{/if}
+                    {if $comp->is_deprecated}<span class="ra-tag-deprecated">deprecated</span>{/if}
+                    {if $comp->is_experimental}<span class="ra-tag-experimental">experimental</span>{/if}
                     </div>
-                    {if $class->is_deprecated && $class->deprecated}<p>About deprecation: {$class->deprecated|eschtml}</p>{/if}
+                    {if $comp->is_deprecated && $comp->deprecated}
+                    <p class="ra-deprecated">About deprecation: {$comp->deprecated|eschtml}</p>{/if}
+
                     {include 'inc_comp_info'}
                   </div>
                   {/foreach}
