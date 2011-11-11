@@ -94,7 +94,9 @@
 }
 
 /* -- basic block of content */
-.ra-block {
+.ra-block,
+.ra-method,
+.ra-class-property {
     min-width: 60%;
     padding: 8px 20px;
     margin-bottom: 10px;
@@ -172,9 +174,12 @@
 	.ra-class-property h4 {
 
 	}
+	.ra-class-property-details {
+		margin-left:2em;
+	}
 
 .ra-prototype {
-
+	font-family:courier new, monospace;
 }
 
 	.ra-type-access {
@@ -212,8 +217,11 @@
 .ra-class-methods {
 
 }
+    .ra-method {
+		
+	}
 	.ra-method-details {
-
+		margin-left:2em;
 	}
 
 	.ra-method-details h4{

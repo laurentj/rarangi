@@ -19,14 +19,14 @@
         </div>
 
         {if !$class->is_interface}
-        <div class="ra-block" id="ra-class-properties">
+        <div id="ra-class-properties">
             <h3>List of properties</h3>
             <div class="ra-class-properties">
             {if count($class->properties)}
               {foreach $class->properties as $comp}
-              <div class="ra-class-property">
-                <h4 id="p-{$comp->name}"><a name="p-{$comp->name}"></a>{if $comp->type != 2}${/if}{$comp->name}</h4>
-
+              <div class="ra-class-property" id="p-{$comp->name}">
+                <h4><a name="p-{$comp->name}"></a>{if $comp->type != 2}${/if}{$comp->name}</h4>
+                <div class="ra-class-property-details">
                 {if $comp->short_description || $comp->description}
                 <p class="ra-short-description">{$comp->short_description|eschtml}</p>
                 <div class="ra-text-description">{$comp->description|eschtml}</div>
@@ -42,7 +42,7 @@
                     </span>
                     {if $comp->datatype}<span class="ra-datatype">{$comp->datatype|implode:", "}</span>{/if}
                     <span class="ra-property-name">{if $comp->type != 2}${/if}{$comp->name}</span>
-                    {if $comp->default_value != ''}<span class="ra-property-value">{$comp->default_value|eschtml}</span>{/if}
+                    {if $comp->default_value != ''}= <span class="ra-property-value">{$comp->default_value|eschtml}</span>{/if}
                 </p>
 
                 <div class="ra-tags">
@@ -51,7 +51,7 @@
                 </div>
 
                 {include 'inc_comp_info'}
-
+                </div>
               </div>
               {/foreach}
             {else}
@@ -61,13 +61,14 @@
         </div>
         {/if}
 
-        <div class="ra-block" id="ra-class-methods">
+        <div id="ra-class-methods">
             <h3>List of methods</h3>
             <div class="ra-class-methods">
                 {if count($class->methods)}
                   {foreach $class->methods as $comp}
-                  <div class="ra-method-details" id="m-{$comp->name}">
+                  <div class="ra-method" id="m-{$comp->name}">
                     <h4><a name="m-{$comp->name}"></a>{$comp->name}()</h4>
+                    <div class="ra-method-details" id="m-{$comp->name}-details">
                     {include 'inc_comp_description'}
 
                     <p class="ra-prototype">
@@ -75,10 +76,8 @@
                         {if $comp->is_abstract == 1}abstract{/if}
                         {if $comp->accessibility == 'PRO'}protected{elseif $comp->accessibility=='PRI'}private{else}public{/if}</span>
                         <span class="ra-method-return">{if $comp->return_datatype}{$comp->return_datatype|implode:", "}{else}void{/if}</span>
-                        <span class="ra-method-name">{$comp->name}</span> (
-                        {assign $pNumber=0}
-                        {foreach $class->methodParameters[$comp->name] as $k=>$param}
-                            {if $k>0},{/if}
+                        <span class="ra-method-name">{$comp->name}</span>({assign $pNumber=0}
+                        {foreach $class->methodParameters[$comp->name] as $k=>$param}{if $k>0},{/if}
                             <span class="ra-method-parameter">
                             {if $param->defaultvalue != ''} {assign $pNumber=$pNumber+1} [{/if}
                             <span class="ra-datatype">{$param->type|implode:" / "}</span>
@@ -110,6 +109,7 @@
                     <p class="ra-deprecated">About deprecation: {$comp->deprecated|eschtml}</p>{/if}
 
                     {include 'inc_comp_info'}
+                    </div>
                   </div>
                   {/foreach}
                 {else}
@@ -118,7 +118,7 @@
             </div>
         </div>
         {assign $comp = $class}
-        <div class="ra-block" id="ra-internals">
+        <div id="ra-internals">
             <h3>Others informations</h3>
 
             {if $comp->internal}
