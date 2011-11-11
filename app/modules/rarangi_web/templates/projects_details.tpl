@@ -25,7 +25,7 @@
     <h3>{@rarangi_web~default.authors@}</h3>
     <ul id="ra-authors">
     {foreach $authors as $author}
-        <li>{$author->name|eschtml} {if $author->email!=''}&lt;{$author->email|eschtml}&gt;{/if}</li>
+        <li>{$author->name|eschtml}</li>
     {/foreach}
     </ul>
     </div>
