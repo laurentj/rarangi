@@ -19,6 +19,7 @@ jelix.access=2
 rarangi.access=2
 rarangi_web.access=2
 
+rarangi_static.access=2
 [coordplugins]
 ;nom = nom_fichier_ini
 
@@ -161,8 +162,8 @@ start=1
 ; dao_db_profile = ""
 
 [logger]
-error=file,memory
-warning=file,memory
+error="file,memory"
+warning="file,memory"
 notice=memory
 sql=memory
 

@@ -25,3 +25,6 @@ error=file
 warning=file
 notice=file
 sql=
+
+[modules]
+rarangi_static.access=2
