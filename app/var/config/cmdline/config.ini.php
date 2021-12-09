@@ -28,3 +28,4 @@ sql=
 
 [modules]
 rarangi_static.access=2
+

@@ -1,18 +1,12 @@
 ;<?php die(''); ?>
 ;for security reasons, don't remove or modify the first line
 [jdb]
-;<?php die(''); ?>
-;for security reasons, don't remove or modify the first line
 
 default=app
 
 [jdb:app]
-driver=mysql
-database=rarangi
-host=localhost
-user=root
-password=
-persistent=on
+driver=sqlite3
+database=var:db/rarangi.db
 
 ; when you have charset issues, enable force_encoding so the connection will be
 ; made with the charset indicated in jelix config
@@ -22,9 +16,4 @@ persistent=on
 ; jDbConnection::prefixTable().
 ;table_prefix =
 
-; For pdo :
-;driver=pdo
-;dsn=mysql:host=localhost;dbname=test
-;user=
-;password=
 

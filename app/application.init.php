@@ -18,4 +18,4 @@ jApp::initPaths(
     //$appPath.'var/config/',
     //$appPath.'scripts/'
 );
-jApp::setTempBasePath(realpath($appPath.'../temp/rarangi/').'/');
+jApp::setTempBasePath(realpath($appPath.'temp/').'/');

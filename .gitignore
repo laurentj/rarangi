@@ -1,0 +1,16 @@
+app/var/config/localconfig.ini.php
+app/var/config/liveconfig.ini.php
+app/var/config/localframework.ini.php
+app/var/config/profiles.ini.php
+app/var/config/installer.ini.php
+app/var/db/*.db
+app/var/mails/*
+!app/var/mails/.dummy
+app/var/log/*
+!app/var/log/.dummy
+app/var/sessions/*
+!app/var/sessions/.dummy
+app/var/uploads/*
+!app/var/uploads/.dummy
+app/temp/www
+

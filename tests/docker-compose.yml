@@ -1,0 +1,25 @@
+version: '3.4'
+services:
+  web:
+    image: nginx:alpine
+    container_name: rarangi_web
+    volumes:
+      - "./docker-conf/nginx-default.conf:/etc/nginx/conf.d/default.conf"
+      - "../:/app/"
+    command: /bin/sh -c "nginx -g 'daemon off;'"
+    ports:
+      - "${APP_WEB_PORT}:80"
+    depends_on:
+      - php
+  php:
+    build:
+      context: ./docker-conf/phpfpm
+    container_name: rarangi_php
+    environment:
+      - APP_USER_ID
+      - APP_GROUP_ID
+      - APP_USER_NAME
+      - APP_GROUP_NAME
+    volumes:
+      - "../:/app/"
+

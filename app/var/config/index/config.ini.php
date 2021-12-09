@@ -9,3 +9,10 @@ main.access=2
 
 
 rarangi_static.access=2
+
+
+
+
+
+
+
