@@ -45,8 +45,7 @@ class jAuth {
 
         if (self::$config === null || $newconfig) {
             if (!$newconfig) {
-                global $gJCoord;
-                $plugin = $gJCoord->getPlugin('auth');
+                $plugin = jApp::coord()->getPlugin('auth');
                 if($plugin === null)
                     throw new jException('jelix~auth.error.plugin.missing');
                 $config = & $plugin->config;
@@ -61,8 +60,8 @@ class jAuth {
 
             if (!isset( $config['persistant_cookie_path'])
                 ||  $config['persistant_cookie_path'] == '') {
-                if (isset($GLOBALS['gJConfig']))
-                    $config['persistant_cookie_path'] = $GLOBALS['gJConfig']->urlengine['basePath'];
+                if (jApp::config())
+                    $config['persistant_cookie_path'] = jApp::config()->urlengine['basePath'];
                 else
                     $config['persistant_cookie_path'] = '/';
             }
@@ -83,6 +82,9 @@ class jAuth {
                 if (!can_use_password_API()) {
                     $password_hash_method = 0;
                 }
+            }
+            else {
+                require_once(dirname(__FILE__).'/hash_equals.php');
             }
 
             $password_hash_options = (isset($config['password_hash_options'])?$config['password_hash_options']:'');

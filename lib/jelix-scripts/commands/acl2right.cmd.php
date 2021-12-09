@@ -3,7 +3,7 @@
 * @package     jelix-scripts
 * @author      Laurent Jouanneau
 * @contributor Loic Mathaud
-* @copyright   2007-2011 Laurent Jouanneau, 2008 Loic Mathaud
+* @copyright   2007-2012 Laurent Jouanneau, 2008 Loic Mathaud
 * @link        http://www.jelix.org
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
@@ -23,12 +23,16 @@ ACTION:
  * list
  * add groupid sujet [resource]
  * [-allres] remove groupid sujet [resource]
- * subject_create subject labelkey [grouplabelkey [label]]
+ * subject_create subject labelkey [grouplabelkey [subjectlabel]]
+        Si subjectlabel est donné, le label et sa clé labelkey sera
+        créé dans le fichier indiqué par la clé.
  * subject_delete subject
  * subject_list
  * subject_group_list
  * subject_group_create group labelkey
  * subject_group_delete group labelkey
+
+ labelkey est le selecteur d'une chaine pour jLocale.
 
 ",
         'en'=>"
@@ -38,12 +42,16 @@ ACTION:
  * list
  * add  groupid subject [resource]
  * [-allres] remove groupid subject [resource]
- * subject_create subject labelkey [grouplabelkey [label]]
+ * subject_create subject labelkey [grouplabelkey [subjectlabel]]
+    if subjectlabel is given, it will be stored in the properties file
+    indicated by the labelkey.
  * subject_delete subject
  * subject_list
  * subject_group_list
  * subject_group_create group labelkey
  * subject_group_delete group labelkey
+
+ labelkey is a jLocale selector of a label.
 ",
     );
 
@@ -148,7 +156,7 @@ ACTION:
         if(isset($params[2]))
             $resource = $cnx->quote($params[2]);
         else
-            $resource = $cnx->quote('');
+            $resource = $cnx->quote('-');
 
         $sql="SELECT * FROM ".$cnx->prefixTable('jacl2_rights')."
                 WHERE id_aclgrp=".$group."
@@ -188,13 +196,12 @@ ACTION:
         if(isset($params[2]))
             $resource = $cnx->quote($params[2]);
         else
-            $resource = '';
+            $resource = $cnx->quote('-');
 
         $sql="SELECT * FROM ".$cnx->prefixTable('jacl2_rights')."
                 WHERE id_aclgrp=".$group."
                 AND id_aclsbj=".$subject;
-        if($resource)
-            $sql.=" AND id_aclres=".$resource;
+        $sql.=" AND id_aclres=".$resource;
 
         $rs = $cnx->query($sql);
         if(!$rs->fetch()){
@@ -204,8 +211,7 @@ ACTION:
         $sql="DELETE FROM ".$cnx->prefixTable('jacl2_rights')."
              WHERE id_aclgrp=".$group."
                 AND id_aclsbj=".$subject;
-        if($resource)
-            $sql.=" AND id_aclres=".$resource;
+        $sql.=" AND id_aclres=".$resource;
         $cnx->exec($sql);
 
         if ($this->verbose())
@@ -261,8 +267,7 @@ ACTION:
         if (isset($params[3]) && preg_match("/^([a-zA-Z0-9_\.]+)~([a-zA-Z0-9_]+)\.([a-zA-Z0-9_\.]+)$/", $params[1], $m)) {
             $localestring = "\n".$m[3].'='.$params[3];
             $path = $this->getModulePath($m[1]);
-            global $gJConfig;
-            $file = $path.'locales/'.$gJConfig->locale.'/'.$m[2].'.'.$gJConfig->charset.'.properties';
+            $file = $path.'locales/'.jApp::config()->locale.'/'.$m[2].'.'.jApp::config()->charset.'.properties';
             if (file_exists($file)) {
                 $localestring = file_get_contents($file).$localestring;
             }

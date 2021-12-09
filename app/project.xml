@@ -2,8 +2,8 @@
 <project xmlns="http://jelix.org/ns/project/1.0">
     <info id="rarangi@forge.jelix.org" name="rarangi" createdate="2008-11-25">
         <version stability="pre-alpha" date="">0.1pre</version>
-        <label lang="en_EN">Rarangi</label>
-        <description lang="en_EN"/>
+        <label lang="en_US">Rarangi</label>
+        <description lang="en_US"/>
         <licence URL="http://www.gnu.org/licenses/gpl.html">GNU General Public Licence</licence>
         <copyright>2008-2009 Laurent Jouanneau</copyright>
         <creator name="Laurent Jouanneau" email="laurent@jelix.org" active="true"/>

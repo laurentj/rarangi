@@ -3,7 +3,7 @@
 * @package     jelix
 * @subpackage  responsehtml_plugin
 * @author      Laurent Jouanneau
-* @copyright   2010 Laurent Jouanneau
+* @copyright   2010-2012 Laurent Jouanneau
 * @link        http://jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
@@ -37,11 +37,12 @@ class minifyHTMLResponsePlugin implements jIHTMLResponsePlugin {
     public function beforeOutput() {
         if (!($this->response instanceof jResponseHtml))
             return;
-        global $gJConfig;
-        $basePath = $gJConfig->urlengine['basePath'];
-        if ($gJConfig->jResponseHtml['minifyCSS']) {
-            if ($gJConfig->jResponseHtml['minifyExcludeCSS']) {
-                $this->excludeCSS = preg_split( '/\s*,\s*/', $gJConfig->jResponseHtml['minifyExcludeCSS'] );
+
+        $conf = &jApp::config()->jResponseHtml;
+        $basePath = jApp::config()->urlengine['basePath'];
+        if ($conf['minifyCSS']) {
+            if ($conf['minifyExcludeCSS']) {
+                $this->excludeCSS = preg_split( '/\s*,\s*/', $conf['minifyExcludeCSS'] );
                 foreach($this->excludeCSS as $k=>$url) {
                     if (substr($url,0,1) != '/')
                         $this->excludeCSS[$k]= $basePath.$url;
@@ -52,9 +53,9 @@ class minifyHTMLResponsePlugin implements jIHTMLResponsePlugin {
             $this->response->setCSSIELinks($this->generateMinifyList($this->response->getCSSIELinks(), 'excludeCSS'));
         }
 
-        if ($gJConfig->jResponseHtml['minifyJS']) {
-            if($gJConfig->jResponseHtml['minifyExcludeJS'] ) {
-                $this->excludeJS = preg_split( '/\s*,\s*/', $gJConfig->jResponseHtml['minifyExcludeJS'] );
+        if ($conf['minifyJS']) {
+            if($conf['minifyExcludeJS'] ) {
+                $this->excludeJS = preg_split( '/\s*,\s*/', $conf['minifyExcludeJS'] );
                 foreach($this->excludeJS as $k=>$url) {
                     if (substr($url,0,1) != '/')
                         $this->excludeJS[$k]= $basePath.$url;
@@ -84,7 +85,6 @@ class minifyHTMLResponsePlugin implements jIHTMLResponsePlugin {
      * @return array list of urls to insert in the html page
      */
     protected function generateMinifyList($list, $exclude) {
-        global $gJConfig;
         $pendingList = array();
         $pendingParameters = false;
         $resultList = array();
@@ -119,8 +119,7 @@ class minifyHTMLResponsePlugin implements jIHTMLResponsePlugin {
     }
 
     protected function generateMinifyUrl($urlsList) {
-        global $gJConfig;
-        $url = $gJConfig->urlengine['basePath'].$gJConfig->jResponseHtml['minifyEntryPoint'].'?f=';
+        $url = jApp::config()->urlengine['basePath'].jApp::config()->jResponseHtml['minifyEntryPoint'].'?f=';
         $url .= implode(',', $urlsList);
         return $url;
     }

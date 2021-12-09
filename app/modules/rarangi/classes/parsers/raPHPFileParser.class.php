@@ -176,7 +176,7 @@ class raPHPFileParser extends raPHPParser_base {
         }
         catch(jException $e) {
             $this->parserInfo->project()->logger()->error($e->getMessage());
-            /*$GLOBALS['gJCoord']->handleError($GLOBALS['gJConfig']->error_handling['exception'], 'exception',
+            /*jApp::coord()->handleError(jApp::config()->error_handling['exception'], 'exception',
             $e->getCode(), $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace());*/
             return;       
         }

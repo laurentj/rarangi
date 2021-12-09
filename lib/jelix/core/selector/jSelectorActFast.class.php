@@ -5,7 +5,7 @@
 * @subpackage  core_selector
 * @author      Laurent Jouanneau
 * @contributor Thibault Piront (nuKs)
-* @copyright   2005-2009 Laurent Jouanneau
+* @copyright   2005-2012 Laurent Jouanneau
 * @copyright   2007 Thibault Piront
 * @link        http://www.jelix.org
 * @licence    GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
@@ -20,14 +20,18 @@
  */
 class jSelectorActFast extends jSelectorModule {
     protected $type = 'act';
+    /**
+     * @var string type of request
+     */
     public $request = '';
     public $controller = '';
     public $method='';
     protected $_dirname='actions/';
 
     /**
+     * @var string $requestType type of request ('classic', 'soap'...)
      */
-    function __construct($request, $module, $action){
+    function __construct($requestType, $module, $action){
         $this->module = $module;
         $r = explode(':',$action);
         if(count($r) == 1){
@@ -40,16 +44,15 @@ class jSelectorActFast extends jSelectorModule {
         if (substr($this->method,0,2) == '__')
             throw new jExceptionSelector('jelix~errors.selector.method.invalid', $this->toString());
         $this->resource = $this->controller.':'.$this->method;
-        $this->request = $request;
+        $this->request = $requestType;
         $this->_createPath();
     }
 
     protected function _createPath(){
-        global $gJConfig;
-        if(!isset($gJConfig->_modulesPathList[$this->module])){
+        if(!isset(jApp::config()->_modulesPathList[$this->module])){
             throw new jExceptionSelector('jelix~errors.selector.module.unknown', $this->toString());
         }else{
-            $this->_path = $gJConfig->_modulesPathList[$this->module].'controllers/'.$this->controller.'.'.$this->request.'.php';
+            $this->_path = jApp::config()->_modulesPathList[$this->module].'controllers/'.$this->controller.'.'.$this->request.'.php';
         }
     }
 
@@ -68,4 +71,11 @@ class jSelectorActFast extends jSelectorModule {
         return $this->controller.'Ctrl';
     }
 
+    public function isEqualTo(jSelectorActFast $otherAction) {
+        return ($this->module == $otherAction->module &&
+                $this->controller == $otherAction->controller &&
+                $this->method == $otherAction->method &&
+                $this->request == $otherAction->request
+                );
+    }
 }
