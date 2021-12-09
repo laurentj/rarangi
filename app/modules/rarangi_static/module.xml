@@ -9,6 +9,6 @@
         <creator name="Laurent Jouanneau" email="laurent@jelix.org" active="true"/>
     </info>
     <dependencies>
-        <jelix minversion="1.3.0" maxversion="1.4.*"/>
+        <jelix minversion="1.3.0" maxversion="1.5.*"/>
     </dependencies>
 </module>
