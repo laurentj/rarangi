@@ -5,18 +5,16 @@
 * @author      Laurent Jouanneau
 * @contributor Frederic Guillot
 * @contributor Thibault Piront (nuKs)
-* @copyright   2005-2006 Laurent Jouanneau, 2007 Frederic Guillot
+* @copyright   2005-2011 Laurent Jouanneau, 2007 Frederic Guillot
 * @copyright   2007 Thibault Piront
 * @link        http://www.jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
 
-
 /**
 *
 */
 require(JELIX_LIB_UTILS_PATH. 'jXmlRpc.class.php');
-
 
 /**
 * handle XML-rpc call. The response has to be a xml-rpc response.
@@ -30,8 +28,10 @@ class jXmlRpcRequest extends jRequest {
 
     public $defaultResponseType = 'xmlrpc';
 
+    public $authorizedResponseClass = 'jResponseXmlrpc';
+
     /**
-     * analyse the http request and set the params property
+     * Analyze the HTTP request and set the params property
      */
     protected function _initParams(){
         global $HTTP_RAW_POST_DATA;
@@ -42,7 +42,7 @@ class jXmlRpcRequest extends jRequest {
             $requestXml = implode("\n",$requestXml);
         }
 
-        // Décodage de la requete
+        // Decode the request
         list($nom,$vars) = jXmlRpc::decodeRequest($requestXml);
         list($module, $action) = explode(':',$nom,2);
 
@@ -51,13 +51,8 @@ class jXmlRpcRequest extends jRequest {
 
         $this->params['params'] = $vars;
 
-        // Définition de l'action a executer et des paramètres
+        // Definition of action to use and its parameters
         $this->params['module'] = $module;
         $this->params['action'] = $action;
     }
-
-    public function isAllowedResponse($respclass){
-        return ('jResponseXmlrpc' == $respclass);
-    }
-
 }

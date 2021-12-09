@@ -4,7 +4,7 @@
 * @subpackage coord_plugin
 * @author     Gérald Croes
 * @contributor  Laurent Jouanneau, Frédéric Guillot, Antoine Detante, Julien Issler
-* @copyright  2001-2005 CopixTeam, 2005-2007 Laurent Jouanneau, 2007 Frédéric Guillot, 2007 Antoine Detante
+* @copyright  2001-2005 CopixTeam, 2005-2011 Laurent Jouanneau, 2007 Frédéric Guillot, 2007 Antoine Detante
 * @copyright  2007 Julien Issler
 *
 * This class was get originally from an experimental branch of the Copix project
@@ -47,27 +47,7 @@ class AuthCoordPlugin implements jICoordPlugin {
         $badip = false;
         $selector = null;
         // Check if auth cookie exist and user isn't logged on
-        if (isset($this->config['persistant_enable']) && $this->config['persistant_enable'] && !jAuth::isConnected()) {
-            if (isset($this->config['persistant_cookie_name']) && isset($this->config['persistant_crypt_key'])) {
-                $cookieName = $this->config['persistant_cookie_name'];
-                if (isset($_COOKIE[$cookieName]['auth']) && strlen($_COOKIE[$cookieName]['auth'])>0) {
-                    $decrypted = jCrypt::decrypt($_COOKIE[$cookieName]['auth'],$this->config['persistant_crypt_key']);
-                    $decrypted = @unserialize($decrypted);
-                    if ($decrypted && is_array($decrypted)) {
-                        list($login, $password) = $decrypted;
-                        jAuth::login($login,$password);
-                    }
-                }
-                if (isset($_COOKIE[$cookieName]['login'])) {
-                    // destroy deprecated cookies
-                    setcookie($cookieName.'[login]', '', time() - 3600, $this->config['persistant_cookie_path']);
-                    setcookie($cookieName.'[passwd]', '', time() - 3600, $this->config['persistant_cookie_path']);
-                }
-            }
-            else {
-                throw new jException('jelix~auth.error.persistant.incorrectconfig','persistant_cookie_name, persistant_crypt_key');
-            }
-        }
+        jAuth::checkCookieToken();
         //Do we check the ip ?
         if ($this->config['secure_with_ip']){
             if (! isset ($_SESSION['JELIX_AUTH_SECURE_WITH_IP'])){
@@ -107,7 +87,7 @@ class AuthCoordPlugin implements jICoordPlugin {
 
         if($needAuth){
             if($notLogged){
-                if($this->config['on_error'] == 1 
+                if($GLOBALS['gJCoord']->request->isAjax() || $this->config['on_error'] == 1
                     || !$GLOBALS['gJCoord']->request->isAllowedResponse('jResponseRedirect')){
                     throw new jException($this->config['error_message']);
                 }else{
@@ -134,31 +114,14 @@ class AuthCoordPlugin implements jICoordPlugin {
     public function afterProcess (){}
 
     /**
-    * Getting IP adress of the user
+    * Getting IP informations of the user
     * @return string
     * @access private
     */
     private function _getIpForSecure (){
-        //this method is heavily based on the article found on
-        // phpbuilder.com, and from the comments on the official phpdoc.
-        $IP_ADDR = $GLOBALS['gJCoord']->request->getIP();
-
-        // get server ip and resolved it
-        $FIRE_IP_ADDR = $_SERVER['REMOTE_ADDR'];
-        $ip_resolved = gethostbyaddr($FIRE_IP_ADDR);
-        // builds server ip infos string
-        $FIRE_IP_LITT = ($FIRE_IP_ADDR != $ip_resolved && $ip_resolved) ? $FIRE_IP_ADDR." - ". $ip_resolved : $FIRE_IP_ADDR;
-        // builds client ip full infos string
-        $toReturn = ($IP_ADDR != $FIRE_IP_ADDR) ? "$IP_ADDR | $FIRE_IP_LITT" : $FIRE_IP_LITT;
+        $toReturn = $_SERVER['REMOTE_ADDR']. '|'.gethostbyaddr($_SERVER['REMOTE_ADDR']);
+        if (isset ($_SERVER['HTTP_X_FORWARDED_FOR']))
+            $toReturn .= '|'.$_SERVER['HTTP_X_FORWARDED_FOR'];
         return $toReturn;
     }
-}
-
-
-/**
- * function to use to crypt password. use the password_salt value in the config
- * file of the plugin.
- */
-function sha1WithSalt($salt, $password) {
-    return sha1($salt.':'.$password);
 }

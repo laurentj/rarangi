@@ -5,7 +5,7 @@
 * @author      Laurent Jouanneau
 * @contributor Julien Issler, Dominique Papin
 * @copyright   2006-2011 Laurent Jouanneau
-* @copyright   2008-2010 Julien Issler, 2008 Dominique Papin
+* @copyright   2008-2011 Julien Issler, 2008 Dominique Papin
 * @link        http://www.jelix.org
 * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -116,7 +116,7 @@ class jFormsBuilderHtml extends jFormsBuilderBase {
             $urlParams = $this->_actionParams;
             $attrs['action'] = $this->_action;
         } else {
-            $url = jUrl::get($this->_action, $this->_actionParams, 2); // retourne le jurl correspondant
+            $url = jUrl::get($this->_action, $this->_actionParams, 2); // returns the corresponding jurl
             $urlParams = $url->params;
             $attrs['action'] = $url->getPath();
         }
@@ -211,7 +211,7 @@ class jFormsBuilderHtml extends jFormsBuilderBase {
         $hint = ($ctrl->hint == ''?'':' title="'.htmlspecialchars($ctrl->hint).'"');
         $id = $this->_name.'_'.$ctrl->ref;
         $idLabel = ' id="'.$id.'_label"';
-        if($ctrl->type == 'output' || $ctrl->type == 'checkboxes' || $ctrl->type == 'radiobuttons' || $ctrl->type == 'date' || $ctrl->type == 'datetime'){
+        if($ctrl->type == 'output' || $ctrl->type == 'checkboxes' || $ctrl->type == 'radiobuttons' || $ctrl->type == 'date' || $ctrl->type == 'datetime' || $ctrl->type == 'choice'){
             echo '<span class="jforms-label',$required,$inError,'"',$idLabel,$hint,'>',htmlspecialchars($ctrl->label),$reqhtml,"</span>\n";
         }else if($ctrl->type != 'submit' && $ctrl->type != 'reset'){
             echo '<label class="jforms-label',$required,$inError,'" for="',$id,'"',$idLabel,$hint,'>',htmlspecialchars($ctrl->label),$reqhtml,"</label>\n";
@@ -256,7 +256,13 @@ class jFormsBuilderHtml extends jFormsBuilderBase {
         return '\''.str_replace(array("'","\n"),array("\\'", "\\n"), $str).'\'';
     }
 
+    /**
+     * @param jFormsControl $ctrl
+     */
     protected function commonJs($ctrl) {
+        if ($ctrl->isReadOnly()) {
+            $this->jsContent .="c.readOnly = true;\n";
+        }
 
         if($ctrl->required){
             $this->jsContent .="c.required = true;\n";
@@ -276,6 +282,7 @@ class jFormsBuilderHtml extends jFormsBuilderBase {
         }
 
         if ($this->isRootControl) $this->jsContent .= $this->jFormsJsVarName.".tForm.addControl(c);\n";
+        
     }
 
     protected function outputInput($ctrl, &$attr) {
@@ -695,7 +702,11 @@ class jFormsBuilderHtml extends jFormsBuilderBase {
     }
 
     protected function outputMenulist($ctrl, &$attr) {
-        unset($attr['readonly']);
+        if (isset($attr['readonly'])) {
+            $attr['disabled'] = 'disabled';
+            unset($attr['readonly']);
+        }
+
         $attr['size'] = '1';
         echo '<select';
         $this->_outputAttr($attr);
@@ -708,7 +719,8 @@ class jFormsBuilderHtml extends jFormsBuilderBase {
                 $value='';
         }
         $value = (string) $value;
-        echo '<option value=""',($value===''?' selected="selected"':''),'>',htmlspecialchars($ctrl->emptyItemLabel),"</option>\n";
+        if ($ctrl->emptyItemLabel !== null || !$ctrl->required)
+            echo '<option value=""',($value===''?' selected="selected"':''),'>',htmlspecialchars($ctrl->emptyItemLabel),"</option>\n";
         $this->fillSelect($ctrl, $value);
         echo '</select>';
     }
@@ -721,7 +733,10 @@ class jFormsBuilderHtml extends jFormsBuilderBase {
     }
 
     protected function outputListbox($ctrl, &$attr) {
-        unset($attr['readonly']);
+        if (isset($attr['readonly'])) {
+            $attr['disabled'] = 'disabled';
+            unset($attr['readonly']);
+        }
         $attr['size'] = $ctrl->size;
 
         if($ctrl->multiple){
@@ -1058,7 +1073,8 @@ class jFormsBuilderHtml extends jFormsBuilderBase {
             }else{
                 $name=$ctrl->ref;
             }
-            echo '<span class="jforms-help" id="'. $this->_name.'_'.$ctrl->ref.'-help"><span>'.htmlspecialchars($ctrl->help).'</span></span>';
+            // additionnal &nbsp, else background icon is not shown in webkit
+            echo '<span class="jforms-help" id="'. $this->_name.'_'.$ctrl->ref.'-help">&nbsp;<span>'.htmlspecialchars($ctrl->help).'</span></span>';
         }
     }
 }

@@ -3,10 +3,11 @@
 * @package    jelix
 * @subpackage db
 * @author     Laurent Jouanneau
-* @contributor Gwendal Jouannic, Thomas, Julien Issler
+* @contributor Gwendal Jouannic, Thomas, Julien Issler, Vincent Herr
 * @copyright  2005-2010 Laurent Jouanneau
 * @copyright  2008 Gwendal Jouannic, 2009 Thomas
 * @copyright  2009 Julien Issler
+* @copyright  2011 Vincent Herr
 * @link      http://www.jelix.org
 * @licence  http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -266,6 +267,22 @@ class jDbPDOConnection extends PDO {
         }
 
         return $this->_tools;
+    }
+
+    /**
+     * Get the ID of the last inserted row
+     * Mssql pdo driver does not support this feature.
+     * so, we use a custom query
+     * @param string $fromSequence the sequence name, if needed
+     * @return string
+     */
+    public function lastInsertId($fromSequence=null) {
+        if ($this->dbms == 'mssql') {
+            $res = $this->query('SELECT SCOPE_IDENTITY()');
+            return (int) $res->fetchColumn();
+        }
+
+        return parent::lastInsertId($fromSequence);
     }
 
 }

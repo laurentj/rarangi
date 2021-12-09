@@ -3,7 +3,8 @@
 * @package     jelix
 * @subpackage  core_request
 * @author      Sylvain de Vathaire
-* @copyright   2008 Sylvain de Vathaire
+* @contributor Laurent Jouanneau
+* @copyright   2008 Sylvain de Vathaire, 2011 Laurent Jouanneau
 * @link        http://www.jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
@@ -19,8 +20,9 @@ class jSoapRequest extends jRequest {
 
     public $defaultResponseType = 'soap';
 
-    public $soapMsg;
+    public $authorizedResponseClass = 'jResponseSoap';
 
+    public $soapMsg;
 
     function __construct(){  }
 
@@ -56,8 +58,35 @@ class jSoapRequest extends jRequest {
 
     protected function _initParams(){}
 
-    public function isAllowedResponse($respclass){
-        return ('jResponseSoap' == $respclass);
+    /**
+    * Gets the value of a request parameter. If not defined, gets its default value.
+    * @param string  $name           the name of the request parameter
+    * @param mixed   $defaultValue   the default returned value if the parameter doesn't exists
+    * @param boolean $useDefaultIfEmpty true: says to return the default value if the parameter value is ""
+    * @return mixed the request parameter value
+    */
+    public function getParam($name, $defaultValue=null, $useDefaultIfEmpty=false){
+        if (!isset($this->params[$name])) {
+            return $defaultValue;
+        }
+        // we cannot use the empty() function because 0 returns true. And maybe we want 0
+        // as a normal value...
+        if (is_scalar($this->params[$name])) {
+            if ($useDefaultIfEmpty && trim($this->params[$name]) == '' ) {
+                return $defaultValue;
+            }
+            else {
+                return $this->params[$name];
+            }
+        }
+        else{
+            // array or object
+            if ( $useDefaultIfEmpty && empty($this->params[$name]) ) {
+                return $defaultValue;
+            }
+            else {
+                return $this->params[$name];
+            }
+        }
     }
-
 }

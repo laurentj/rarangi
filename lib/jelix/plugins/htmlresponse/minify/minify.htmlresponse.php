@@ -15,7 +15,7 @@ class minifyHTMLResponsePlugin implements jIHTMLResponsePlugin {
 
     protected $response = null;
 
-    protected $excludeCss = array();
+    protected $excludeCSS = array();
 
     protected $excludeJS = array();
 
@@ -38,9 +38,14 @@ class minifyHTMLResponsePlugin implements jIHTMLResponsePlugin {
         if (!($this->response instanceof jResponseHtml))
             return;
         global $gJConfig;
+        $basePath = $gJConfig->urlengine['basePath'];
         if ($gJConfig->jResponseHtml['minifyCSS']) {
             if ($gJConfig->jResponseHtml['minifyExcludeCSS']) {
-                $this->excludeCSS = explode( ',', $gJConfig->jResponseHtml['minifyExcludeCSS'] );
+                $this->excludeCSS = preg_split( '/\s*,\s*/', $gJConfig->jResponseHtml['minifyExcludeCSS'] );
+                foreach($this->excludeCSS as $k=>$url) {
+                    if (substr($url,0,1) != '/')
+                        $this->excludeCSS[$k]= $basePath.$url;
+                }
             }
 
             $this->response->setCSSLinks($this->generateMinifyList($this->response->getCSSLinks(), 'excludeCSS'));
@@ -49,7 +54,11 @@ class minifyHTMLResponsePlugin implements jIHTMLResponsePlugin {
 
         if ($gJConfig->jResponseHtml['minifyJS']) {
             if($gJConfig->jResponseHtml['minifyExcludeJS'] ) {
-                $this->excludeJS = explode( ',', $gJConfig->jResponseHtml['minifyExcludeJS'] );
+                $this->excludeJS = preg_split( '/\s*,\s*/', $gJConfig->jResponseHtml['minifyExcludeJS'] );
+                foreach($this->excludeJS as $k=>$url) {
+                    if (substr($url,0,1) != '/')
+                        $this->excludeJS[$k]= $basePath.$url;
+                }
             }
             $this->response->setJSLinks($this->generateMinifyList($this->response->getJSLinks(), 'excludeJS'));
             $this->response->setJSIELinks($this->generateMinifyList($this->response->getJSIELinks(), 'excludeJS'));
@@ -81,30 +90,26 @@ class minifyHTMLResponsePlugin implements jIHTMLResponsePlugin {
         $resultList = array();
 
         foreach ($list as $url=>$parameters) {
+            $pathAbsolute = (strpos($url,'http://') !== false);
+            if( $pathAbsolute || in_array($url, $this->$exclude) ) {
+                // for absolute or exculded url, we put directly in the result
+                // we won't try to minify it or combine it with an other file
+                $resultList[$url] = $parameters;
+                continue;
+            }
             ksort($parameters);
             if ($pendingParameters === false) {
                 $pendingParameters = $parameters;
                 $pendingList[] = $url;
                 continue;
             }
-            $pathNotAbsolute = (strpos($url,'http://') === false);
-            if ($pendingParameters == $parameters
-                && !in_array($url, $this->$exclude)
-                && $pathNotAbsolute) {
+            if ($pendingParameters == $parameters) {
                 $pendingList[] = $url;
             }
             else {
                 $resultList[$this->generateMinifyUrl($pendingList)] = $pendingParameters;
-                if (!$pathNotAbsolute) { // for absolute url, we put directly in the result
-                                        // we won't try to minify it or combine it with an other file
-                    $resultList[$url] = $parameters;
-                    $pendingList = array();
-                    $pendingParameters = false;
-                }
-                else {
-                    $pendingList = array($url);
-                    $pendingParameters = $parameters;
-                }
+                $pendingList = array($url);
+                $pendingParameters = $parameters;
             }
         }
         if ($pendingParameters !== false && count($pendingList)) {

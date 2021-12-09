@@ -13,6 +13,10 @@
 
 if (!defined('T_GOTO'))
     define('T_GOTO',333);
+if (!defined('T_NAMESPACE'))
+    define('T_NAMESPACE',377);
+if (!defined('T_USE'))
+    define('T_USE',340);
 
 
 /**
@@ -52,12 +56,12 @@ class jTplCompiler
      */
     private $_inLocaleOk = array (T_STRING, T_ABSTRACT, T_AS, T_BREAK, T_CASE,
             T_CATCH, T_CLASS, T_CLONE, T_CONST, T_CONTINUE, T_DECLARE, T_DEFAULT,
-            T_DO, T_ECHO, T_ELSE, T_ELSEIF, T_EMPTY, T_EXIT, T_FINAL, T_FOR,
-            T_FOREACH, T_FUNCTION, T_GLOBAL, T_GOTO, T_IF, T_IMPLEMENTS, T_INSTANCEOF,
-            T_INTERFACE, T_LIST, T_LOGICAL_AND, T_LOGICAL_OR, T_LOGICAL_XOR,
-            T_NEW, T_PRIVATE, T_PUBLIC, T_PROTECTED, T_RETURN, T_STATIC,
-            T_SWITCH, T_THROW, T_TRY, T_USE, T_VAR, T_WHILE, T_DNUMBER,
-            T_LNUMBER, T_EVAL);
+            T_DNUMBER, T_DO, T_ECHO, T_ELSE, T_ELSEIF, T_EMPTY, T_ENDIF, T_ENDFOR,
+            T_EVAL, T_EXIT, T_EXTENDS, T_FINAL, T_FOR, T_FOREACH, T_FUNCTION,
+            T_GLOBAL, T_GOTO, T_IF, T_IMPLEMENTS, T_INCLUDE, T_INSTANCEOF, T_INTERFACE,
+            T_LIST, T_LNUMBER, T_LOGICAL_AND, T_LOGICAL_OR, T_LOGICAL_XOR,
+            T_NAMESPACE, T_NEW, T_PRINT, T_PRIVATE, T_PUBLIC, T_PROTECTED, T_REQUIRE,
+            T_RETURN, T_STATIC, T_SWITCH, T_THROW, T_TRY, T_USE, T_VAR, T_WHILE);
 
     /**
      * tokens allowed in output for variables
@@ -153,7 +157,6 @@ class jTplCompiler
         $this->removeASPtags = (ini_get("asp_tags") == "1");
 
     }
-
 
     /**
      * Launch the compilation of a template
@@ -498,7 +501,7 @@ class jTplCompiler
         $bracketcount = $sqbracketcount = 0;
         $firstok = array_shift($tokens);
 
-        // il y a un bug, parfois le premier token n'est pas T_OPEN_TAG...
+        // there is a bug, sometimes the first token isn't T_OPEN_TAG...
         if ($firstok == '<' && $tokens[0] == '?' && is_array($tokens[1])
             && $tokens[1][0] == T_STRING && $tokens[1][1] == 'php') {
             array_shift($tokens);
@@ -619,7 +622,7 @@ class jTplCompiler
     }
 
     /**
-     * try to find a plugin
+     * Try to find a plugin
      * @param string $type type of plugin (function, modifier...)
      * @param string $name the plugin name
      * @return array|boolean an array containing the path of the plugin

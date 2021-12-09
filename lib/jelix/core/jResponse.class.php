@@ -3,9 +3,9 @@
 * @package     jelix
 * @subpackage  core
 * @author      Laurent Jouanneau
-* @contributor Julien Issler
+* @contributor Julien Issler, Brice Tence
 * @copyright   2005-2010 Laurent Jouanneau
-* @copyright   2010 Julien Issler
+* @copyright   2010 Julien Issler, 2011 Brice Tence
 * @link        http://www.jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
@@ -42,10 +42,18 @@ abstract class jResponse {
      */
     protected $_httpStatusMsg ='OK';
 
+    public $httpVersion = '1.1';
+    public $forcedHttpVersion = false;
+
     /**
     * constructor
     */
     function __construct() {
+
+        if( $GLOBALS['gJConfig']->httpVersion != "" ) {
+            $this->httpVersion = $GLOBALS['gJConfig']->httpVersion;
+            $this->forcedHttpVersion = true;
+        }
     }
 
     /**
@@ -71,7 +79,7 @@ abstract class jResponse {
         }
         else {
             // output text response
-            header("HTTP/1.1 500 Internal jelix error");
+            header("HTTP/{$this->httpVersion} 500 Internal jelix error");
             header('Content-type: text/plain');
             echo $GLOBALS['gJCoord']->getGenericErrorMessage();
         }
@@ -94,11 +102,24 @@ abstract class jResponse {
      * will be send during the output of the response
      * @param string $htype the header type ("Content-Type", "Date-modified"...)
      * @param string $hcontent value of the header type
-     * @param boolean $overwrite false if the value should be set only if it doesn't still exist
+     * @param integer $overwrite false or 0 if the value should be set only if it doesn't still exist
+     *                           -1 to add the header with the existing values
+     *                           true or 1 to replace the existing header
      */
     public function addHttpHeader($htype, $hcontent, $overwrite=true){
-        if(!$overwrite && isset($this->_httpHeaders[$htype]))
-            return;
+        if (isset($this->_httpHeaders[$htype])) {
+            $val = $this->_httpHeaders[$htype];
+            if ($overwrite === -1) {
+                if (!is_array($val))
+                    $this->_httpHeaders[$htype] = array($val, $hcontent);
+                else
+                    $this->_httpHeaders[$htype][] = $hcontent;
+                return;
+            }
+            else if (!$overwrite) {
+                return;
+            }
+        }
         $this->_httpHeaders[$htype]=$hcontent;
     }
 
@@ -122,9 +143,19 @@ abstract class jResponse {
      * send http headers
      */
     protected function sendHttpHeaders(){
-        header((isset($_SERVER['SERVER_PROTOCOL'])?$_SERVER['SERVER_PROTOCOL']:'HTTP/1.1').' '.$this->_httpStatusCode.' '.$this->_httpStatusMsg);
-        foreach($this->_httpHeaders as $ht=>$hc)
-            header($ht.': '.$hc);
+        header( ( isset($_SERVER['SERVER_PROTOCOL']) && !$this->forcedHttpVersion ?
+                        $_SERVER['SERVER_PROTOCOL'] :
+                        'HTTP/'.$this->httpVersion ) .
+                ' '.$this->_httpStatusCode.' '.$this->_httpStatusMsg );
+        foreach($this->_httpHeaders as $ht=>$hc) {
+            if (is_array($hc)) {
+                foreach ($hc as $val) {
+                    header($ht.': '.$val);
+                }
+            }
+            else
+                header($ht.': '.$hc);
+        }
         $this->_httpHeadersSent=true;
         /*
         header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");

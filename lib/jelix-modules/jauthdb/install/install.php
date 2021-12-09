@@ -46,16 +46,16 @@ class jauthdbModuleInstaller extends jInstallerModule {
 
                 $this->execSQLScript('install_jauth.schema');
                 if ($this->getParameter('defaultuser')) {
-                    require_once(JELIX_LIB_PATH.'auth/jIAuthDriver.iface.php');
-                    require_once(JELIX_LIB_PATH.'auth/jAuthDriverBase.class.php');
+                    require_once(JELIX_LIB_PATH.'auth/jAuth.class.php');
                     require_once(JELIX_LIB_PATH.'plugins/auth/db/db.auth.php');
-                    $confIni = parse_ini_file(jApp::configPath($authconfig), true);
-                    $driver = new dbAuthDriver($confIni['Db']);
-                    $password = $driver->cryptPassword('admin');
 
+                    $confIni = parse_ini_file(jApp::configPath($authconfig), true);
+                    $authConfig = jAuth::loadConfig($confIni);
+                    $driver = new dbAuthDriver($authConfig['Db']);
+                    $passwordHash = $driver->cryptPassword('admin');
                     $cn = $this->dbConnection();
                     $cn->exec("INSERT INTO ".$cn->prefixTable('jlx_user')." (usr_login, usr_password, usr_email ) VALUES
-                                ('admin', ".$cn->quote($password)." , 'admin@localhost.localdomain')");
+                                ('admin', ".$cn->quote($passwordHash)." , 'admin@localhost.localdomain')");
                 }
             }
         }

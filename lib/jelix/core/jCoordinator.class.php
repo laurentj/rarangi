@@ -4,7 +4,7 @@
 * @subpackage   core
 * @author       Laurent Jouanneau
 * @contributor  Thibault Piront (nuKs), Julien Issler, Dominique Papin
-* @copyright    2005-2011 laurent Jouanneau
+* @copyright    2005-2013 laurent Jouanneau
 * @copyright    2007 Thibault Piront
 * @copyright    2008 Julien Issler
 * @copyright    2008-2010 Dominique Papin
@@ -72,12 +72,12 @@ class jCoordinator {
     protected $errorMessage = null;
 
     /**
-     * @param  string $configFile name of the ini file to configure the framework
+     * @param  string|object $config filename of the ini file to configure the framework, or the config object itself
      * @param  boolean $enableErrorHandler enable the error handler of jelix.
      *                 keep it to true, unless you have something to debug
      *                 and really have to use the default handler or an other handler
      */
-    function __construct ($configFile, $enableErrorHandler=true) {
+    function __construct ($config, $enableErrorHandler=true) {
         global $gJCoord, $gJConfig;
 
         // temporary init. Remove this line when JELIX_APP_* support will be removed completely from Jelix
@@ -91,7 +91,10 @@ class jCoordinator {
         }
 
         // load configuration data
-        $gJConfig = jConfig::load($configFile);
+        if (is_string($config))
+            $gJConfig = jConfig::load($config);
+        else
+            $gJConfig = $config;
 
         date_default_timezone_set($gJConfig->timeZone);
 
@@ -109,8 +112,8 @@ class jCoordinator {
             // so we don't have to check if the value $conf is empty or not
             if ($conf == '1') {
                 $confname = 'coordplugin_'.$name;
-                if (isset($gJConfig->confname))
-                    $conf = $gJConfig->confname;
+                if (isset($gJConfig->$confname))
+                    $conf = $gJConfig->$confname;
                 else
                     $conf = array();
             }
@@ -144,19 +147,7 @@ class jCoordinator {
         $this->request->init();
         jSession::start();
 
-        $this->moduleName = $request->getParam('module');
-        $this->actionName = $request->getParam('action');
-
-        if(empty($this->moduleName)){
-            $this->moduleName = $gJConfig->startModule;
-        }
-        if(empty($this->actionName)){
-            if($this->moduleName == $gJConfig->startModule)
-                $this->actionName = $gJConfig->startAction;
-            else {
-                $this->actionName = 'default:index';
-            }
-        }
+        list($this->moduleName, $this->actionName) = $request->getModuleAction();
 
         jContext::push ($this->moduleName);
         try{
@@ -203,7 +194,6 @@ class jCoordinator {
             }
         }
         $this->response = $ctrl->{$this->action->method}();
-
         if($this->response == null){
             throw new jException('jelix~errors.response.missing',$this->action->toString());
         }
@@ -249,29 +239,20 @@ class jCoordinator {
 
     /**
      * instancy a response object corresponding to the default response type
-     * of the current resquest
+     * of the current resquest.
+     * Deprecated. use $request->getResponse() instead.
      * @param boolean $originalResponse TRUE to get the original, non overloaded response
-     * @return mixed  error string or false
+     * @deprecated since 1.3
      */
     public function initDefaultResponseOfRequest($originalResponse = false){
-        if($originalResponse)
-            $responses = &$GLOBALS['gJConfig']->_coreResponses;
-        else
-            $responses = &$GLOBALS['gJConfig']->responses;
-
-        $type = $this->request->defaultResponseType;
-
-        if(!isset($responses[$type]))
-            throw new jException('jelix~errors.default.response.type.unknown',array($this->moduleName.'~'.$this->actionName,$type));
-
-        try{
-            $respclass = $responses[$type];
-            require_once ($responses[$type.'.path']);
-            $this->response = new $respclass();
-            return false;
+        try {
+            $this->request->getResponse('', $originalResponse);
         }
-        catch(Exception $e){
-            return $this->initDefaultResponseOfRequest(true);
+        catch (Exception $e) {
+            if (!$originalResponse)
+                $this->initDefaultResponseOfRequest(true);
+            else
+                throw $e;
         }
     }
 
@@ -301,36 +282,9 @@ class jCoordinator {
 
             $this->errorMessage = $errorLog;
 
-            while (ob_get_level()) {
-                ob_end_clean();
-            }
+            while (ob_get_level() && @ob_end_clean());
 
-            // fatal error, we should output errors
-            if ($this->request->isAjax()) {
-                if ($this->response)
-                    $resp = $this->response;
-                else {
-                    require_once(JELIX_LIB_CORE_PATH.'response/jResponseText.class.php');
-                    $resp = new jResponseText();
-                }
-            }
-            else if (isset($_SERVER['HTTP_ACCEPT']) && strstr($_SERVER['HTTP_ACCEPT'],'text/html')) {
-                require_once(JELIX_LIB_CORE_PATH.'response/jResponseBasicHtml.class.php');
-                $resp = $this->response = new jResponseBasicHtml();
-            }
-            elseif($this->response) {
-                $resp = $this->response;
-            }
-            else {
-                try {
-                    $this->initDefaultResponseOfRequest(true);
-                }
-                catch(Exception $e) {
-                    require_once(JELIX_LIB_CORE_PATH.'response/jResponseBasicHtml.class.php');
-                    $this->response = new jResponseBasicHtml();
-                }
-                $resp = $this->response;
-            }
+            $resp = $this->request->getErrorResponse($this->response);
             $resp->outputErrors();
             jSession::end();
         }
@@ -340,12 +294,14 @@ class jCoordinator {
             return;
         }
         else {
-            // fatal error appeared during init, let's display a page
-            while (ob_get_level()) {
-                ob_end_clean();
-            }
+            // fatal error appeared during init, let's display an HTML page
+            // since we don't know the request, we cannot return a response
+            // corresponding to the expected protocol
+
+            while (ob_get_level() && @ob_end_clean());
+
             // log into file
-            @error_log($errorLog->getFormatedMessage(),3, jApp::logPath('errors.log'));
+            @error_log($errorLog->getFormatedMessage()."\n",3, jApp::logPath('errors.log'));
             // if accept text/html
             if (isset($_SERVER['HTTP_ACCEPT']) && strstr($_SERVER['HTTP_ACCEPT'],'text/html')) {
                 if (file_exists(jApp::appPath('responses/error.en_US.php')))

@@ -15,6 +15,7 @@
 /**
  *
  */
+require(JELIX_LIB_PATH.'dao/jDaoXmlException.class.php');
 require(JELIX_LIB_PATH.'dao/jDaoParser.class.php');
 require(JELIX_LIB_PATH.'dao/jDaoProperty.class.php');
 require(JELIX_LIB_PATH.'dao/jDaoMethod.class.php');
@@ -35,7 +36,7 @@ class jDaoCompiler  implements jISimpleCompiler {
 
         $daoPath = $selector->getPath();
 
-        // chargement du fichier XML
+        // load the XML file
         $doc = new DOMDocument();
 
         if(!$doc->load($daoPath)){
@@ -58,33 +59,9 @@ class jDaoCompiler  implements jISimpleCompiler {
         $class = $selector->driver.'DaoBuilder';
         $generator = new $class ($selector, $tools, $parser);
 
-        // génération des classes PHP correspondant à la définition de la DAO
+        // generation of PHP classes corresponding to the DAO definition
         $compiled = '<?php '.$generator->buildClasses ()."\n?>";
         jFile::write ($selector->getCompiledFilePath(), $compiled);
         return true;
-    }
-}
-
-/**
- * Exception for Dao compiler
- * @package  jelix
- * @subpackage dao
- */
-class jDaoXmlException extends jException {
-
-    /**
-     * @param jSelectorDao $selector
-     * @param string $localekey a locale key
-     * @param array $localeParams parameters for the message (for sprintf)
-     */
-    public function __construct($selector, $localekey, $localeParams=array()) {
-        $localekey= 'jelix~daoxml.'.$localekey;
-        $arg=array($selector->toString(), $selector->getPath());
-        if(is_array($localeParams)){
-            $arg=array_merge($arg, $localeParams);
-        }else{
-            $arg[]=$localeParams;
-        }
-        parent::__construct($localekey, $arg);
     }
 }

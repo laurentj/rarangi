@@ -11,7 +11,7 @@
 /**
 *
 * @package    jelix
-* @subpackage utils
+* @subpackage core
 */
 class jApp {
 
@@ -79,6 +79,7 @@ class jApp {
     public static function initLegacy() {
         if (self::$_isInit) {
             if (!defined('JELIX_APP_PATH')) {
+                define ('JELIX_APP_PATH',         self::$appPath);
                 define ('JELIX_APP_TEMP_PATH',    self::tempPath());
                 define ('JELIX_APP_VAR_PATH',     self::$varPath);
                 define ('JELIX_APP_LOG_PATH',     self::$logPath);

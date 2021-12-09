@@ -63,8 +63,9 @@ engine        = basic_significant
 ; because the jelix-www directory is outside the yourapp/www/ directory, you should create a link to
 ; jelix-www, or copy its content in yourapp/www/ (with a name like 'jelix' for example)
 ; so you should indicate the relative path of this link/directory to the basePath, or an absolute path.
+; if you change it, you probably want to change path in datepickers, wikieditors and htmleditors sections
 jelixWWWPath = "jelix/"
-
+jqueryPath="jelix/jquery/"
 
 ; enable the parsing of the url. Set it to off if the url is already parsed by another program
 ; (like mod_rewrite in apache), if the rewrite of the url corresponds to a simple url, and if
@@ -87,9 +88,8 @@ defaultEntrypoint= index
 
 entrypointExtension= .php
 
-; leave empty to have jelix error messages
-notfoundAct =
-;notfoundAct = "jelix~error:notfound"
+; action to show the 'page not found' error
+notfoundAct = "jelix~error:notfound"
 
 ; list of actions which require https protocol for the simple url engine
 ; syntax of the list is the same as explained in the simple_urlengine_entrypoints
@@ -116,6 +116,33 @@ index = on
 xmlrpc = on
 jsonrpc = on
 rdf = on
+
+
+[jResponseHtml]
+; list of active plugins for jResponseHtml
+; remove the debugbar plugin on production server, and in this case don't forget
+; to remove the memory logger from the logger section
+plugins = debugbar
+
+
+[logger]
+; list of loggers for each categories of log messages
+; available loggers : file, syslog, firebug, mail, memory. see plugins for others
+
+; _all category is the category containing loggers executed for any categories
+; /!\ remove the memory logger if you don't use the debugbar
+_all = memory
+
+; default category is the category used when a given category is not declared here
+default=file
+error= file
+warning=file
+notice=file
+deprecated=
+strict=
+debug=
+sql=
+soap=
 
 [fileLogger]
 default=messages.log

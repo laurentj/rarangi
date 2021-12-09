@@ -183,7 +183,7 @@ class jResponseHtml extends jResponseBasicHtml {
         // to add things in the <head>
         if ($this->bodyTpl != '') {
             $this->body->meta($this->bodyTpl);
-            $content = $this->body->fetch($this->bodyTpl,'html');
+            $content = $this->body->fetch($this->bodyTpl, 'html', true, false);
         }
         else $content = '';
 
@@ -403,6 +403,7 @@ class jResponseHtml extends jResponseBasicHtml {
 
         echo '<script type="text/javascript" src="',htmlspecialchars($fileUrl),'" ',$params,'></script>',"\n";
     }
+
 
     protected function outputCssLinkTag( $fileUrl, $cssParams ) {
         $params = '';   

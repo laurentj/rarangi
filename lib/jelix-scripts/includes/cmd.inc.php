@@ -11,13 +11,13 @@
 error_reporting(E_ALL);
 define ('JELIX_SCRIPTS_PATH', dirname(__FILE__).'/../');
 
-if (PHP_SAPI != 'cli') {
-    echo "Wrong way";
+if(!class_exists('jCoordinator', false)) { // for old application.init.php which doesn't include init.php
+    echo "Error: your application.init.php should include the lib/jelix/init.php";
     exit(1);
 }
 
-if(!class_exists('jCoordinator', false)) { // for old application.init.php which doesn't include init.php
-    echo "Error: your application.init.php should include the lib/jelix/init.php";
+if (!jServer::isCLI()) {
+    echo "Error: you're not allowed to execute this script outside a command line shell.\n";
     exit(1);
 }
 

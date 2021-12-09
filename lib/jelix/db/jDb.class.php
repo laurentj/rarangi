@@ -28,6 +28,7 @@ class jSQLLogMessage extends jLogMessage {
     protected $startTime = 0;
     protected $endTime = 0;
     protected $trace = array();
+    public $originalQuery = '';
 
     public function __construct($message) {
         $this->category = 'sql';
@@ -36,6 +37,11 @@ class jSQLLogMessage extends jLogMessage {
 
         $this->trace = debug_backtrace();
         array_shift($this->trace); // remove the current __construct call
+    }
+
+    public function setRealQuery($sql) {
+        $this->originalQuery = $this->message;
+        $this->message = $sql;
     }
 
     public function endQuery() {
@@ -52,8 +58,26 @@ class jSQLLogMessage extends jLogMessage {
 
     public function getDao() {
         foreach ($this->trace as $t) {
-            if (isset($t['file']) && preg_match('/compiled\/daos\/.+\/(.+)~(.+)~.+\.php$/', $t['file'], $m)) {
-                return $m[1].'~'.$m[2];
+            if (isset($t['class'])) {
+                $dao = '';
+                $class = $t['class'];
+                if ($class == 'jDaoFactoryBase') {
+                    if (isset($t['object'])) {
+                        $class = get_class($t['object']);
+                    }
+                    else {
+                        $class = 'jDaoFactoryBase';
+                        $dao = 'unknow dao, jDaoFactoryBase';
+                    }
+                }
+                if(preg_match('/^cDao_(.+)_Jx_(.+)_Jx_(.+)$/', $class, $m)) {
+                    $dao = $m[1].'~'.$m[2];
+                }
+                if ($dao && isset($t['function'])) {
+                    $dao.= '::'.$t['function'].'()';
+                }
+                if($dao)
+                    return $dao;
             }
         }
         return '';
@@ -64,6 +88,8 @@ class jSQLLogMessage extends jLogMessage {
         $dao = $this->getDao();
         if ($dao)
             $message.=', from dao:'.$dao."\n";
+        if ($this->message != $this->originalQuery)
+            $message.= 'Original query: '.$this->originalQuery."\n";
 
         $traceLog="";
         foreach($this->trace as $k=>$t){
@@ -188,5 +214,30 @@ class jDb {
      */
     public static function clearProfiles() {
         jProfiles::clear();
+    }
+
+    /**
+     * perform a convertion float to str. It takes care about the decimal separator
+     * which should be a '.' for SQL. Because when doing a native convertion float->str,
+     * PHP uses the local decimal separator, and so, we don't want that.
+     * @since 1.1.11
+     */
+    public static function floatToStr($value) {
+        if (is_float($value)) // this is a float
+            return rtrim(sprintf('%.20F', $value), '0'); // %F to not format with the local decimal separator
+        else if (is_integer($value))
+            return sprintf('%d', $value);
+        // this is probably a string, so we expect that it contains a numerical value
+        // is_numeric is true if the separator is ok for SQL
+        // (is_numeric doesn't accept thousand separators nor other character than '.' as decimal separator)
+        else if (is_numeric($value))
+            return $value;
+
+        // we probably have a malformed float number here
+        // if so, floatval will ignore all character after an invalid character (a ',' for example)
+        // no warning, no exception here, to keep the same behavior of previous Jelix version
+        // in order to no break stable applications.
+        // FIXME: do a warning in next versions (> 1.2)
+        return (string)(floatval($value));
     }
 }

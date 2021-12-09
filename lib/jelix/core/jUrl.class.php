@@ -6,7 +6,7 @@
 * @contributor Thibault Piront (nuKs)
 * @contributor Loic Mathaud
 * @contributor Hadrien Lanneau
-* @copyright   2005-2011 Laurent Jouanneau
+* @copyright   2005-2013 Laurent Jouanneau
 * @copyright   2007 Thibault Piront
 * @copyright   2006 Loic Mathaud, 2010 Hadrien Lanneau
 * Some parts of this file are took from an experimental branch of the Copix project (CopixUrl.class.php, Copix 2.3dev20050901, http://www.copix.org),
@@ -108,21 +108,22 @@ class jUrl extends jUrlBase {
     //============================== static helper methods
 
     /**
-    * get current Url
+    * returns the current Url.
+    *
+    * The URL is the URL for the frontend HTTP server, if your app is behind a proxy.
     * @param boolean $forxml if true, escape some characters to include the url into an html/xml document
     * @return string the url
     */
-    static function getCurrentUrl ($forxml = false) {
-        if(isset($_SERVER["REQUEST_URI"])){
-           return $_SERVER["REQUEST_URI"];
-        }
-        static $url = false;
-        if ($url === false){
-            $url = 'http://'.$_SERVER['HTTP_HOST'].$GLOBALS['gJCoord']->request->urlScript.$GLOBALS['gJCoord']->request->urlPathInfo.'?';
-            $q = http_build_query($_GET, '', ($forxml?'&amp;':'&'));
-            if(strpos($q, '%3A')!==false)
-                $q = str_replace( '%3A', ':', $q);
-            $url .=$q;
+    static function getCurrentUrl ($forxml = false, $full = false) {
+        // we don't take $_SERVER["REQUEST_URI"] because it doesn't correspond to the real URI
+        // if the app is behind a proxy with a different basePath than the frontend
+        $req = $GLOBALS['gJCoord']->request;
+        $sel = $req->module.'~'.$req->action;
+        if ($full) {
+            $url = self::getFull($sel, $req->params, ($forxml?self::XMLSTRING:self::STRING));
+         }
+        else {
+            $url = self::get($sel, $req->params, ($forxml?self::XMLSTRING:self::STRING));
         }
         return $url;
     }
@@ -181,26 +182,30 @@ class jUrl extends jUrlBase {
     * @return string the url string
     */
     static function getFull ($actSel, $params = array (), $what=0, $domainName = null) {
-        global $gJConfig;
+        global $gJCoord;
 
-        if ($domainName) {
-            $domain = $domainName;
+        $domain = '';
+
+        $url = self::get($actSel, $params, ($what != self::XMLSTRING?self::STRING:$what));
+        if (!preg_match('/^http/', $url)) {
+            if ($domainName) {
+                $domain = $domainName;
+                if (!preg_match('/^http/', $domainName))
+                    $domain = $gJCoord->request->getProtocol() . $domain;
+            }
+            else {
+                $domain = $gJCoord->request->getServerURI();
+            }
+
+            if ($domain == '') {
+                throw new jException('jelix~errors.urls.domain.void');
+            }
         }
-        elseif ($gJConfig->domainName != '') {
-            $domain = $gJConfig->domainName;
-        }
-        elseif (isset($_SERVER['HTTP_HOST'])) {
-            $domain = $_SERVER['HTTP_HOST'];
-        }
-        else {
-            throw new jException('jelix~errors.urls.domain.void');
+        else if ($domainName != '') {
+            $url = str_replace($gJCoord->request->getDomainName(), $domainName, $url);
         }
 
-        if (!preg_match('/^http/', $domain)) {
-            $domain = $GLOBALS['gJCoord']->request->getProtocol().$domain;
-        }
-
-        return $domain . self::get($actSel, $params, ($what != self::XMLSTRING?self::STRING:$what));
+        return $domain.$url;
     }
 
     /**

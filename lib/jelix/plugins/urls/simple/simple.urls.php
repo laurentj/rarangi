@@ -4,7 +4,7 @@
 * @subpackage  urls_engine
 * @author      Laurent Jouanneau
 * @contributor GeekBay
-* @copyright   2005-2010 Laurent Jouanneau, 2010 Geekbay
+* @copyright   2005-2011 Laurent Jouanneau, 2010 Geekbay
 * @link        http://www.jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
@@ -23,7 +23,7 @@ class simpleUrlEngine implements jIUrlEngine {
 
     /**
      * Parse a url from the request
-     * @param jRequest $request           
+     * @param jRequest $request
      * @param array  $params            url parameters
      * @return jUrlAction
      * @since 1.1
@@ -62,10 +62,10 @@ class simpleUrlEngine implements jIUrlEngine {
         }
 
         $url = new jUrl($scriptName, $urlact->params, '');
-        // pour certains types de requete, les paramètres ne sont pas dans l'url
-        // donc on les supprime
-        // c'est un peu crade de faire ça en dur ici, mais ce serait lourdingue
-        // de charger la classe request pour savoir si on peut supprimer ou pas
+        // for some request types, parameters aren't in the url
+        // so we remove them
+        // it's a bit dirty to do that hardcoded here, but it would be a pain
+        // to load the request class to check whether we can remove or not
         if(in_array($urlact->requestType ,array('xmlrpc','jsonrpc','soap')))
           $url->clearParam();
 
@@ -73,7 +73,7 @@ class simpleUrlEngine implements jIUrlEngine {
     }
 
     /**
-     * read the configuration and return an url part according of the
+     * Read the configuration and return an url part according of the
      * of the https configuration
      * @param string $requestType
      * @param string $module
@@ -101,14 +101,14 @@ class simpleUrlEngine implements jIUrlEngine {
         }
 
         if ($usehttps)
-          return 'https://'.$_SERVER['HTTP_HOST'].$gJConfig->urlengine['basePath'];
+          return $GLOBALS['gJCoord']->request->getServerURI(true).$gJConfig->urlengine['basePath'];
         else
           return $gJConfig->urlengine['basePath'];
     }
 
 
     /**
-     * read the configuration and gets the script path corresponding to the given parameters
+     * Read the configuration and gets the script path corresponding to the given parameters
      * @param string $requestType
      * @param string $module
      * @param string  $action
@@ -131,7 +131,7 @@ class simpleUrlEngine implements jIUrlEngine {
 
             if ($action && isset($this->urlspe[$s1 = $module.'~'.$action.'@'.$requestType])){
                 $script = $this->urlspe[$s1];
-            }elseif($action && isset($this->urlspe[$s1 = $module.'~'.substr($action,0,strrpos($action,":")).':*@'.$requestType])){ 
+            }elseif($action && isset($this->urlspe[$s1 = $module.'~'.substr($action,0,strrpos($action,":")).':*@'.$requestType])){
                 $script = $this->urlspe[$s1];
             }elseif($module &&  isset($this->urlspe[$s2 = $module.'~*@'.$requestType])){
                 $script = $this->urlspe[$s2];
@@ -142,4 +142,3 @@ class simpleUrlEngine implements jIUrlEngine {
         return $script;
     }
 }
-

@@ -56,11 +56,11 @@ class jDaoMethod {
         if (isset ($method->parameter)){
             foreach ($method->parameter as $param){
                 $attr = $param->attributes();
-                if (strpos($attr['name'],'$') !== false) {
-                    throw new jDaoXmlException($this->_parser->selector,'method.parameter.invalidname',array($method->name,$attr['name']));
-                }
                 if (!isset ($attr['name'])){
                     throw new jDaoXmlException ($this->_parser->selector, 'method.parameter.unknowname', array($this->name));
+                }
+                if (!preg_match('/[a-zA-Z_][a-zA-Z0-9_]*/', (string)$attr['name'])) {
+                    throw new jDaoXmlException($this->_parser->selector,'method.parameter.invalidname',array($method->name,$attr['name']));
                 }
                 $this->_parameters[]=(string)$attr['name'];
                 if (isset ($attr['default'])){
@@ -291,12 +291,12 @@ class jDaoMethod {
         if ($attr['property'] != ''){
             $prop =$this->_parser->getProperties();
             if(isset($prop[$attr['property']])){
-                $this->_conditions->addItemOrder($attr['property'], $way);
+                $this->_conditions->addItemOrder($attr['property'], $way, true);
             }elseif(substr ($attr['property'],0,1) == '$'){
                 if(!in_array (substr ($attr['property'],1),$this->_parameters)){
                     throw new jDaoXmlException ($this->_parser->selector, 'method.orderitem.parameter.unknown', array($this->name, $way));
                 }
-                $this->_conditions->addItemOrder($attr['property'], $way);
+                $this->_conditions->addItemOrder($attr['property'], $way, true);
             }else{
                 throw new jDaoXmlException ($this->_parser->selector, 'method.orderitem.bad', array($attr['property'], $this->name));
             }

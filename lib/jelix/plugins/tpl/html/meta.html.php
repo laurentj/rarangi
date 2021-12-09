@@ -16,8 +16,8 @@
  * @see jResponseHtml
  * @param jTpl $tpl template engine
  * @param string $method indicates what you want to specify
- *       (possible values : js, css, jsie, cssie, cssie7, cssltie7, csstheme,
- *       cssthemeie, cssthemeie7, cssthemeltie7, bodyattr, keywords,
+ *       (possible values : js, css, jsie, jsie7, jsltie7, cssie, cssie7, cssltie7,
+ *       csstheme, cssthemeie, cssthemeie7, cssthemeltie7, bodyattr, keywords,
  *       description, others)
  * @param mixed $param parameter (a css style sheet for "css" for example)
  * @params array $params additionnal parameters (a media attribute for stylesheet for example)
@@ -41,6 +41,12 @@ function jtpl_meta_html_html($tpl, $method, $param=null, $params=array())
             break;
         case 'jsie':
             $gJCoord->response->addJSLink($param,$params,true);
+            break;
+        case 'jsie7':
+            $gJCoord->response->addJSLink($param,$params,'IE 7');
+            break;
+        case 'jsltie7':
+            $gJCoord->response->addJSLink($param,$params,'lt IE 7');
             break;
         case 'cssie':
             $gJCoord->response->addCSSLink($param,$params,true);
@@ -91,6 +97,7 @@ function jtpl_meta_html_html($tpl, $method, $param=null, $params=array())
             break;
         case 'generator':
             $gJCoord->response->addMetaGenerator($param);
+            break;
         case 'jquery':
             $gJCoord->response->addJSLink($gJConfig->urlengine['jqueryPath'].'jquery.js');
             break;
@@ -106,6 +113,7 @@ function jtpl_meta_html_html($tpl, $method, $param=null, $params=array())
                 case 'effects':
                     $gJCoord->response->addJSLink($base.'jquery.js');
                     $gJCoord->response->addJSLink($base.'ui/jquery.ui.core.min.js');
+                    $gJCoord->response->addJSLink($base.'ui/jquery.effects.core.min.js');
                     foreach($params as $f)
                         $gJCoord->response->addJSLink($base.'ui/jquery.effects.'.$f.'.min.js');
                     break;

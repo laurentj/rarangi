@@ -13,9 +13,11 @@
 
 error_reporting(E_ALL);
 define ('JELIX_SCRIPTS_PATH', dirname(__FILE__).'/../');
+require (JELIX_SCRIPTS_PATH.'../jelix/init.php');
+require (JELIX_SCRIPTS_PATH.'includes/JelixScript.class.php');
 
-if (PHP_SAPI != 'cli') {
-    echo "Wrong way";
+if (!jServer::isCLI()) {
+    echo "Error: you're not allowed to execute this script outside a command line shell.\n";
     exit(1);
 }
 
@@ -25,13 +27,19 @@ $argv = $_SERVER['argv'];
 $scriptName = array_shift($argv); // shift the script name
 
 // ------------ load the config and retrieve the command object
-require (JELIX_SCRIPTS_PATH.'../jelix/init.php');
-require (JELIX_SCRIPTS_PATH.'includes/JelixScript.class.php');
 
 set_error_handler('JelixScriptsErrorHandler');
 set_exception_handler('JelixScriptsExceptionHandler');
 
-$command = JelixScript::getCommand($commandName, null, true);
+if (count($argv) > 0 && ($argv[0] == '-h' || $argv[0] == 'help')) {
+    array_shift($argv);
+    array_unshift($argv, $commandName);
+    array_unshift($argv, "-standalone");
+    $commandName = 'help';
+    $command = JelixScript::getCommand($commandName, JelixScript::loadConfig(false), false);
+}
+else
+    $command = JelixScript::getCommand($commandName, null, true);
 
 if (jApp::isInit()) {
     echo "Error: shouldn't run within an application\n";

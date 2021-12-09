@@ -4,7 +4,7 @@
 * @subpackage utils
 * @author     Gérald Croes, Laurent Jouanneau
 * @contributor Laurent Jouanneau, Laurent Raufaste, Pulsation
-* @copyright  2001-2005 CopixTeam, 2005-2009 Laurent Jouanneau, 2008 Laurent Raufaste, 2008 Pulsation
+* @copyright  2001-2005 CopixTeam, 2005-2011 Laurent Jouanneau, 2008 Laurent Raufaste, 2008 Pulsation
 *
 * This class was get originally from the Copix project (CopixZone, Copix 2.3dev20050901, http://www.copix.org)
 * Some lines of code are copyrighted 2001-2005 CopixTeam (LGPL licence).
@@ -61,7 +61,7 @@ class jZone {
      * @var string
      * @see jTpl::fetch
      */
-    protected $_tplOuputType='';
+    protected $_tplOutputType='';
 
     /**
      * the jtpl object created automatically by jZone if you set up _tplname
@@ -140,7 +140,7 @@ class jZone {
     public function param ($paramName, $defaultValue=null){
         return array_key_exists ($paramName, $this->_params) ? $this->_params[$paramName] : $defaultValue;
     }
-    
+
     /**
      * Same as param(), included for compatibility with older versions
      * @param string $paramName the parameter name
@@ -159,12 +159,15 @@ class jZone {
     */
     public function getContent (){
     	global $gJConfig;
-    	
+
         if ($this->_useCache && !$gJConfig->zones['disableCache']){
             $f = $this->_getCacheFile();
             if(file_exists($f)){
                 if($this->_cacheTimeout > 0){
-                    clearstatcache();
+                    if (version_compare(PHP_VERSION, '5.3.0') >= 0)
+                        clearstatcache(false, $f);
+                    else
+                        clearstatcache();
                     if(time() - filemtime($f) > $this->_cacheTimeout){
                         // timeout : regenerate the cache
                         unlink($f);
@@ -179,7 +182,7 @@ class jZone {
                 if($this->_tplname != ''){
                     $this->_tpl = new jTpl();
                     $this->_tpl->assign($this->_params);
-                    $this->_tpl->meta($this->_tplname, $this->_tplOuputType);
+                    $this->_tpl->meta($this->_tplname, $this->_tplOutputType);
                 }
                 $content = file_get_contents($f);
             }else{
@@ -220,7 +223,7 @@ class jZone {
         $this->_tpl->assign($this->_params);
         $this->_prepareTpl();
         if($this->_tplname == '') return '';
-        return $this->_tpl->fetch($this->_tplname, $this->_tplOuputType);
+        return $this->_tpl->fetch($this->_tplname, $this->_tplOutputType);
     }
 
     /**
@@ -265,5 +268,24 @@ class jZone {
         jContext::pop ();
         return $toReturn;
     }
-}
 
+    /**
+     * @deprecated
+     */
+    function __set ($name, $value) {
+        if ($name == '_tplOuputType') {
+            trigger_error('jZone::_tplOuputType is deprecated (mispelled), use jZone::_tplOutputType instead',E_USER_NOTICE);
+            $this->_tplOutputType = $value;
+        }
+    }
+
+    /**
+     * @deprecated
+     */
+    function __get ($name) {
+        if ($name == '_tplOuputType') {
+            trigger_error('jZone::_tplOuputType is deprecated (mispelled), use jZone::_tplOutputType instead',E_USER_NOTICE);
+            return $this->_tplOutputType;
+        }
+    }
+}

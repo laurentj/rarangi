@@ -80,20 +80,20 @@ class jInstallerMessageProvider {
 
     protected $messages = array(
         'fr'=>array(
-     'checker.title'=>'Vérification de votre serveur pour Jelix 1.3b2pre.1962',
+     'checker.title'=>'Vérification de votre serveur pour Jelix 1.3.9',
         'number.errors'         =>' erreurs.',
         'number.error'          =>' erreur.',
         'number.warnings'       =>' avertissements.',
         'number.warning'        =>' avertissement.',
         'number.notices'        =>' remarques.',
         'number.notice'         =>' remarque.',
-    'conclusion.error'      =>'Vous devez corriger l\'erreur pour faire fonctionner correctement une application Jelix 1.3b2pre.1962.',
-    'conclusion.errors'     =>'Vous devez corriger les erreurs pour faire fonctionner correctement une application Jelix 1.3b2pre.1962.',
-    'conclusion.warning'    =>'Une application Jelix 1.3b2pre.1962 peut à priori fonctionner, mais il est préférable de corriger l\'avertissement pour être sûr.',
-    'conclusion.warnings'   =>'Une application Jelix 1.3b2pre.1962 peut à priori fonctionner, mais il est préférable de corriger les avertissements pour être sûr.',
-    'conclusion.notice'     =>'Aucun problème pour installer une application pour Jelix  1.3b2pre.1962 malgré la remarque.',
-    'conclusion.notices'    =>'Aucun problème pour installer une application pour Jelix  1.3b2pre.1962 malgré les remarques.',
-    'conclusion.ok'         =>'Vous pouvez installer une application avec Jelix 1.3b2pre.1962',
+    'conclusion.error'      =>'Vous devez corriger l\'erreur pour faire fonctionner correctement une application Jelix 1.3.9.',
+    'conclusion.errors'     =>'Vous devez corriger les erreurs pour faire fonctionner correctement une application Jelix 1.3.9.',
+    'conclusion.warning'    =>'Une application Jelix 1.3.9 peut à priori fonctionner, mais il est préférable de corriger l\'avertissement pour être sûr.',
+    'conclusion.warnings'   =>'Une application Jelix 1.3.9 peut à priori fonctionner, mais il est préférable de corriger les avertissements pour être sûr.',
+    'conclusion.notice'     =>'Aucun problème pour installer une application pour Jelix  1.3.9 malgré la remarque.',
+    'conclusion.notices'    =>'Aucun problème pour installer une application pour Jelix  1.3.9 malgré les remarques.',
+    'conclusion.ok'         =>'Vous pouvez installer une application avec Jelix 1.3.9',
         'cannot.continue'       =>'Les vérifications ne peuvent continuer : %s',
         'extension.not.installed'=>'L\'extension %s n\'est pas disponible',
         'extension.optional.not.installed'=>'L\'extension %s optionnelle n\'est pas disponible',
@@ -117,6 +117,9 @@ class jInstallerMessageProvider {
         'path.profiles.writable'=>'Le fichier profiles.ini.php n\'a pas les droits en écriture',
         'path.defaultconfig.writable'=>'Le fichier defaultconfig.ini.php n\'a pas les droits en écriture',
         'path.installer.writable'=>'Le fichier installer.ini.php n\'a pas les droits en écriture',
+        'path.custom.not.exists'=>'Le fichier %s n\'existe pas, ses droits ne peuvent être vérifiés',
+        'path.custom.writable'=>'Le fichier %s n\'a pas les droits en écriture',
+        'path.custom.ok'=>'Le fichier %s a les droits en écriture',
         'php.bad.version'       =>'Mauvaise version de PHP',
         'php.version.current'   =>'Version PHP courante : %s',
         'php.ok.version'        =>'La version PHP %s installée est correcte',
@@ -161,20 +164,20 @@ class jInstallerMessageProvider {
         ),
 
         'en'=>array(
-  'checker.title'   =>'Check your configuration server for Jelix 1.3b2pre.1962',
+  'checker.title'   =>'Check your configuration server for Jelix 1.3.9',
         'number.errors'     =>' errors.',
         'number.error'      =>' error.',
         'number.warnings'   =>' warnings.',
         'number.warning'    =>' warning.',
         'number.notices'    =>' notices.',
         'number.notice'     =>' notice.',
-      'conclusion.error'    =>'You must fix the error in order to run an application correctly with Jelix 1.3b2pre.1962.',
-      'conclusion.errors'   =>'You must fix errors in order to run an application correctly with Jelix 1.3b2pre.1962.',
-      'conclusion.warning'  =>'Your application for Jelix 1.3b2pre.1962 may run without problems, but it is recommanded to fix the warning.',
-      'conclusion.warnings' =>'Your application for Jelix 1.3b2pre.1962 may run without problems, but it is recommanded to fix warnings.',
-      'conclusion.notice'   =>'You can install an application for Jelix 1.3b2pre.1962, although there is a notice.',
-      'conclusion.notices'  =>'You can install an application for Jelix 1.3b2pre.1962, although there are notices.',
-      'conclusion.ok'       =>'You can install an application for Jelix 1.3b2pre.1962.',
+      'conclusion.error'    =>'You must fix the error in order to run an application correctly with Jelix 1.3.9.',
+      'conclusion.errors'   =>'You must fix errors in order to run an application correctly with Jelix 1.3.9.',
+      'conclusion.warning'  =>'Your application for Jelix 1.3.9 may run without problems, but it is recommanded to fix the warning.',
+      'conclusion.warnings' =>'Your application for Jelix 1.3.9 may run without problems, but it is recommanded to fix warnings.',
+      'conclusion.notice'   =>'You can install an application for Jelix 1.3.9, although there is a notice.',
+      'conclusion.notices'  =>'You can install an application for Jelix 1.3.9, although there are notices.',
+      'conclusion.ok'       =>'You can install an application for Jelix 1.3.9.',
         'cannot.continue'       =>'Cannot continue the checking: %s',
         'extension.not.installed'=>'The extension %s is not available',
         'extension.optional.not.installed'=>'the optional extension %s is not available',
@@ -198,6 +201,9 @@ class jInstallerMessageProvider {
         'path.profiles.writable'=>'The file profiles.ini.php have not write rights',
         'path.defaultconfig.writable'=>'The file defaultconfig.ini.php have not write rights',
         'path.installer.writable'=>'The file installer.ini.php have not write rights',
+        'path.custom.not.exists'=>'The file %s is not found, rights cannot be validated',
+        'path.custom.writable'=>'The file %s have not write rights',
+        'path.custom.ok'=>'The file %s have write rights',
         'php.bad.version'       =>'Bad PHP version',
         'php.version.current'   =>'Current PHP version: %s',
         'php.ok.version'        =>'The PHP version %s is ok',
@@ -289,7 +295,7 @@ class jInstallerMessageProvider {
 * @author   Laurent Jouanneau
 * @contributor Bastien Jaillot
 * @contributor Olivier Demah, Brice Tence, Julien Issler
-* @copyright 2007-2009 Laurent Jouanneau, 2008 Bastien Jaillot, 2009 Olivier Demah, 2010 Brice Tence, 2011 Julien Issler
+* @copyright 2007-2011 Laurent Jouanneau, 2008 Bastien Jaillot, 2009 Olivier Demah, 2010 Brice Tence, 2011 Julien Issler
 * @link     http://www.jelix.org
 * @licence  GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 * @since 1.0b2
@@ -339,6 +345,18 @@ class jInstallCheck {
 
     function addExtensionCheck($extension, $required) {
         $this->otherExtensions[$extension] = $required;
+    }
+
+    protected $otherPaths = array();
+
+    /**
+     * @since 1.2.5
+     */
+    function addWritablePathCheck($pathOrFileName) {
+        if (is_array($pathOrFileName))
+            $this->otherPaths = array_merge($this->otherPaths, $pathOrFileName);
+        else
+            $this->otherPaths[] = $pathOrFileName;
     }
 
     protected $databases = array();
