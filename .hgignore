@@ -1,8 +1,0 @@
-^app/var/config/profiles.ini.php
-^app/var/config/installer.ini.php
-^app/var/log/*
-^tests/var/config/dbprofils.ini.php
-^tests/var/config/installer.ini.php
-^tests/var/log/*
-^temp/rarangi/[a-z]
-^temp/tests/[a-z]
