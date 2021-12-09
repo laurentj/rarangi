@@ -5,7 +5,7 @@
 * @author      Laurent Jouanneau
 * @contributor Yann, Dominique Papin
 * @contributor Warren Seine, Alexis Métaireau, Julien Issler, Olivier Demah, Brice Tence
-* @copyright   2005-2012 Laurent Jouanneau, 2006 Yann, 2007 Dominique Papin
+* @copyright   2005-2018 Laurent Jouanneau, 2006 Yann, 2007 Dominique Papin
 * @copyright   2008 Warren Seine, Alexis Métaireau
 * @copyright   2009 Julien Issler, Olivier Demah
 * @copyright   2010 Brice Tence
@@ -72,55 +72,71 @@ class jResponseHtml extends jResponseBasicHtml {
     public $bodyTagAttributes= array();
 
     /**
+     *
+     * @var string indicate the value for the X-UA-Compatible meta element, which
+     *   indicate the compatiblity mode of IE. Exemple: "IE=edge"
+     *   In future version, default will be "IE=edge".
+     * @since 1.6.17
+     */
+    public $IECompatibilityMode = '';
+
+    /**
+     * @var string the content of the viewport meta element
+     * @since 1.6.17
+     */
+    public $metaViewport = '';
+
+    /**
      * list of css stylesheet
-     * @var array  key = url, value=link attributes
+     * @var array[]  key = url, value=link attributes
      */
     protected $_CSSLink = array ();
 
     /**
      * list of css stylesheet for IE
-     * @var array  key = url, value=link attributes + optional parameter _iecondition
+     * @var array[]  key = url, value=link attributes + optional parameter _iecondition
      */
     protected $_CSSIELink = array ();
 
     /**
      * list of CSS code
+     * @var string[]
      */
     protected $_Styles  = array ();
 
     /**
      * list of js script
-     * @var array  key = url, value=link attributes
+     * @var array[]  key = url, value=link attributes
      */
     protected $_JSLink  = array ();
 
     /**
      * list of js script for IE
-     * @var array  key = url, value=link attributes + optional parameter _iecondition
+     * @var array[]  key = url, value=link attributes + optional parameter _iecondition
      */
     protected $_JSIELink  = array ();
 
     /**
      * inline js code to insert before js links
-     * @var array list of js source code
+     * @var string[] list of js source code
      */
     protected $_JSCodeBefore  = array ();
 
     /**
      * inline js code to insert after js links
-     * @var array list of js source code
+     * @var string[] list of js source code
      */
     protected $_JSCode  = array ();
 
     /**
      * list of keywords to add into a meta keyword tag
-     * @var array  array of strings
+     * @var string[]
      */
     protected $_MetaKeywords = array();
 
     /**
      * list of descriptions to add into a meta description tag
-     * @var array  array of strings
+     * @var string[]
      */
     protected $_MetaDescription = array();
 
@@ -135,6 +151,20 @@ class jResponseHtml extends jResponseBasicHtml {
      * @var string
      */
     protected $_MetaGenerator = '';
+
+    /**
+     * @var bool false if it should be output <meta charset=""/> or true
+     *               for the default old behavior : <meta content="text/html; charset=""../>
+     * @since 1.6.17
+     */
+    protected $_MetaOldContentType = true;
+
+    /**
+     *
+     * @var array[] list of arrays containing attributes for each meta elements
+     * @since 1.6.17
+     */
+    protected $_Meta = array();
 
     /**
      * list of information to generate link tags
@@ -254,6 +284,29 @@ class jResponseHtml extends jResponseBasicHtml {
             }
         }
     }
+    
+    /**
+    *  add a link to a javascript script stored into modules
+    *
+    * @param string $module  the module where file is stored
+    * @param mixed $src the relative path inside the {module}/www/ directory
+    * @param array $params additionnal parameters for the generated tag (a media attribute for stylesheet for example)
+    * @param boolean $forIE if true, the script sheet will be only for IE browser. string values possible (ex:'lt IE 7')
+    */
+    public function addJSLinkModule ($module, $src, $params=array(), $forIE=false){ 
+        $src = jUrl::get('jelix~www:getfile', array('targetmodule'=>$module, 'file'=>$src));
+        if($forIE){
+            if (!isset ($this->_JSIELink[$src])){
+                if (!is_bool($forIE) && !empty($forIE))
+                    $params['_ieCondition'] = $forIE;
+                $this->_JSIELink[$src] = $params;
+            }
+        }else{
+            if (!isset ($this->_JSLink[$src])){
+                $this->_JSLink[$src] = $params;
+            }
+        }
+    }
 
     /**
      * returns all JS links
@@ -281,7 +334,7 @@ class jResponseHtml extends jResponseBasicHtml {
 
      /**
      * returns all CSS links
-     * @var array  key = url, value=link attributes
+     * @return array  key = url, value=link attributes
      */
     public function getCSSLinks() { return $this->_CSSLink; }
 
@@ -293,7 +346,7 @@ class jResponseHtml extends jResponseBasicHtml {
 
     /**
      * returns all CSS links for IE
-     * @var array  key = url, value=link attributes + optional parameter _iecondition
+     * @return array  key = url, value=link attributes + optional parameter _iecondition
      */
      public function getCSSIELinks() { return $this->_CSSIELink; }
 
@@ -325,6 +378,52 @@ class jResponseHtml extends jResponseBasicHtml {
             }
         }
     }
+    
+    /**
+    *  add a link to a css stylesheet  stored into modules
+    *
+    * @param string $module  the module where file is stored
+    * @param mixed $src the relative path inside the {module}/www/ directory
+    * @params array $params additionnal parameters for the generated tag (a media attribute for stylesheet for example)
+    * @param boolean $forIE if true, the script sheet will be only for IE browser. string values possible (ex:'lt IE 7')
+    */
+    public function addCSSLinkModule ($module, $src, $params=array(), $forIE=false){ 
+        $src = jUrl::get('jelix~www:getfile', array('targetmodule'=>$module, 'file'=>$src));
+        if($forIE){
+            if (!isset ($this->_CSSIELink[$src])){
+                if (!is_bool($forIE) && !empty($forIE))
+                    $params['_ieCondition'] = $forIE;
+                $this->_CSSIELink[$src] = $params;
+            }
+        }else{
+            if (!isset ($this->_CSSLink[$src])){
+                $this->_CSSLink[$src] = $params;
+            }
+        }
+    }
+
+    /**
+    *  add a link to a csstheme stylesheet  stored into modules
+    *
+    * @param string $module  the module where file is stored
+    * @param mixed $src the relative path inside the {module}/www/themes/{currenttheme}/ directory
+    * @params array $params additionnal parameters for the generated tag (a media attribute for stylesheet for example)
+    * @param boolean $forIE if true, the script sheet will be only for IE browser. string values possible (ex:'lt IE 7')
+    */
+    public function addCSSThemeLinkModule ($module, $src, $params=array(), $forIE=false){ 
+        $src =  $url = jUrl::get('jelix~www:getfile', array('targetmodule'=>$module, 'file'=>'themes/'.jApp::config()->theme.'/'.$src));
+        if($forIE){
+            if (!isset ($this->_CSSIELink[$src])){
+                if (!is_bool($forIE) && !empty($forIE))
+                    $params['_ieCondition'] = $forIE;
+                $this->_CSSIELink[$src] = $params;
+            }
+        }else{
+            if (!isset ($this->_CSSLink[$src])){
+                $this->_CSSLink[$src] = $params;
+            }
+        }
+    }  
 
     /**
      * add inline css style into the document (inside a <style> tag)
@@ -381,6 +480,7 @@ class jResponseHtml extends jResponseBasicHtml {
     public function addMetaDescription ($content){
         $this->_MetaDescription[] = $content;
     }
+
     /**
      * add author(s) in a author meta tag
      * @author Olivier Demah
@@ -390,6 +490,7 @@ class jResponseHtml extends jResponseBasicHtml {
     public function addMetaAuthor($content){
         $this->_MetaAuthor = $content;
     }
+
     /**
      * add generator a generator meta tag
      * @author Olivier Demah
@@ -399,6 +500,15 @@ class jResponseHtml extends jResponseBasicHtml {
     public function addMetaGenerator($content){
         $this->_MetaGenerator = $content;
     }
+
+    /**
+     * add a meta element
+     * @param array  list of attribute and their values to set on a new meta element
+     */
+    public function addMeta($params) {
+        $this->_Meta[] = $params;
+    }
+
     /**
      * generate the doctype. You can override it if you want to have your own doctype, like XHTML+MATHML.
      * @since 1.1
@@ -407,22 +517,26 @@ class jResponseHtml extends jResponseBasicHtml {
         echo '<!DOCTYPE HTML>', "\n";
         $lang = str_replace('_', '-', $this->_lang);
         if($this->_isXhtml){
-            echo '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="',$lang,'" lang="',$lang,'">
-';
+            echo '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="',$lang,'" lang="',$lang,'">'."\n";
         }else{
-            echo '<html lang="',$lang,'">';
+            echo '<html lang="',$lang,'">'."\n";
         }
     }
 
     protected function outputJsScriptTag( $fileUrl, $scriptParams ) {
         $params = '';
+        if (!isset($scriptParams['type'])) {
+            $params = 'type="text/javascript" ';
+        }
+        $params .= 'src="'.htmlspecialchars($fileUrl).'" ';
+
         foreach ($scriptParams as $param_name=>$param_value){
             if ($param_name=='_ieCondition')
                 continue ;
             $params .= $param_name.'="'. htmlspecialchars($param_value).'" ';
         }
 
-        echo '<script type="text/javascript" src="',htmlspecialchars($fileUrl),'" ',$params,'></script>',"\n";
+        echo '<script ',$params,'></script>',"\n";
     }
 
 
@@ -440,17 +554,46 @@ class jResponseHtml extends jResponseBasicHtml {
     }
 
     /**
+     * @param string[] $params  list of attributes to add to a meta element
+     * @since 1.6.17
+     */
+    protected function outputMetaTag($params ) {
+        $html = '';
+        foreach ($params as $param_name=>$param_value){
+            $html .= $param_name.'="'. htmlspecialchars($param_value).'" ';
+        }
+
+        echo '<meta ', $html, $this->_endTag;
+    }
+
+    /**
      * generate the content of the <head> content
      */
     protected function outputHtmlHeader (){
 
-        echo '<head>'."\n";
+        echo "<head>\n";
         echo implode ("\n", $this->_headTop);
         if($this->_isXhtml && $this->xhtmlContentType && strstr($_SERVER['HTTP_ACCEPT'],'application/xhtml+xml')){      
             echo '<meta content="application/xhtml+xml; charset='.$this->_charset.'" http-equiv="content-type"'.$this->_endTag;
+        } else if (!$this->_MetaOldContentType) {
+            echo '<meta charset="'.$this->_charset.'" '.$this->_endTag;
         } else {
             echo '<meta content="text/html; charset='.$this->_charset.'" http-equiv="content-type"'.$this->_endTag;
         }
+
+        if ($this->IECompatibilityMode) {
+            echo '<meta http-equiv="X-UA-Compatible" content="'.$this->IECompatibilityMode.'"'.$this->_endTag;
+        }
+
+        if ($this->metaViewport) {
+            echo '<meta name="viewport" content="'.$this->metaViewport.'"'.$this->_endTag;
+        }
+
+        // Meta link
+        foreach ($this->_Meta as $params){
+            $this->outputMetaTag($params);
+        }
+
         echo '<title>'.htmlspecialchars($this->title)."</title>\n";
 
         if(!empty($this->_MetaDescription)){
@@ -462,13 +605,13 @@ class jResponseHtml extends jResponseBasicHtml {
         if(!empty($this->_MetaKeywords)){
             // meta description
             $keywords = implode(',',$this->_MetaKeywords);
-            echo '<meta name="keywords" content="'.htmlspecialchars($keywords).'" '.$this->_endTag;
+            $this->outputMetaTag(array('name'=>'keywords', 'content'=>$keywords));
         }
         if (!empty($this->_MetaGenerator)) {
-            echo '<meta name="generator" content="'.htmlspecialchars($this->_MetaGenerator).'" '.$this->_endTag;
+            $this->outputMetaTag(array('name'=>'generator', 'content'=>$this->_MetaGenerator));
         }
         if (!empty($this->_MetaAuthor)) {
-            echo '<meta name="author" content="'.htmlspecialchars($this->_MetaAuthor).'" '.$this->_endTag;
+            $this->outputMetaTag(array('name'=>'author', 'content'=>$this->_MetaAuthor));
         }
 
         // css link
@@ -554,7 +697,8 @@ class jResponseHtml extends jResponseBasicHtml {
      * @param array $what list of one or many of this strings : 'CSSLink', 'CSSIELink', 'Styles', 'JSLink', 'JSIELink', 'JSCode', 'Others','MetaKeywords','MetaDescription'. If null, it cleans all values.
      */
     public function clearHtmlHeader ($what=null){
-        $cleanable = array ('CSSLink', 'CSSIELink', 'Styles', 'JSLink','JSIELink', 'JSCode', 'Others','MetaKeywords','MetaDescription');
+        $cleanable = array ('CSSLink', 'CSSIELink', 'Styles', 'JSLink','JSIELink', 'JSCode',
+            'Others','MetaKeywords','MetaDescription', 'Meta', 'MetaAuthor', 'MetaGenerator');
         if($what==null)
             $what= $cleanable;
         foreach ($what as $elem){

@@ -1,7 +1,7 @@
 <?php
 /**
 * @package    jelix
-* @subpackage  kvdb
+* @subpackage  cache_plugin
 * @author      Zend Technologies
 * @contributor Tahina Ramaroson, Sylvain de Vathaire, Laurent Jouanneau
 * @copyright  2005-2008 Zend Technologies USA Inc (http://www.zend.com), 2008 Neov, 2010-2011 Laurent Jouanneau
@@ -69,7 +69,7 @@ class fileKVDriver extends jKVDriver implements jIKVPersistent, jIKVttl {
     public function _connect() {
 
         if (isset($this->_profile['storage_dir']) && $this->_profile['storage_dir']!='') {
-            $this->_storage_dir = str_replace(array('var:', 'temp:'), array(jApp::varPath(), jApp::tempPath()), $this->_profile['storage_dir']);
+            $this->_storage_dir = jFile::parseJelixPath( $this->_profile['storage_dir'] );
             $this->_storage_dir = rtrim($this->_storage_dir, '\\/') . DIRECTORY_SEPARATOR;
         }
         else
@@ -236,7 +236,7 @@ class fileKVDriver extends jKVDriver implements jIKVPersistent, jIKVttl {
         if ($oldData === null)
             return false;
 
-        if (!is_numeric($oldData)) {
+        if (!is_numeric($oldData) || !is_numeric($var)) {
             return false;
         }
         $data = $oldData + $var;
@@ -257,7 +257,7 @@ class fileKVDriver extends jKVDriver implements jIKVPersistent, jIKVttl {
         if ($oldData === null)
             return false;
 
-        if (!is_numeric($oldData)) {
+        if (!is_numeric($oldData) || !is_numeric($var)) {
             return false;
         }
         $data = $oldData - (int)$var;
@@ -354,15 +354,25 @@ class fileKVDriver extends jKVDriver implements jIKVPersistent, jIKVttl {
     }
 
     /**
-    * Writing in a file.
-    * @param    string      $filePath         file name
-    * @param    string      $DataToWrite  data to write in the file
-    * @param    integer     $mtime   modification time
-    * @return   boolean     true if success of writing operation
-    */
-    protected function _setFileContent ($filePath, $dataToWrite, $mtime) {
-        if (is_resource($dataToWrite))
+     * Writing in a file.
+     *
+     * @param string $filePath    file name
+     * @param string $DataToWrite data to write in the file
+     * @param int    $mtime       modification time
+     * @param mixed  $dataToWrite
+     *
+     * @return bool true if success of writing operation
+     */
+    protected function _setFileContent($filePath, $dataToWrite, $mtime)
+    {
+        if (function_exists('\\Jelix\\Utilities\\is_resource')) {
+            if (\Jelix\Utilities\is_resource($dataToWrite))  {
+                return false;
+            }
+        }
+        else if (is_resource($dataToWrite)) {
             return false;
+        }
 
         try {
             $dataToWrite = serialize($dataToWrite);

@@ -1,7 +1,7 @@
 <?php
 /**
 * @package     jelix
-* @subpackage  formwidgets
+* @subpackage  forms_widget_plugin
 * @author      Claudio Bernardes
 * @contributor Laurent Jouanneau, Julien Issler, Dominique Papin
 * @copyright   2012 Claudio Bernardes
@@ -13,7 +13,7 @@
 /**
  * HTML form builder
  * @package     jelix
- * @subpackage  jelix-plugins
+ * @subpackage  forms_widget_plugin
  * @link http://developer.jelix.org/wiki/rfc/jforms-controls-plugins
  */
 
@@ -42,6 +42,14 @@ class input_htmlFormWidget extends \jelix\forms\HtmlWidget\WidgetBase {
         if ($isLocale)
             $js .="c.lang='".jApp::config()->locale."';\n";
 
+        $maxv= $ctrl->datatype->getFacet('maxValue');
+        if($maxv !== null)
+            $js .="c.maxValue = '$maxv';\n";
+
+        $minv= $ctrl->datatype->getFacet('minValue');
+        if($minv !== null)
+            $js .="c.minValue = '$minv';\n";
+
         $maxl= $ctrl->datatype->getFacet('maxLength');
         if($maxl !== null)
             $js .="c.maxLength = '$maxl';\n";
@@ -65,7 +73,7 @@ class input_htmlFormWidget extends \jelix\forms\HtmlWidget\WidgetBase {
         $maxl= $this->ctrl->datatype->getFacet('maxLength');
         if($maxl !== null)
             $attr['maxlength']=$maxl;
-        $attr['value'] = $this->getValue($this->ctrl);
+        $attr['value'] = $this->getValue();
         $attr['type'] = 'text';
 
         echo '<input';

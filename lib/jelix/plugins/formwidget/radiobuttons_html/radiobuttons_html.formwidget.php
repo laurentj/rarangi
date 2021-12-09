@@ -1,7 +1,7 @@
 <?php
 /**
 * @package     jelix
-* @subpackage  formwidgets
+* @subpackage  forms_widget_plugin
 * @author      Claudio Bernardes
 * @contributor Laurent Jouanneau, Julien Issler, Dominique Papin
 * @copyright   2012 Claudio Bernardes
@@ -15,7 +15,7 @@ require_once(__DIR__.'/../checkboxes_html/checkboxes_html.formwidget.php');
 /**
  * HTML form builder
  * @package     jelix
- * @subpackage  jelix-plugins
+ * @subpackage  forms_widget_plugin
  * @link http://developer.jelix.org/wiki/rfc/jforms-controls-plugins
  */
 
@@ -23,9 +23,9 @@ class radiobuttons_htmlFormWidget extends checkboxes_htmlFormWidget {
 
     function outputControl() {
         $attr = $this->getControlAttributes();
-        $value = $this->getValue($this->ctrl);
+        $value = $this->getValue();
 
-        $id = $this->builder->getName().'_'.$this->ctrl->ref.'_';
+        $id = $this->builder->getName().'_'.$this->ctrl->ref.'_'; // FIXME should we use it?
         $attr['name'] = $this->ctrl->ref;
         unset($attr['title']);
         if(is_array($value)){

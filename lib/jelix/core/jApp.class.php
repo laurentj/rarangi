@@ -3,7 +3,8 @@
 * @package    jelix
 * @subpackage core
 * @author     Laurent Jouanneau
-* @copyright  2011-2012 Laurent Jouanneau
+* @contributor  Olivier Demah
+* @copyright  2011-2013 Laurent Jouanneau, 2012 Olivier Demah
 * @link       http://jelix.org
 * @licence    http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -60,6 +61,10 @@ class jApp {
         self::$configPath = (is_null($configPath)?self::$varPath.'config/':$configPath);
         self::$scriptPath = (is_null($scriptPath)?$appPath.'scripts/':$scriptPath);
         self::$_isInit = true;
+        self::$_coord = null;
+        self::$_config = null;
+        self::$configAutoloader = null;
+        self::$_mainConfigFile = null;
     }
 
     /**
@@ -76,7 +81,7 @@ class jApp {
     public static function scriptsPath($file='') { return self::$scriptPath.$file; }
     public static function tempPath($file='') { return self::$tempBasePath.self::$env.$file; }
     public static function tempBasePath() { return self::$tempBasePath; }
-
+    
     public static function setTempBasePath($path) {
         self::$tempBasePath = $path;
     }
@@ -87,6 +92,12 @@ class jApp {
         self::$env = $env;
     }
 
+    public static function urlBasePath() {
+        if (!self::$_config || !isset(self::$_config->urlengine['basePath']))
+            return null;
+        return self::$_config->urlengine['basePath'];
+    }
+    
     /**
      * @var object  object containing all configuration options of the application
      */
@@ -135,14 +146,44 @@ class jApp {
         self::$_config->enableErrorHandler = $enableErrorHandler;
     }
 
+    protected static $_mainConfigFile = null;
+
+    /**
+     * Main config file path
+     */
+    public static function mainConfigFile() {
+
+        if (self::$_mainConfigFile)
+            return self::$_mainConfigFile;
+
+        $configFileName = self::configPath('mainconfig.ini.php');
+        if (!file_exists ($configFileName) ) {
+            // support of legacy configuration file
+            // TODO: support of defaultconfig.ini.php should be dropped in version > 1.6
+            $configFileName = self::configPath('defaultconfig.ini.php');
+            trigger_error("the config file defaultconfig.ini.php is deprecated and will be removed in the next major release", E_USER_DEPRECATED);
+        }
+        self::$_mainConfigFile = $configFileName;
+        return $configFileName;
+    }
+
+    /**
+     * @var jCoordinator
+     */
     protected static $_coord = null;
-    
+
+    /**
+     * @return jCoordinator
+     */
     public static function coord() {
         return self::$_coord;
     }
 
+    /**
+     * @param jCoordinator $coord
+     */
     public static function setCoord($coord) {
-        self::$_coord = $coord;
+        self::$_coord = $coord; 
     }
 
     protected static $contextBackup = array();
@@ -163,7 +204,8 @@ class jApp {
         self::$contextBackup[] = array(self::$appPath, self::$varPath, self::$logPath,
                                        self::$configPath, self::$wwwPath, self::$scriptPath,
                                        self::$tempBasePath, self::$env, $conf, $coord,
-                                       self::$modulesContext);
+                                       self::$modulesContext, self::$configAutoloader,
+                                       self::$_mainConfigFile);
     }
 
     /**
@@ -174,7 +216,8 @@ class jApp {
             return;
         list(self::$appPath, self::$varPath, self::$logPath, self::$configPath,
              self::$wwwPath, self::$scriptPath, self::$tempBasePath, self::$env,
-             $conf, self::$_coord, self::$modulesContext) = array_pop(self::$contextBackup);
+             $conf, self::$_coord, self::$modulesContext, self::$configAutoloader,
+            self::$_mainConfigFile) = array_pop(self::$contextBackup);
         self::setConfig($conf);
     }
 
@@ -207,12 +250,13 @@ class jApp {
     }
 
     /**
-    * Says if the given module $name is enabled
-    * @param string $moduleName
-    * @param boolean $includingExternal  true if we want to know if the module
-    *               is also an external module, e.g. in an other entry point
-    * @return boolean true : module is ok
-    */
+     * Says if the given module $name is enabled
+     * @param string $moduleName
+     * @param boolean $includingExternal true if we want to know if the module
+     *               is also an external module, e.g. in an other entry point
+     * @return bool true : module is ok
+     * @throws Exception
+     */
     public static function isModuleEnabled ($moduleName, $includingExternal = false) {
         if (!self::$_config)
             throw new Exception ('Configuration is not loaded');
@@ -225,9 +269,10 @@ class jApp {
     /**
      * return the real path of a module
      * @param string $module a module name
-     * @param boolean $includingExternal  true if we want to know if the module
+     * @param boolean $includingExternal true if we want to know if the module
      *               is also an external module, e.g. in an other entry point
      * @return string the corresponding path
+     * @throws Exception
      */
     public static function getModulePath($module, $includingExternal = false){
         if (!self::$_config)

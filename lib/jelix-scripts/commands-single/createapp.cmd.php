@@ -14,9 +14,7 @@
 * @licence     GNU General Public Licence see LICENCE file or http://www.gnu.org/licenses/gpl.html
 */
 
-class createappCommand extends JelixScriptCommand {
-
-   protected $commonOptions = array('-v'=>false);
+class createappCommand extends JelixScriptSingleCommand {
 
     public  $name = 'createapp';
     public  $allowed_options=array('-nodefaultmodule'=>false,
@@ -25,18 +23,7 @@ class createappCommand extends JelixScriptCommand {
     public  $allowed_parameters=array('path'=>true);
 
     public  $syntaxhelp = "[-nodefaultmodule] [-withcmdline] [-wwwpath a_path]";
-    public  $help='';
-    public $commonSyntaxOptions = '[-v] ';
-    public $commonOptionsHelp = array(
-        'en'=>"
-    Other options:
-    -v: verbose mode
-",
-        'fr'=>"
-    Autres options:
-    -v: mode verbeux. Affiche plus d'informations.
-"
-    );
+
 
     public $applicationRequirement = 1;
 
@@ -171,8 +158,8 @@ class createappCommand extends JelixScriptCommand {
         $this->createFile($appPath.'.htaccess', 'htaccess_deny', $param, "Configuration file for Apache");
         $this->createFile($appPath.'project.xml','project.xml.tpl', $param, "Project description file");
         $this->createFile($appPath.'cmd.php','cmd.php.tpl', $param, "Script for developer commands");
-        $this->createFile($configPath.'defaultconfig.ini.php', 'var/config/defaultconfig.ini.php.tpl', $param, "Main configuration file");
-        $this->createFile($configPath.'defaultconfig.ini.php.dist', 'var/config/defaultconfig.ini.php.tpl', $param, "Main configuration file for your repository");
+        $this->createFile($configPath.'mainconfig.ini.php', 'var/config/mainconfig.ini.php.tpl', $param, "Main configuration file");
+        $this->createFile($configPath.'localconfig.ini.php.dist', 'var/config/localconfig.ini.php.tpl', $param, "Configuration file for specific environment");
         $this->createFile($configPath.'profiles.ini.php', 'var/config/profiles.ini.php.tpl', $param, "Profiles file");
         $this->createFile($configPath.'profiles.ini.php.dist', 'var/config/profiles.ini.php.tpl', $param, "Profiles file for your repository");
         $this->createFile($configPath.'preferences.ini.php', 'var/config/preferences.ini.php.tpl', $param, "Preferences file");

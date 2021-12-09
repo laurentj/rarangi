@@ -4,11 +4,12 @@
 * @subpackage core
 * @author      Laurent Jouanneau
 * @contributor Loic Mathaud
-* @copyright   2005-2007 Laurent Jouanneau, 2006 Loic Mathaud
+* @copyright   2005-2014 Laurent Jouanneau, 2006 Loic Mathaud
 * @link        http://www.jelix.org
 * @licence  http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 *
 */
+
 /**
  * interface for controllers used for RESTFull request/response
  * @package  jelix
@@ -40,6 +41,17 @@ abstract class jController{
      * @var array
      */
     public $pluginParams=array();
+
+    /**
+     * sensitive parameters
+     *
+     * List of names of parameters that can have sensitive values like password etc.
+     * This list is used by the logger for example, to replace values by a dummy value.
+     * See also sensitiveParameters into error_handling section of the configuration.
+     * @var string[]
+     * @since 1.6.16
+     */
+    public $sensitiveParameters = array();
 
     /**
      * the request object
@@ -125,7 +137,7 @@ abstract class jController{
      * get a response object.
      * @param string $name the name of the response type (ex: "html")
      * @param boolean $useOriginal true:don't use the response object redefined by the application
-     * @return jResponse the response object
+     * @return jResponse|jResponseHtml|jResponseRedirect|jResponseJson the response object
      */
     protected function getResponse($name='', $useOriginal=false){
         return $this->request->getResponse($name, $useOriginal);

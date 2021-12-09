@@ -114,11 +114,11 @@ class createentrypointCommand extends JelixScriptCommand {
             else {
                 // else we create a new config file, with the startmodule of the default
                 // config as a module name.
-                $defaultConfig = parse_ini_file(jApp::configPath('defaultconfig.ini.php'), true);
+                $mainConfig = parse_ini_file(jApp::mainConfigFile(), true);
 
                 $param = array();
-                if (isset($defaultConfig['startModule']))
-                    $param['modulename'] = $defaultConfig['startModule'];
+                if (isset($mainConfig['startModule']))
+                    $param['modulename'] = $mainConfig['startModule'];
                 else
                     $param['modulename'] = 'jelix';
 
@@ -129,8 +129,9 @@ class createentrypointCommand extends JelixScriptCommand {
         }
 
         require_once (JELIX_LIB_PATH.'utils/jIniMultiFilesModifier.class.php');
-        $inifile = new jIniMultiFilesModifier(jApp::configPath('defaultconfig.ini.php'),
-                                              $configFilePath);
+
+        $inifile = new jIniMultiFilesModifier(jApp::mainConfigFile(), $configFilePath);
+
         $param = array();
         $param['modulename'] = $inifile->getValue('startModule');
         // creation of the entry point
@@ -173,7 +174,7 @@ class createentrypointCommand extends JelixScriptCommand {
 
         if (!$ep->length) {
             $ep = $this->projectXml->createElementNS(JELIX_NAMESPACE_BASE.'project/1.0', 'entrypoints');
-            $doc->documentElement->appendChild($ep);
+            $this->projectXml->documentElement->appendChild($ep);
             $ep->appendChild($elem);
         }
         else

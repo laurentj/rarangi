@@ -28,8 +28,8 @@ $locales = array(
         'extension.optional.installed'=>'L\'extension %s optionnelle est disponible',
         'extension.required.installed'=>'L\'extension %s obligatoire est disponible',
         'extensions.required.ok'=>'Toutes les extensions PHP obligatoires sont disponibles',
-        'extension.database.ok'=>'L\'application utilisera une base de données SQL',
-        'extension.database.ok2'=>'L\'application pourra utiliser une base de données SQL',
+        'extension.database.ok'=>'L\'application utilisera une base de données SQL : %s',
+        'extension.database.ok2'=>'L\'application pourra utiliser une base de données SQL : %s',
         'extension.database.missing'=>'L\'application a besoin d\'une base de données SQL',
         'extension.database.missing2'=>'L\'application ne pourra pas utiliser de base de données SQL',
         'path.core'             =>'Le fichier init.php  de jelix ou le fichier application.ini.php de votre application n\'est pas chargé',
@@ -40,7 +40,7 @@ $locales = array(
         'path.www'              =>'Le chemin du répertoire www n\'est pas configuré correctement : ce répertoire n\'existe pas',
         'path.config.writable' =>'Le répertoire var/config n\'a pas les droits en écriture',
         'path.profiles.writable'=>'Le fichier profiles.ini.php n\'a pas les droits en écriture',
-        'path.defaultconfig.writable'=>'Le fichier defaultconfig.ini.php n\'a pas les droits en écriture',
+        'path.mainconfig.writable'=>'Le fichier mainconfig.ini.php n\'a pas les droits en écriture',        
         'path.installer.writable'=>'Le fichier installer.ini.php n\'a pas les droits en écriture',
         'path.custom.not.exists'=>'Le fichier %s n\'existe pas, ses droits ne peuvent être vérifiés',
         'path.custom.writable'=>'Le fichier %s n\'a pas les droits en écriture',
@@ -67,6 +67,10 @@ $locales = array(
         'module.bad.dependency.version'=>'Le module %s necessite une autre version du module %s (%s - %s)',
         'module.installer.class.not.found'=>'La classe d\'installation %s pour le module %s n\'existe pas',
         'module.upgrader.class.not.found'=>'La classe de mise à jour %s pour le module %s n\'existe pas',
+        'module.upgrader.missing.version'=>'La version cible est manquante pour le script de mise à jour %s du module %s',
+        'module.missing.version'=>'La version est manquante dans le fichier module.xml du module %s',
+
+        'installer.ini.missing.version'=>'La version précédente du module %s n\'est pas indiquée dans le fichier installer.ini.php',
 
         'install.entrypoint.start'  =>'Installation pour le point d\'entrée %s',
         'install.entrypoint.end'    =>'Tous les modules sont installés ou mis à jour pour le point d\'entrée %s',
@@ -82,6 +86,7 @@ $locales = array(
         'install.module.error'              =>'Une erreur est survenue durant l\'installation du module %s: %s',
         'install.module.check.dependency'   =>'Vérifie les dépendances du module %s',
         'install.module.upgraded'           =>'Le module %s est mis à jour à la version %s',
+        'more.details'                      =>'Plus de details',
 
 
 );

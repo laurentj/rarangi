@@ -11,7 +11,8 @@
  * @contributor Christophe Thiriot
  * @contributor Yannick Le Guédart
  * @contributor Steven Jehannet, Didier Huguet
- * @copyright   2005-2011 Laurent Jouanneau
+ * @contributor Philippe Villiers
+ * @copyright   2005-2018 Laurent Jouanneau
  * @copyright   2007 Loic Mathaud
  * @copyright   2007-2009 Julien Issler
  * @copyright   2008 Thomas
@@ -20,6 +21,7 @@
  * @copyright   2009 Christophe Thiriot
  * @copyright   2010 Yannick Le Guédart
  * @copyright   2010 Steven Jehannet, 2010 Didier Huguet
+ * @copyright   2013 Philippe Villiers
  * @link        http://www.jelix.org
  * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
  */
@@ -186,7 +188,12 @@ abstract class jDaoFactoryBase  {
      * @return int the count
      */
     public function countAll(){
-        $query = 'SELECT COUNT(*) as c '.$this->_fromClause.$this->_whereClause;
+        $oracle = ($this->_conn->dbms == 'oci');
+        if (!$oracle) {
+            $query = 'SELECT COUNT(*) as c '.$this->_fromClause.$this->_whereClause;
+        } else { // specific query for oracle to make sure the alias has the correct case
+            $query = 'SELECT COUNT(*) as "c" '.$this->_fromClause.$this->_whereClause;
+        }
         $rs  = $this->_conn->query ($query);
         $res = $rs->fetch ();
         return intval($res->c);
@@ -194,17 +201,22 @@ abstract class jDaoFactoryBase  {
 
     /**
      * return the record corresponding to the given key
-     * @param string $key one or more primary key
      * @return jDaoRecordBase
+     * @throws jException
+     * @internal param string $key one or more primary key
      */
     final public function get(){
         $args=func_get_args();
         if(count($args)==1 && is_array($args[0])){
             $args=$args[0];
         }
-        $keys = @array_combine(static::$_pkFields, $args );
 
-        if($keys === false){
+        try {
+            $keys = @array_combine(static::$_pkFields, $args);
+            if ($keys === false) {
+                throw new jException('jelix~dao.error.keys.missing');
+            }
+        } catch (ValueError $e) { // In PHP8+
             throw new jException('jelix~dao.error.keys.missing');
         }
 
@@ -219,18 +231,25 @@ abstract class jDaoFactoryBase  {
 
     /**
      * delete a record corresponding to the given key
-     * @param string  $key one or more primary key
      * @return int the number of deleted record
+     * @throws jException
+     * @internal param string $key one or more primary key
      */
     final public function delete(){
         $args=func_get_args();
         if(count($args)==1 && is_array($args[0])){
             $args=$args[0];
         }
-        $keys = array_combine(static::$_pkFields, $args);
-        if($keys === false){
+
+        try {
+            $keys = @array_combine(static::$_pkFields, $args);
+            if ($keys === false) {
+                throw new jException('jelix~dao.error.keys.missing');
+            }
+        } catch (ValueError $e) { // In PHP8+
             throw new jException('jelix~dao.error.keys.missing');
         }
+
         $q = 'DELETE FROM '.$this->_conn->encloseName($this->_tables[$this->_primaryTable]['realname']).' ';
         $q.= $this->_getPkWhereClauseForNonSelect($keys);
 
@@ -299,17 +318,24 @@ abstract class jDaoFactoryBase  {
     final public function countBy($searchcond, $distinct=null) {
         $count = '*';
         $sqlite = false;
+
         if ($distinct !== null) {
             $props = static::$_properties;
             if (isset($props[$distinct]))
                 $count = 'DISTINCT '.$this->_tables[$props[$distinct]['table']]['name'].'.'.$props[$distinct]['fieldName'];
             $sqlite = ($this->_conn->dbms == 'sqlite');
         }
+        $oracle = ($this->_conn->dbms == 'oci');
 
-        if (!$sqlite)
-            $query = 'SELECT COUNT('.$count.') as c '.$this->_fromClause.$this->_whereClause;
-        else // specific query for sqlite, which doesn't support COUNT+DISTINCT
+        if (!$sqlite) {
+            if(!$oracle) {
+                $query = 'SELECT COUNT('.$count.') as c '.$this->_fromClause.$this->_whereClause;
+            } else {
+                $query = 'SELECT COUNT('.$count.') as "c" '.$this->_fromClause.$this->_whereClause;
+            }
+        } else { // specific query for sqlite, which doesn't support COUNT+DISTINCT
             $query = 'SELECT COUNT(*) as c FROM (SELECT '.$count.' '.$this->_fromClause.$this->_whereClause;
+        }
 
         if ($searchcond->hasConditions ()){
             $query .= ($this->_whereClause !='' ? ' AND ' : ' WHERE ');
@@ -375,9 +401,16 @@ abstract class jDaoFactoryBase  {
      */
     final protected function _createOrderClause($daocond) {
         $order = array ();
+        $isOci = ($this->_conn->dbms == 'oci');
         foreach ($daocond->order as $name => $way){
             if (isset(static::$_properties[$name])) {
-                $order[] = $this->_conn->encloseName(static::$_properties[$name]['table']).'.'.$this->_conn->encloseName(static::$_properties[$name]['fieldName']).' '.$way;
+                // SqlServer needs only name/aliases, Oci needs only table.field. Sqlite, Pgsql, Mysql accept both syntax.
+                if ($isOci) {
+                    $order[] = $this->_conn->encloseName(static::$_properties[$name]['table']).'.'.$this->_conn->encloseName(static::$_properties[$name]['fieldName']).' '.$way;
+                }
+                else {
+                    $order[] = $this->_conn->encloseName(static::$_properties[$name]['name']).' '.$way;
+                }
             }
         }
 
@@ -422,10 +455,23 @@ abstract class jDaoFactoryBase  {
 
             $prop=$fields[$cond['field_id']];
 
-            if($forSelect)
-                $prefixNoCondition = $this->_conn->encloseName($this->_tables[$prop['table']]['name']).'.'.$this->_conn->encloseName($prop['fieldName']);
-            else
-                $prefixNoCondition = $this->_conn->encloseName($prop['fieldName']);
+            // Check if pattern is set
+            $pattern = isset($cond['field_pattern']) ? $cond['field_pattern'] : '%s';
+
+            if($forSelect) {
+                if($pattern == '%s' || empty($pattern)) {
+                    $prefixNoCondition = $this->_conn->encloseName($this->_tables[$prop['table']]['name']).'.'.$this->_conn->encloseName($prop['fieldName']);
+                } else {
+                    $prefixNoCondition = str_replace("%s", $this->_conn->encloseName($this->_tables[$prop['table']]['name']).'.'.$this->_conn->encloseName($prop['fieldName']), $pattern);
+                }
+            }
+            else {
+                if($pattern == '%s' || empty($pattern)) {
+                    $prefixNoCondition = $this->_conn->encloseName($prop['fieldName']);
+                } else {
+                    $prefixNoCondition = str_replace("%s", $this->_conn->encloseName($prop['fieldName']), $pattern);
+                } 
+            }
 
             $op = strtoupper($cond['operator']);
             $prefix = $prefixNoCondition.' '.$op.' '; // ' ' for LIKE
@@ -534,6 +580,10 @@ abstract class jDaoFactoryBase  {
      */
     protected function finishInitResultSet($rs) {
         $rs->setFetchMode(8, $this->_DaoRecordClassName);
+        $profile = $this->_conn->getProfileName();
+        $rs->addModifier(function ($record, $rs) use ($profile) {
+            $record->setDbProfile($profile);
+        });
     }
 
     /**

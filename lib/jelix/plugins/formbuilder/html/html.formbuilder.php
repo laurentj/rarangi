@@ -1,7 +1,7 @@
 <?php
 /**
 * @package     jelix
-* @subpackage  forms
+* @subpackage  forms_builder_plugin
 * @author      Laurent Jouanneau
 * @contributor Julien Issler, Dominique Papin, Olivier Demah
 * @copyright   2006-2012 Laurent Jouanneau
@@ -14,7 +14,7 @@
 /**
  * HTML form builder
  * @package     jelix
- * @subpackage  jelix-plugins
+ * @subpackage  forms_builder_plugin
  */
 class htmlFormBuilder extends \jelix\forms\Builder\HtmlBuilder {
 
@@ -28,9 +28,9 @@ class htmlFormBuilder extends \jelix\forms\Builder\HtmlBuilder {
 
         $confUrlEngine = &jApp::config()->urlengine;
         $www = $confUrlEngine['jelixWWWPath'];
-        $jq = $confUrlEngine['jqueryPath'];
-        $resp->addJSLink($jq.'jquery.js');
-        $resp->addJSLink($jq.'include/jquery.include.js');
+
+        $resp->addJSLink(jApp::config()->jquery['jquery']);
+        $resp->addJSLink($www.'/jquery/include/jquery.include.js');
         $resp->addJSLink($www.'js/jforms_jquery.js');
         $resp->addCSSLink($www.'design/jform.css');
 

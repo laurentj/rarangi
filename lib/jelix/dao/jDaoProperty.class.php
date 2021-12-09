@@ -92,11 +92,13 @@ class jDaoProperty {
     public $comment = '';
 
     /**
-    * constructor.
-    * @param array  $attributes  list of attributes of a simpleXmlElement
-    * @param jDaoParser $parser the parser on the dao file
-    * @param jDbTools $tools
-    */
+     * constructor.
+     * @param array $aAttributes
+     * @param jDaoParser $parser the parser on the dao file
+     * @param jDbTools $tools
+     * @throws jDaoXmlException
+     * @internal param array $attributes list of attributes of a simpleXmlElement
+     */
     function __construct ($aAttributes, $parser, $tools){
         $needed = array('name', 'fieldname', 'table', 'datatype', 'required',
                         'minlength', 'maxlength', 'regexp', 'sequence', 'default', 'autoincrement');
@@ -162,14 +164,18 @@ class jDaoProperty {
             }
         }
 
-        $this->isPK = in_array($this->fieldName, $tables[$this->table]['pk']);
+        $pkeys = array_map('strtolower', $tables[$this->table]['pk']);
+        $this->isPK = in_array(strtolower($this->fieldName), $pkeys);
         if(!$this->isPK && $this->table == $parser->getPrimaryTable()){
             foreach($tables as $table=>$info) {
                 if ($table == $this->table)
                     continue;
-                if (isset($info['fk']) && in_array($this->fieldName, $info['fk'])) {
-                    $this->isFK = true;
-                    break;
+                if(isset($info['fk'])) {
+                    $fkeys = array_map('strtolower', $info['fk']);
+                    if(in_array(strtolower($this->fieldName), $fkeys)) {
+                        $this->isFK = true;
+                        break;
+                    }
                 }
             }
         }

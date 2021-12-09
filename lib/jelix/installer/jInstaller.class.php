@@ -3,7 +3,7 @@
 * @package     jelix
 * @subpackage  installer
 * @author      Laurent Jouanneau
-* @copyright   2008-2012 Laurent Jouanneau
+* @copyright   2008-2020 Laurent Jouanneau
 * @link        http://www.jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
@@ -32,11 +32,11 @@ class textInstallReporter implements jIInstallReporter {
      * @var string error, notice or warning
      */
     protected $level;
-    
+
     function __construct($level= 'notice') {
-       $this->level = $level; 
+       $this->level = $level;
     }
-    
+
     function start() {
         if ($this->level == 'notice')
             echo "Installation start..\n";
@@ -160,10 +160,10 @@ class jInstaller {
      *  @var jIniFileModifier it represents the installer.ini.php file.
      */
     public $installerIni = null;
-    
+
     /**
      * list of entry point and their properties
-     * @var array of jInstallerEntryPoint. keys are entry point id.
+     * @var jInstallerEntryPoint[]. keys are entry point id.
      */
     protected $entryPoints = array();
 
@@ -177,10 +177,10 @@ class jInstaller {
 
     /**
      * list of modules for each entry point
-     * @var array first key: entry point id, second key: module name, value = jInstallerComponentModule
+     * @var jInstallerComponentModule[][] first key: entry point id, second key: module name, value = jInstallerComponentModule
      */
     protected $modules = array();
-    
+
     /**
      * list of all modules of the application
      * @var array key=path of the module, value = jInstallerComponentModule
@@ -211,10 +211,22 @@ class jInstaller {
     public $nbNotice = 0;
 
     /**
-     * the defaultconfig.ini.php content
+     * the mainconfig.ini.php content
      * @var jIniFileModifier
      */
-    public $defaultConfig;
+    public $mainConfig;
+
+    /**
+     * combination between mainconfig.ini.php (master) and localconfig.ini.php (overrider)
+     * @var jIniMultiFilesModifier
+     */
+    public $localConfig;
+
+    /**
+     * liveconfig.ini.php
+     * @var jIniFileModifier
+     */
+    public $liveConfig;
 
     /**
      * initialize the installation
@@ -227,7 +239,24 @@ class jInstaller {
     function __construct ($reporter, $lang='') {
         $this->reporter = $reporter;
         $this->messages = new jInstallerMessageProvider($lang);
-        $this->defaultConfig = new jIniFileModifier(jApp::configPath('defaultconfig.ini.php'));
+        $this->mainConfig = new jIniFileModifier(jApp::mainConfigFile());
+
+        $localConfig = jApp::configPath('localconfig.ini.php');
+        if (!file_exists($localConfig)) {
+           $localConfigDist = jApp::configPath('localconfig.ini.php.dist');
+           if (file_exists($localConfigDist)) {
+              copy($localConfigDist, $localConfig);
+           }
+           else {
+              file_put_contents($localConfig, ';<'.'?php die(\'\');?'.'> static local configuration');
+           }
+        }
+        $liveConfig = jApp::configPath('liveconfig.ini.php');
+        if (!file_exists($liveConfig)) {
+            file_put_contents($liveConfig, ';<'.'?php die(\'\');?'.'> live configuration');
+        }
+        $this->localConfig = new jIniMultiFilesModifier($this->mainConfig, $localConfig);
+        $this->liveConfig = new jIniFileModifier($liveConfig);
         $this->installerIni = $this->getInstallerIni();
         $this->readEntryPointData(simplexml_load_file(jApp::appPath('project.xml')));
         $this->installerIni->save();
@@ -236,6 +265,7 @@ class jInstaller {
     /**
      * @internal mainly for tests
      * @return jIniFileModifier the modifier for the installer.ini.php file
+     * @throws Exception
      */
     protected function getInstallerIni() {
         if (!file_exists(jApp::configPath('installer.ini.php')))
@@ -277,6 +307,9 @@ class jInstaller {
 
             // we create an object corresponding to the entry point
             $ep = $this->getEntryPointObject($configFile, $file, $type);
+            // not to the constructor, to not break API. FIXME
+            $ep->localConfigIni =  new jIniMultiFilesModifier($this->localConfig, $ep->getEpConfigIni());
+            $ep->liveConfigIni = $this->liveConfig;
             $epId = $ep->getEpId();
 
             $this->epId[$file] = $epId;
@@ -284,7 +317,8 @@ class jInstaller {
             $this->modules[$epId] = array();
 
             // now let's read all modules properties
-            foreach ($ep->getModulesList() as $name=>$path) {
+            $modulesList = $ep->getModulesList();
+            foreach ($modulesList as $name=>$path) {
                 $module = $ep->getModule($name);
 
                 $this->installerIni->setValue($name.'.installed', $module->isInstalled, $epId);
@@ -298,18 +332,30 @@ class jInstaller {
                 $m->addModuleInfos($epId, $module);
                 $this->modules[$epId][$name] = $m;
             }
+            // remove informations about modules that don't exist anymore
+            $modules = $this->installerIni->getValues($epId);
+            foreach($modules as $key=>$value) {
+                $l = explode('.', $key);
+                if (count($l)<=1) {
+                    continue;
+                }
+                if (!isset($modulesList[$l[0]])) {
+                    $this->installerIni->removeValue($key, $epId);
+                }
+            }
         }
-    }
-    
-    /**
-     * @internal for tests
-     */
-    protected function getEntryPointObject($configFile, $file, $type) {
-        return new jInstallerEntryPoint($this->defaultConfig, $configFile, $file, $type);
     }
 
     /**
      * @internal for tests
+     */
+    protected function getEntryPointObject($configFile, $file, $type) {
+        return new jInstallerEntryPoint($this->mainConfig, $configFile, $file, $type);
+    }
+
+    /**
+     * @internal for tests
+     * @return jInstallerComponentModule
      */
     protected function getComponentModule($name, $path, $installer) {
         return new jInstallerComponentModule($name, $path, $installer);
@@ -332,7 +378,6 @@ class jInstaller {
      */
     public function forceModuleVersion($moduleName, $version) {
         foreach(array_keys($this->entryPoints) as $epId) {
-            $modules = array();
             if (isset($this->modules[$epId][$moduleName])) {
                 $this->modules[$epId][$moduleName]->setInstalledVersion($epId, $version);
             }
@@ -357,7 +402,6 @@ class jInstaller {
         }
         else {
             foreach(array_keys($this->entryPoints) as $epId) {
-                $modules = array();
                 if (isset($this->modules[$epId][$moduleName])) {
                     $this->modules[$epId][$moduleName]->setInstallParameters($epId, $parameters);
                 }
@@ -377,23 +421,18 @@ class jInstaller {
      */
     public function installApplication($flags = false) {
 
-        if ($flags === false)
+        if ($flags === false) {
             $flags = self::FLAG_ALL;
+        }
 
         $this->startMessage();
         $result = true;
 
         foreach(array_keys($this->entryPoints) as $epId) {
-            $modules = array();
-            foreach($this->modules[$epId] as $name => $module) {
-                $access = $module->getAccessLevel($epId);
-                if ($access != 1 && $access != 2)
-                    continue;
-                $modules[$name] = $module;
-            }
-            $result = $result & $this->_installModules($modules, $epId, true, $flags);
-            if (!$result)
+            $result = $result & $this->installEntryPointModules($epId, $flags);
+            if (!$result) {
                 break;
+            }
         }
 
         $this->installerIni->save();
@@ -406,8 +445,9 @@ class jInstaller {
      * entry point. Only modules which have an access property > 0
      * are installed. Errors appeared during the installation are passed
      * to the reporter.
-     * @param string $entrypoint  the entrypoint name as it appears in project.xml
-     * @return boolean true if succeed, false if there are some errors
+     * @param string $entrypoint the entrypoint name as it appears in project.xml
+     * @return bool true if succeed, false if there are some errors
+     * @throws Exception
      */
     public function installEntryPoint($entrypoint) {
 
@@ -418,15 +458,7 @@ class jInstaller {
         }
 
         $epId = $this->epId[$entrypoint];
-
-        $modules = array();
-        foreach($this->modules[$epId] as $name => $module) {
-            $access = $module->getAccessLevel($epId);
-            if ($access != 1 && $access != 2)
-                continue;
-            $modules[$name] = $module;
-        }
-        $result = $this->_installModules($modules, $epId, true);
+        $result = $this->installEntryPointModules($epId);
 
         $this->installerIni->save();
         $this->endMessage();
@@ -434,16 +466,49 @@ class jInstaller {
     }
 
     /**
+     *
+     * @param string $epId  the entrypoint id
+     * @return boolean true if succeed, false if there are some errors
+     */
+    protected function installEntryPointModules($epId, $flags=3) {
+        $modules = array();
+        foreach($this->modules[$epId] as $name => $module) {
+            $access = $module->getAccessLevel($epId);
+            if ($access != 1 && $access != 2) {
+                if ($module->isInstalled($epId)) {
+                    $this->installerIni->removeValue($name.'.installed', $epId);
+                    $this->installerIni->removeValue($name.'.version', $epId);
+                    $this->installerIni->removeValue($name.'.version.date', $epId);
+                    $this->installerIni->removeValue($name.'.firstversion', $epId);
+                    $this->installerIni->removeValue($name.'.firstversion.date', $epId);
+                }
+            }
+            else {
+                $modules[$name] = $module;
+            }
+        }
+        if (count($modules)) {
+            $result = $this->_installModules($modules, $epId, true, $flags);
+            if (!$result) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    /**
      * install given modules even if they don't have an access property > 0
-     * @param array $modulesList array of module names
-     * @param string $entrypoint  the entrypoint name as it appears in project.xml
+     * @param string[] $modulesList array of module names
+     * @param string $entrypoint the entrypoint name as it appears in project.xml
      *               or null if modules should be installed for all entry points
-     * @return boolean true if the installation is ok
+     * @return bool true if the installation is ok
+     * @throws Exception
      */
     public function installModules($modulesList, $entrypoint = null) {
 
         $this->startMessage();
-        $entryPointList = array();
+
         if ($entrypoint == null) {
             $entryPointList = array_keys($this->entryPoints);
         }
@@ -454,6 +519,7 @@ class jInstaller {
             throw new Exception("unknown entry point");
         }
 
+        $result = true;
         foreach ($entryPointList as $epId) {
 
             $allModules = &$this->modules[$epId];
@@ -624,15 +690,23 @@ class jInstaller {
                     }
                     $installedModules[] = array($installer, $component, false);
                 }
-                // we always save the configuration, so it invalidates the cache
-                $ep->configIni->save();
-                // we re-load configuration file for each module because
-                // previous module installer could have modify it.
-                $ep->config =
-                    jConfigCompiler::read($ep->configFile, true,
-                                          $ep->isCliScript,
-                                          $ep->scriptName);
-                jApp::setConfig($ep->config);
+                if ($ep->configIni->isModified() ||
+                    $ep->localConfigIni->isModified() ||
+                    $ep->liveConfigIni->isModified()
+                ) {
+                    // we always save the configuration, so it invalidates the cache
+                    $ep->configIni->save();
+                    $ep->localConfigIni->save();
+                    $ep->liveConfigIni->save();
+
+                    // we re-load configuration file for each module because
+                    // previous module installer could have modify it.
+                    $ep->config =
+                        jConfigCompiler::read($ep->configFile, true,
+                            $ep->isCliScript,
+                            $ep->scriptName);
+                    jApp::setConfig($ep->config);
+                }
             }
         } catch (jInstallerException $e) {
             $result = false;
@@ -664,16 +738,23 @@ class jInstaller {
                         $component->upgradeFinished($ep, $upgrader);
                     }
                 }
+                if ($ep->configIni->isModified() ||
+                    $ep->localConfigIni->isModified() ||
+                    $ep->liveConfigIni->isModified()
+                ) {
+                    // we always save the configuration, so it invalidates the cache
+                    $ep->configIni->save();
+                    $ep->localConfigIni->save();
+                    $ep->liveConfigIni->save();
 
-                // we always save the configuration, so it invalidates the cache
-                $ep->configIni->save();
-                // we re-load configuration file for each module because
-                // previous module installer could have modify it.
-                $ep->config =
-                    jConfigCompiler::read($ep->configFile, true,
-                                          $ep->isCliScript,
-                                          $ep->scriptName);
-                jApp::setConfig($ep->config);
+                    // we re-load configuration file for each module because
+                    // previous module installer could have modify it.
+                    $ep->config =
+                        jConfigCompiler::read($ep->configFile, true,
+                            $ep->isCliScript,
+                            $ep->scriptName);
+                    jApp::setConfig($ep->config);
+                }
             } catch (jInstallerException $e) {
                 $result = false;
                 $this->error ($e->getLocaleKey(), $e->getLocaleParameters());
@@ -688,7 +769,6 @@ class jInstaller {
         return $result;
     }
 
-
     protected $_componentsToInstall = array();
     protected $_checkedComponents = array();
     protected $_checkedCircularDependency = array();
@@ -697,6 +777,7 @@ class jInstaller {
      * check dependencies of given modules and plugins
      *
      * @param array $list  list of jInstallerComponentModule/jInstallerComponentPlugin objects
+     * @return boolean true if the dependencies are ok
      * @throw jException if the install has failed
      */
     protected function checkDependencies ($list, $epId) {
@@ -735,6 +816,7 @@ class jInstaller {
      * check dependencies of a module
      * @param jInstallerComponentBase $component
      * @param string $epId
+     * @throws jInstallerException
      */
     protected function _checkDependencies($component, $epId) {
 
@@ -754,10 +836,16 @@ class jInstaller {
                 continue;
             $name = $compInfo['name'];
             $comp = null;
-            if (isset($this->modules[$epId][$name]))
+
+            if (isset($this->modules[$epId][$name])) {
                 $comp = $this->modules[$epId][$name];
-            if (!$comp)
-                $compNeeded .= $name.', ';
+            }
+
+            if (!$comp) {
+                if ( ! $compInfo['optional']) {
+                    $compNeeded .= $name.', ';
+                }
+            }
             else {
                 if (!isset($this->_checkedComponents[$comp->getName()])) {
                     $comp->init();
@@ -794,7 +882,7 @@ class jInstaller {
             throw new jInstallerException ('module.needed', array($component->getName(), $compNeeded));
         }
     }
-    
+
     protected function startMessage () {
         $this->nbError = 0;
         $this->nbOk = 0;
@@ -802,7 +890,7 @@ class jInstaller {
         $this->nbNotice = 0;
         $this->reporter->start();
     }
-    
+
     protected function endMessage() {
         $this->reporter->end(array('error'=>$this->nbError, 'warning'=>$this->nbWarning, 'ok'=>$this->nbOk,'notice'=>$this->nbNotice));
     }

@@ -7,7 +7,7 @@
 * @contributor  Thibault Piront (nuKs)
 * @contributor  Mickael Fradin, Brunto
 * @contributor  Vincent Morel
-* @copyright    2007-2009 Laurent Jouanneau
+* @copyright    2007-2018 Laurent Jouanneau
 * @copyright    2007 Thibault Piront
 * @copyright    2007,2008 Bastien Jaillot
 * @copyright    2009 Mickael Fradin, 2011 Brunto
@@ -43,7 +43,7 @@ class jControllerDaoCrud extends jController {
      * list of properties to show in the list page
      * if empty list (default), it shows all properties.
      * this property is only usefull when you use the default "list" template
-     * @var array
+     * @var string[]
      */
     protected $propertiesForList = array();
 
@@ -51,7 +51,7 @@ class jControllerDaoCrud extends jController {
      * list of properties which serve to order the record list.
      * if empty list (default), the list is in a natural order.
      * keys are properties name, and values are "asc" or "desc".
-     * @var array
+     * @var string[]
      */
     protected $propertiesForRecordsOrder = array();
 
@@ -72,6 +72,13 @@ class jControllerDaoCrud extends jController {
      * @var string
      */
     protected $viewTemplate = 'jelix~crud_view';
+
+    /**
+     * template to show error when a record is not found
+     * @var string
+     * @since 1.6.17
+     */
+    protected $viewErrorTemplate = 'jelix~404.html';
 
     /**
      * number of record to display in the list page
@@ -128,6 +135,8 @@ class jControllerDaoCrud extends jController {
      * Typically, you call jForms::create and then you can call addControl or whatever.
      * Don't do a jForms::get or jForms::fill in this method !
      * called in methods: index, precreate, create, preupdate, view
+     *
+     * @param string|integer $formId
      * @return jFormsBase the form
      * @since 1.1
      */
@@ -140,6 +149,8 @@ class jControllerDaoCrud extends jController {
      * Typically, you call jForms::get and then you can call addControl or whatever.
      * Don't do a jForms::create or jForms::fill in this method !
      * called in methods: create, savecreate, editupdate, saveupdate
+     *
+     * @param string|integer $formId
      * @return jFormsBase the form
      * @since 1.1
      */
@@ -321,6 +332,10 @@ class jControllerDaoCrud extends jController {
 
         if($form->check() && $this->_checkData($form, false)){
             $results = $form->prepareDaoFromControls($this->dao,null,$this->dbProfile);
+            /** @var \jDaoRecordBase $form_daorec
+             * @var \jDaoFactoryBase $form_dao
+             * @var boolean $form_toInsert
+             */
             extract($results, EXTR_PREFIX_ALL, "form");//use a temp variable to avoid notices
             $this->_beforeSaveCreate($form, $form_daorec);
             $form_dao->insert($form_daorec);
@@ -464,6 +479,10 @@ class jControllerDaoCrud extends jController {
         $rep->params[$this->offsetParameterName] = $page;
         if($form->check() && $this->_checkData($form, true)){
             $results = $form->prepareDaoFromControls($this->dao,$id,$this->dbProfile);
+            /** @var \jDaoRecordBase $form_daorec
+             * @var \jDaoFactoryBase $form_dao
+             * @var boolean $form_toInsert
+             */
             extract($results, EXTR_PREFIX_ALL, "form");//use a temp variable to avoid notices
             $this->_beforeSaveUpdate($form, $form_daorec, $id);
             $form_dao->update($form_daorec);
@@ -505,17 +524,29 @@ class jControllerDaoCrud extends jController {
             return $rep;
         }
         $rep = $this->_getResponse();
+        $tpl = new jTpl();
 
         // we're using a form to display a record, to have the portunity to have
         // labels with each values. We need also him to load easily values of some
         // of controls with initControlFromDao (to use in _view method).
         $form = $this->_createForm($id);
-        $form->initFromDao($this->dao, $id, $this->dbProfile);
+        try {
+            $rec = $form->initFromDao($this->dao, $id, $this->dbProfile);
+        }
+        catch(jExceptionForms $e) {
+            if ($this->viewErrorTemplate) {
+                $rep->body->assign($this->templateAssign, $tpl->fetch($this->viewErrorTemplate));
+                $rep->setHttpStatus('404', 'Not Found');
+                return $rep;
+            }
+            // for backward compatibility
+            throw $e;
+        }
 
-        $tpl = new jTpl();
         $tpl->assign('id', $id);
         $tpl->assign('form',$form);
         $tpl->assign('page',$page);
+        $tpl->assign('record', $rec);
         $tpl->assign('offsetParameterName',$this->offsetParameterName);
         $tpl->assign('editAction' , $this->_getAction('preupdate'));
         $tpl->assign('deleteAction' , $this->_getAction('delete'));

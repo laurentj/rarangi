@@ -34,6 +34,7 @@ class sqliteDbTools extends jDbTools {
 
       'float'           =>array('float',            'float',    null,       null,       null,     null), //4bytes
       'money'           =>array('real',             'float',    null,       null,       null,     null), //4bytes
+      'smallmoney'      =>array('float',            'float',    null,       null,       null,     null), //4bytes
       'double precision'=>array('double',           'decimal',  null,       null,       null,     null), //8bytes
       'double'          =>array('double',           'decimal',  null,       null,       null,     null), //8bytes
       'real'            =>array('real',             'decimal',  null,       null,       null,     null), //8bytes
@@ -48,6 +49,9 @@ class sqliteDbTools extends jDbTools {
       'date'            =>array('date',       'date',       null,       null,       10,    10),
       'time'            =>array('time',       'time',       null,       null,       8,     8),
       'datetime'        =>array('datetime',   'datetime',   null,       null,       19,    19),
+      'datetime2'       =>array('datetime',   'datetime',   null,       null,       19,    27), // sqlsrv / 9999-12-31 23:59:59.9999999
+      'datetimeoffset'  =>array('datetime',   'datetime',   null,       null,       19,    34), // sqlsrv / 9999-12-31 23:59:59.9999999 +14:00
+      'smalldatetime'   =>array('datetime',   'datetime',   null,       null,       19,    19), // sqlsrv / 2079-06-06 23:59
       'timestamp'       =>array('datetime',   'datetime',   null,       null,       19,    19), // oracle/pgsql timestamp
       'utimestamp'      =>array('integer',    'integer',    0,          2147483647, null,  null), // mysql timestamp
       'year'            =>array('integer',    'year',       null,       null,       2,     4),
@@ -65,8 +69,9 @@ class sqliteDbTools extends jDbTools {
       'string'          =>array('varchar',    'varchar',    null,       null,       0,     65535),// for old dao files
 
       'tinytext'        =>array('text',   'text',       null,       null,       0,     255),
-      'text'            =>array('text',       'text',       null,       null,       0,     65535),
-      'mediumtext'      =>array('text', 'text',       null,       null,       0,     16777215),
+      'text'            =>array('text',   'text',       null,       null,       0,     65535),
+      'ntext'           =>array('text',   'text',       null,       null,       0,     0),
+      'mediumtext'      =>array('text',   'text',       null,       null,       0,     16777215),
       'longtext'        =>array('text',   'text',       null,       null,       0,     0),
       'long'            =>array('text',   'text',       null,       null,       0,     0),
       'clob'            =>array('text',   'text',       null,       null,       0,     0),
@@ -84,10 +89,12 @@ class sqliteDbTools extends jDbTools {
       'varbinary'       =>array('blob',  'varbinary',  null,       null,       0,     255),
       'raw'             =>array('blob',  'varbinary',  null,       null,       0,     2000),
       'long raw'        =>array('blob',  'varbinary',  null,       null,       0,     0),
+      'image'           =>array('blob',  'varbinary',   null,       null,       0,     0),
 
       'enum'            =>array('varchar',    'varchar',    null,       null,       0,     65535),
       'set'             =>array('varchar',    'varchar',    null,       null,       0,     65535),
       'xmltype'         =>array('varchar',    'varchar',    null,       null,       0,     65535),
+      'xml'             =>array('text',       'text',       null,       null,       0,     0),
 
       'point'           =>array('varchar',    'varchar',    null,       null,       0,     16),
       'line'            =>array('varchar',    'varchar',    null,       null,       0,     32),
@@ -104,29 +111,118 @@ class sqliteDbTools extends jDbTools {
       'complex types'   =>array('varchar',    'varchar',    null,       null,       0,     65535),
     );
 
-    /**
-    * returns the list of tables 
-    * @return   array    list of table names
-    */
-    public function getTableList (){
-        $results = array ();
+    protected $keywordNameCorrespondence = array(
+        // sqlsrv,mysql,oci -> date+time, pgsql -> date+time (+tz)
+        'current_timestamp' => 'datetime(\'now\', \'localtime\')',
+        // mysql,oci,pgsql -> date
+        'current_date' => 'date(\'now\', \'localtime\')',
+        // mysql -> time, pgsql -> time+timezone
+        'current_time' => 'time(\'now\', \'localtime\')',
+        // oci -> date+fractional secon + timezone
+        //'systimestamp' => '',
+        // oci -> date+time
+        'sysdate' => 'datetime(\'now\', \'localtime\')',
+        // pgsql -> time
+        'localtime' => 'time(\'now\', \'localtime\')',
+        // pgsql -> date+time
+        'localtimestamp' => 'datetime(\'now\', \'localtime\')',
+    );
 
-        $rs = $this->_conn->query('SELECT name FROM sqlite_master WHERE type="table"');
+    protected $functionNameCorrespondence = array(
 
-        while ($line = $rs->fetch ()){
-            $results[] = $line->name;
+        // sqlsrv, -> date+time
+        'sysdatetime' => 'datetime(\'now\', \'localtime\')',
+        // sqlsrv, -> date+time+offset
+        'sysdatetimeoffset' => 'datetime(\'now\', \'localtime\')',
+        // sqlsrv, -> date+time at utc
+        'sysutcdatetime' => 'datetime(\'now\')',
+        // sqlsrv -> date+time
+        'getdate' => 'datetime(\'now\', \'localtime\')',
+        // sqlsrv -> date+time at utc
+        'getutcdate' => 'strftime(\'%d\', \'now\')',
+        // sqlsrv,mysql (datetime)-> integer
+        'day' => 'strftime(\'%d\', %!p, \'localtime\')',
+        // sqlsrv,mysql (datetime)-> integer
+        'month' => 'strftime(\'%m\', %!p, \'localtime\')',
+        // sqlsrv, mysql (datetime)-> integer
+        'year' => 'strftime(\'%Y\', %!p, \'localtime\')',
+        // mysql -> date
+        'curdate' => 'date(\'now\', \'localtime\')',
+        // mysql -> date
+        'current_date' => 'date(\'now\', \'localtime\')',
+        // mysql -> time
+        'curtime' => 'time(\'now\', \'localtime\')',
+        // mysql -> time
+        'current_time' => 'time(\'now\', \'localtime\')',
+        // mysql,pgsql -> date+time
+        'now' => 'datetime(\'now\', \'localtime\')',
+        // mysql date+time
+        'current_timestamp' => 'date(\'now\', \'localtime\')',
+        // mysql (datetime)->date, sqlite (timestring, modifier)->date
+        //'date' => '!dateConverter',
+        // mysql = day()
+        'dayofmonth' => 'strftime(\'%d\', %!p, \'localtime\')',
+        // mysql -> date+time
+        'localtime' => 'datetime(\'now\', \'localtime\')',
+        // mysql -> date+time
+        'localtimestamp' => 'datetime(\'now\', \'localtime\')',
+        // mysql utc current date
+        'utc_date' => 'date(\'now\')',
+        // mysql utc current time
+        'utc_time' => 'time(\'now\')',
+        // mysql utc current date+time
+        'utc_timestamp' => 'datetime(\'now\')',
+        // mysql (datetime)->time, , sqlite (timestring, modifier)->time
+        //'time' => '!timeConverter',
+        // mysql (datetime/time)-> hour
+        'hour'=> 'strftime(\'%H\', %!p, \'localtime\')',
+        // mysql (datetime/time)-> minute
+        'minute'=> 'strftime(\'%M\', %!p, \'localtime\')',
+        // mysql (datetime/time)-> second
+        'second'=> 'strftime(\'%S\', %!p, \'localtime\')',
+        // sqlite (timestring, modifier)->datetime
+        //'datetime' => '',
+        // oci, mysql (year|month|day|hour|minute|second FROM <datetime>)->value ,
+        // pgsql (year|month|day|hour|minute|second <datetime>)->value
+        'extract' => '!extractDateConverter',
+        // pgsql ('year'|'month'|'day'|'hour'|'minute'|'second', <datetime>)->value
+        'date_part' => '!extractDateConverter',
+        // sqlsrv (year||month|day|hour|minute|second, <datetime>)->value
+        'datepart' => '!extractDateConverter',
+
+    );
+
+    protected $literalFilterToSubstitions = array(
+        'year' => '%Y',
+        'month' => '%m',
+        'day' => '%d',
+        'hour' => '%H',
+        'minute' => '%M',
+        'seconde' => '%S',
+    );
+
+    protected function extractDateConverter($parametersString) {
+        if (preg_match("/^'?([a-z]+)'?(?:\s*,\s*|\s+FROM(?: TIMESTAMP)?\s+|\s+)(.*)$/i", $parametersString, $p) &&
+            isset($this->literalFilterToSubstitions[strtolower($p[1])])
+        ) {
+            $param2 = $this->parseSQLFunctionAndConvert(strtolower($p[2]));
+            return 'strftime(\''.$this->literalFilterToSubstitions[$p[1]].'\', '.$param2.', \'localtime\')';
         }
-
-        return $results;
+        else {
+            // probably some parameters are variables, we cannot guess what is asked
+            // at compile time...
+            return 'date_part('.$parametersString.')';
+        }
     }
 
     /**
     * retrieve the list of fields of a table
     * @param string $tableName the name of the table
     * @param string $sequence  the sequence used to auto increment the primary key (not supported here)
-    * @return   array    keys are field names and values are jDbFieldProperties objects
+    * @param string $schemaName the name of the schema (only for PostgreSQL, not supported here)
+    * @return   jDbFieldProperties[]    keys are field names and values are jDbFieldProperties objects
     */
-    public function getFieldList ($tableName, $sequence='') {
+    public function getFieldList ($tableName, $sequence='', $schemaName='') {
 
         $tableName = $this->_conn->prefixTable($tableName);
         $results = array ();

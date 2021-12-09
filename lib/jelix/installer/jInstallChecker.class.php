@@ -3,11 +3,11 @@
 * check a jelix installation
 *
 * @package  jelix
-* @subpackage core
+* @subpackage installer
 * @author   Laurent Jouanneau
 * @contributor Bastien Jaillot
 * @contributor Olivier Demah, Brice Tence, Julien Issler
-* @copyright 2007-2011 Laurent Jouanneau, 2008 Bastien Jaillot, 2009 Olivier Demah, 2010 Brice Tence, 2011 Julien Issler
+* @copyright 2007-2014 Laurent Jouanneau, 2008 Bastien Jaillot, 2009 Olivier Demah, 2010 Brice Tence, 2011 Julien Issler
 * @link     http://www.jelix.org
 * @licence  GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 * @since 1.0b2
@@ -16,7 +16,7 @@
 /**
  * check an installation of a jelix application
  * @package  jelix
- * @subpackage core
+ * @subpackage installer
  * @since 1.0b2
  */
 class jInstallCheck {
@@ -129,7 +129,7 @@ class jInstallCheck {
             $this->error('php.bad.version');
             $notice = $this->messages->get('php.version.required', $this->buildProperties['PHP_VERSION_TARGET']);
             $notice.= '. '.$this->messages->get('php.version.current',phpversion());
-            $this->reporter->showNotice($notice);
+            $this->reporter->message($notice, 'notice');
             $ok=false;
         }
         else if ($this->verbose) {
@@ -138,9 +138,6 @@ class jInstallCheck {
 
         $extensions = array( 'dom', 'SPL', 'SimpleXML', 'pcre', 'session',
             'tokenizer', 'iconv', 'filter', 'json');
-
-        if($this->buildProperties['ENABLE_PHP_JELIX'] == '1')
-            $extensions[] = 'jelix';
 
         foreach($extensions as $name){
             if(!extension_loaded($name)){
@@ -153,26 +150,60 @@ class jInstallCheck {
         }
 
         if (count($this->databases)) {
-            $req = ($this->dbRequired?'required':'optional');
+            $driversInfos = jDbParameters::getDriversInfosList();
             $okdb = false;
-            if (class_exists('PDO'))
-                $pdodrivers = PDO::getAvailableDrivers();
-            else
-                $pdodrivers = array();
 
-            foreach($this->databases as $name){
-                if(!extension_loaded($name) && !in_array($name, $pdodrivers)){
-                    $this->notice('extension.not.installed', $name);
-                }
-                else {
-                    $okdb = true;
-                    if ($this->verbose)
-                        $this->ok('extension.installed', $name);
+            array_combine($this->databases, array_fill(0, count($this->databases), false));
+
+            $alreadyExtensionsChecked = array();
+            $okdatabases = array();
+            foreach($this->databases as $name) {
+                foreach($driversInfos as $driverInfo) {
+                    list($dbType, $nativeExt, $pdoExt, $jdbDriver, $pdoDriver) = $driverInfo;
+
+                    if ($name == $dbType || $name == $nativeExt || $name == $pdoDriver) {
+                        if (extension_loaded($nativeExt)) {
+                            if (!isset($alreadyExtensionsChecked[$nativeExt])) {
+                                if ($this->verbose) {
+                                    $this->ok('extension.installed', $nativeExt);
+                                }
+                                $alreadyExtensionsChecked[$nativeExt] = true;
+                                $okdb = true;
+                                $okdatabases[$name] = true;
+                            }
+                        }
+                        else {
+                            if (!isset($alreadyExtensionsChecked[$nativeExt])) {
+                                if ($this->verbose) {
+                                    $this->notice('extension.not.installed', $nativeExt);
+                                }
+                                $alreadyExtensionsChecked[$nativeExt] = false;
+                            }
+                        }
+                        if (extension_loaded($pdoExt)) {
+                            if (!isset($alreadyExtensionsChecked[$pdoExt])) {
+                                if ($this->verbose) {
+                                    $this->ok('extension.installed', $pdoExt);
+                                }
+                                $alreadyExtensionsChecked[$pdoExt] = true;
+                                $okdb = true;
+                                $okdatabases[$name] = true;
+                            }
+                        }
+                        else {
+                            if (!isset($alreadyExtensionsChecked[$pdoExt])) {
+                                if ($this->verbose) {
+                                    $this->notice('extension.not.installed', $pdoExt);
+                                }
+                                $alreadyExtensionsChecked[$pdoExt] = false;
+                            }
+                        }
+                    }
                 }
             }
             if ($this->dbRequired) {
                 if ($okdb) {
-                    $this->ok('extension.database.ok');
+                    $this->ok('extension.database.ok', implode(',', array_keys($okdatabases)));
                 }
                 else {
                     $this->error('extension.database.missing');
@@ -181,7 +212,7 @@ class jInstallCheck {
             }
             else {
                 if ($okdb) {
-                    $this->ok('extension.database.ok2');
+                    $this->ok('extension.database.ok2', implode(',', array_keys($okdatabases)));
                 }
                 else {
                     $this->notice('extension.database.missing2');
@@ -243,9 +274,15 @@ class jInstallCheck {
                 $this->error('path.profiles.writable');
                 $ok = false;
             }
-            if (file_exists(jApp::configPath('defaultconfig.ini.php'))
+            if (file_exists(jApp::mainConfigFile())
+                && !is_writable(jApp::mainConfigFile())) {
+                $this->error('path.mainconfig.writable');
+                $ok = false;
+            }
+            // TODO: remove it in future jelix > 1.6
+            elseif (file_exists(jApp::configPath('defaultconfig.ini.php'))
                 && !is_writable(jApp::configPath('defaultconfig.ini.php'))) {
-                $this->error('path.defaultconfig.writable');
+                $this->error('path.mainconfig.writable');
                 $ok = false;
             }
             if (file_exists(jApp::configPath('installer.ini.php'))
@@ -261,7 +298,7 @@ class jInstallCheck {
         }
 
         foreach($this->otherPaths as $path) {
-            $realPath = str_replace(array('app:','lib:','var:', 'www:'), array(jApp::appPath(), LIB_PATH, jApp::varPath(), jApp::wwwPath()), $path);
+            $realPath = jFile::parseJelixPath( $path );
             if (!file_exists($realPath)) {
                 $this->error('path.custom.not.exists', array($path));
                 $ok = false;
@@ -298,15 +335,6 @@ class jInstallCheck {
 
     function checkPhpSettings(){
         $ok = true;
-        if (file_exists(jApp::configPath("defaultconfig.ini.php")))
-            $defaultconfig = parse_ini_file(jApp::configPath("defaultconfig.ini.php"), true);
-        else
-            $defaultconfig = array();
-        if (file_exists(jApp::configPath("index/config.ini.php")))
-            $indexconfig = parse_ini_file(jApp::configPath("index/config.ini.php"), true);
-        else
-            $indexconfig = array();
-
         if(ini_get('magic_quotes_gpc') == 1){
             $this->error('ini.magic_quotes_gpc');
             $ok=false;

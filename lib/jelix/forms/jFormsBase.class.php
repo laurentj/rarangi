@@ -6,7 +6,7 @@
 * @contributor Dominique Papin
 * @contributor Bastien Jaillot, Steven Jehannet
 * @contributor Christophe Thiriot, Julien Issler, Olivier Demah
-* @copyright   2006-2010 Laurent Jouanneau, 2007 Dominique Papin, 2008 Bastien Jaillot
+* @copyright   2006-2020 Laurent Jouanneau, 2007 Dominique Papin, 2008 Bastien Jaillot
 * @copyright   2008-2009 Julien Issler, 2009 Olivier Demah, 2010 Steven Jehannet
 * @link        http://www.jelix.org
 * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
@@ -42,65 +42,50 @@ abstract class jFormsBase {
 
     /**
      * List of all form controls
-     * array of jFormsControl objects
-     * @var array
-     * @see jFormsControl
+     * @var jFormsControl[]
      */
     protected $controls = array();
 
     /**
      * List of top controls
-     * array of jFormsControl objects
-     * @var array
-     * @see jFormsControl
+     * @var jFormsControl[]
      */
     protected $rootControls = array();
 
     /**
      * List of submit buttons
-     * array of jFormsControl objects
-     * @var array
-     * @see jFormsControl
+     * @var jFormsControlSubmit[]
      */
     protected $submits = array();
 
     /**
      * Reset button
-     * @var jFormsControl
-     * @see jFormsControl
+     * @var jFormsControlReset
      * @since 1.0
      */
     protected $reset = null;
 
     /**
      * List of uploads controls
-     * array of jFormsControl objects
-     * @var array
-     * @see jFormsControl
+     * @var jFormsControlUpload[]
      */
     protected $uploads = array();
 
     /**
      * List of hidden controls
-     * array of jFormsControl objects
-     * @var array
-     * @see jFormsControl
+     * @var jFormsControlHidden[]
      */
     protected $hiddens = array();
 
     /**
      * List of htmleditorcontrols
-     * array of jFormsControl objects
-     * @var array
-     * @see jFormsControl
+     * @var jFormsControlHtmlEditor[]
      */
     protected $htmleditors = array();
 
     /**
      * List of wikieditorcontrols
-     * array of jFormsControl objects
-     * @var array
-     * @see jFormsControl
+     * @var jFormsControlWikiEditor[]
      * @since 1.2
      */
     protected $wikieditors = array();
@@ -137,6 +122,9 @@ abstract class jFormsBase {
         $this->sel = $sel;
     }
 
+    /**
+     * @return string
+     */
     public function getSelector() {
         return $this->sel;
     }
@@ -152,6 +140,9 @@ abstract class jFormsBase {
         }
 
         foreach($this->rootControls as $name=>$ctrl){
+            if ($ctrl instanceof jFormsControlSecret || $ctrl instanceof jFormsControlSecretConfirm ) {
+                jApp::config()->error_handling['sensitiveParameters'][] = $ctrl->ref;
+            }
             if(!$this->container->isActivated($name) || $this->container->isReadOnly($name))
                 continue;
             $ctrl->setValueFromRequest($req);
@@ -247,17 +238,31 @@ abstract class jFormsBase {
 
     /**
      * set form data from a DAO
-     * @param string $daoSelector the selector of a dao file
-     * @param string $key the primary key for the dao. if null, takes the form ID as primary key
+     *
+     * @param string|jDaoRecordBase $daoSelector the selector of a dao file or a DAO record
+     * @param string $key the primary key for the dao. if null, takes
+     *                    the form ID as primary key. Only needed when string
+     *                    dao selector given.
      * @param string $dbProfile the jDb profile to use with the dao
-     * @see jDao
      * @return jDaoRecordBase
+     * @throws jExceptionForms
+     * @see jDao
      */
     public function initFromDao($daoSelector, $key = null, $dbProfile=''){
-        if($key === null)
-            $key = $this->container->formId;
-        $dao = jDao::create($daoSelector, $dbProfile);
-        $daorec = $dao->get($key);
+
+        if (is_object($daoSelector)) {
+            $daorec = $daoSelector;
+            $daoSelector = $daorec->getSelector();
+            $dao = jDao::get($daoSelector, $dbProfile);
+        }
+        else {
+            $dao = jDao::create($daoSelector, $dbProfile);
+            if ($key === null) {
+                $key = $this->container->formId;
+            }
+            $daorec = $dao->get($key);
+        }
+
         if(!$daorec) {
             if(is_array($key))
                 $key = var_export($key,true);
@@ -279,7 +284,7 @@ abstract class jFormsBase {
      * @param string $daoSelector the selector of a dao file
      * @param string $key the primary key for the dao. if null, takes the form ID as primary key
      * @param string $dbProfile the jDb profile to use with the dao
-     * @return mixed return three vars : $daorec, $dao, $toInsert which have to be extracted
+     * @return array return three vars : $daorec, $dao, $toInsert which have to be extracted
      * @see jDao
      */
     public function prepareDaoFromControls($daoSelector, $key = null, $dbProfile=''){
@@ -311,6 +316,11 @@ abstract class jFormsBase {
      */
     public function saveToDao($daoSelector, $key = null, $dbProfile=''){
         $results = $this->prepareDaoFromControls($daoSelector,$key,$dbProfile);
+        /**
+         * @var  boolean $toInsert
+         * @var jDaoRecordBase $daorec
+         * @var jDaoFactoryBase $dao
+         */
         extract($results); //use a temp variable to avoid notices
         if($toInsert){
             // todo : what about updating the formId with the Pk ?
@@ -333,11 +343,12 @@ abstract class jFormsBase {
      * you should provide the list of property names which corresponds to the primary key
      * in this order : properties for the formId, followed by the property which contains
      * the value.
-     * @param string $name  the name of the control
+     * @param string $name the name of the control
      * @param string $daoSelector the selector of a dao file
-     * @param mixed  $primaryKey the primary key if the form have no id. (optional)
-     * @param mixed  $primaryKeyNames list of field corresponding to primary keys (optional)
+     * @param mixed $primaryKey the primary key if the form have no id. (optional)
+     * @param mixed $primaryKeyNames list of field corresponding to primary keys (optional)
      * @param string $dbProfile the jDb profile to use with the dao
+     * @throws jExceptionForms
      * @see jDao
      */
     public function initControlFromDao($name, $daoSelector, $primaryKey = null, $primaryKeyNames=null, $dbProfile=''){
@@ -399,11 +410,12 @@ abstract class jFormsBase {
      * All existing records which have the formid in their keys are deleted
      * before to insert new values.
      *
-     * @param string $controlName  the name of the control
+     * @param string $controlName the name of the control
      * @param string $daoSelector the selector of a dao file
-     * @param mixed  $primaryKey the primary key if the form have no id. (optional)
-     * @param mixed  $primaryKeyNames list of field corresponding to primary keys (optional)
+     * @param mixed $primaryKey the primary key if the form have no id. (optional)
+     * @param mixed $primaryKeyNames list of field corresponding to primary keys (optional)
      * @param string $dbProfile the jDb profile to use with the dao
+     * @throws jExceptionForms
      * @see jDao
      */
     public function saveControlToDao($controlName, $daoSelector, $primaryKey = null, $primaryKeyNames=null, $dbProfile=''){
@@ -471,11 +483,16 @@ abstract class jFormsBase {
     /**
      *
      * @param string $name the name of the control/data
-     * @param string $value the data value
+     * @param string|string[] $value the data value
+     * @throws jExceptionForms
      */
     public function setData($name, $value) {
-        if (!isset($this->controls[$name]))
-            throw new jExceptionForms('jelix~formserr.unknown.control2', array($name, $this->sel));
+        if (!isset($this->controls[$name])) {
+            throw new jExceptionForms(
+                'jelix~formserr.unknown.control2',
+                array($name, $this->sel)
+            );
+        }
 
         $this->controls[$name]->setData($value);
     }
@@ -499,8 +516,9 @@ abstract class jFormsBase {
     /**
      * deactivate (or reactivate) a control
      * When a control is deactivated, it is not displayes anymore in the output form
-     * @param string $name  the name of the control
-     * @param boolean $deactivation   TRUE to deactivate, or FALSE to reactivate
+     * @param string $name the name of the control
+     * @param boolean $deactivation TRUE to deactivate, or FALSE to reactivate
+     * @throws jExceptionForms
      */
     public function deactivate($name, $deactivation=true) {
         if (!isset($this->controls[$name]))
@@ -521,7 +539,9 @@ abstract class jFormsBase {
 
     /**
      * set a control readonly or not
+     * @param $name
      * @param boolean $r true if you want read only
+     * @throws jExceptionForms
      */
     public function setReadOnly($name, $r = true) {
         if (!isset($this->controls[$name]))
@@ -545,12 +565,12 @@ abstract class jFormsBase {
 
 
     /**
-     * @return array of jFormsControl objects
+     * @return jFormsControl[]
      */
     public function getRootControls(){ return $this->rootControls; }
 
     /**
-     * @return array of jFormsControl objects
+     * @return jFormsControl[]
      */
     public function getControls(){ return $this->controls; }
 
@@ -566,36 +586,36 @@ abstract class jFormsBase {
     }
 
     /**
-     * @return array of jFormsControl objects
+     * @return jFormsControlSubmit[]
      */
     public function getSubmits(){ return $this->submits; }
 
      /**
-     * @return array of jFormsControl objects
+     * @return jFormsControlHidden[]
      * @since 1.1
      */
     public function getHiddens(){ return $this->hiddens; }
 
      /**
-     * @return array of jFormsControl objects
+     * @return jFormsControlHtmlEditor[]
      * @since 1.1
      */
     public function getHtmlEditors(){ return $this->htmleditors; }
 
      /**
-     * @return array of jFormsControl objects
+     * @return jFormsControlWikiEditor[]
      * @since 1.2
      */
     public function getWikiEditors(){ return $this->wikieditors; }
 
     /**
-     * @return array of jFormsControl objects
+     * @return jFormsControlUpload[]
      * @since 1.2
      */
     public function getUploads(){ return $this->uploads; }
 
     /**
-     * call this method after initilization of the form, in order to track
+     * call this method after initialization of the form, in order to track
      * modified controls
      * @since 1.1
      */
@@ -637,25 +657,43 @@ abstract class jFormsBase {
             return $this->container->data;
     }
 
+    /**
+     * @param mixed $v1
+     * @param mixed $v2
+     *
+     * @return bool true if the values are not equals
+     */
     protected function _diffValues(&$v1, &$v2) {
         if (is_array($v1) && is_array($v2)) {
             $comp = array_merge(array_diff($v1, $v2),array_diff($v2, $v1));
             return !empty($comp);
         }
-        elseif(empty($v1) && empty($v2)){
+
+        if ($v1 === $v2) {
             return false;
         }
-        elseif (is_array($v1) || is_array($v2)) {
+
+        if (($v1 === '' && $v2 === null) || ($v1 === null && $v2 === '')) {
+            return false;
+        }
+
+        if (is_numeric($v1) != is_numeric($v2)) {
             return true;
         }
-        else {
-            return !($v1==$v2);
-            //return !($v2== (string)$v1);
+
+        if (empty($v1) && empty($v2)) {
+            return false;
         }
+
+        if (is_array($v1) || is_array($v2)) {
+            return true;
+        }
+
+        return ($v1 != $v2);
     }
 
     /**
-     * @return array of jFormsControl objects
+     * @return jFormsControlReset the reset object
      */
     public function getReset(){ return $this->reset; }
 
@@ -670,9 +708,10 @@ abstract class jFormsBase {
     public function hasUpload() { return count($this->uploads)>0; }
 
     /**
-     * @param string $buildertype  the type name of a form builder.
+     * @param string $buildertype the type name of a form builder.
      *          if the name begins by 'legacy.', it load a legacy builder plugin (jelix <=1.4)
-     * @return \jelix\forms\Builder\BuilderBase | jFormsBuilderBase
+     * @return \jelix\forms\Builder\BuilderBase|jFormsBuilderBase
+     * @throws jExceptionForms
      */
     public function getBuilder($buildertype){
 
@@ -715,7 +754,8 @@ abstract class jFormsBase {
      *                     it will be stored under the var/uploads/_modulename~formname_/ directory
      * @param string $alternateName a new name for the file. If it is not given, the file
      *                              while be stored with the original name
-     * @return boolean true if the file has been saved correctly
+     * @return bool true if the file has been saved correctly
+     * @throws jExceptionForms
      */
     public function saveFile($controlName, $path='', $alternateName='') {
         if ($path == '') {
@@ -727,19 +767,8 @@ abstract class jFormsBase {
         if(!isset($this->controls[$controlName]) || $this->controls[$controlName]->type != 'upload')
             throw new jExceptionForms('jelix~formserr.invalid.upload.control.name', array($controlName, $this->sel));
 
-        if(!isset($_FILES[$controlName]) || $_FILES[$controlName]['error']!= UPLOAD_ERR_OK)
-            return false;
-
-        if($this->controls[$controlName]->maxsize && $_FILES[$controlName]['size'] > $this->controls[$controlName]->maxsize){
-            return false;
-        }
         jFile::createDir($path);
-        if ($alternateName == '') {
-            $path.= $_FILES[$controlName]['name'];
-        } else {
-            $path.= $alternateName;
-        }
-        return move_uploaded_file($_FILES[$controlName]['tmp_name'], $path);
+        return $this->controls[$controlName]->saveFile($path, $alternateName);
     }
 
     /**
@@ -751,20 +780,15 @@ abstract class jFormsBase {
         if ($path == '') {
             $path = jApp::varPath('uploads/'.$this->sel.'/');
         } else if (substr($path, -1, 1) != '/') {
-            $path.='/';
+            $path .= '/';
         }
 
-        if(count($this->uploads))
+        if (count($this->uploads)) {
             jFile::createDir($path);
+        }
 
         foreach($this->uploads as $ref=>$ctrl){
-
-            if(!isset($_FILES[$ref]) || $_FILES[$ref]['error']!= UPLOAD_ERR_OK)
-                continue;
-            if($ctrl->maxsize && $_FILES[$ref]['size'] > $ctrl->maxsize)
-                continue;
-
-            move_uploaded_file($_FILES[$ref]['tmp_name'], $path.$_FILES[$ref]['name']);
+            $ctrl->saveFile($path);
         }
     }
 

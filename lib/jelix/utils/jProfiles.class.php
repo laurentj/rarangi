@@ -24,7 +24,7 @@ class jProfiles {
 
     /**
      * pool of objects loaded for profiles
-     * @var array   array of object
+     * @var object[]
      */
     protected static $_objectPool = array();
 
@@ -35,27 +35,29 @@ class jProfiles {
     }
 
     /**
-    * load properties of a profile.
-    *
-    * A profile is a section in the profiles.ini.php file. Profiles are belong
-    * to a category. Each section names is composed by "category:profilename".
-    *
-    * The given name can be a profile name or an alias of a profile. An alias
-    * is a parameter name in the category section of the ini file, and the value
-    * of this parameter should be a profile name.
-    *
-    * @param string $category     the profile category
-    * @param string   $name  profile name or alias of a profile name. if empty, use the default profile
-    * @param boolean  $noDefault  if true and if the profile doesn't exist, throw an error instead of getting the default profile
-    * @return array  properties
-    */
+     * load properties of a profile.
+     *
+     * A profile is a section in the profiles.ini.php file. Profiles are belong
+     * to a category. Each section names is composed by "category:profilename".
+     *
+     * The given name can be a profile name or an alias of a profile. An alias
+     * is a parameter name in the category section of the ini file, and the value
+     * of this parameter should be a profile name.
+     *
+     * @param string $category the profile category
+     * @param string $name profile name or alias of a profile name. if empty, use the default profile
+     * @param boolean $noDefault if true and if the profile doesn't exist, throw an error instead of getting the default profile
+     * @return array properties
+     * @throws jException
+     */
     public static function get ($category, $name='', $noDefault = false) {
         if (self::$_profiles === null) {
             self::loadProfiles();
         }
 
-        if ($name == '')
+        if ($name == '') {
             $name = 'default';
+        }
         $section = $category.':'.$name;
         $targetName = $section;
 
@@ -71,8 +73,9 @@ class jProfiles {
 
         if (isset(self::$_profiles[$section])) {
             self::$_profiles[$section]['_name'] = $name;
-            if ($common)
+            if ($common) {
                 return array_merge($common, self::$_profiles[$section]);
+            }
             return self::$_profiles[$section];
         }
         else if (isset(self::$_profiles[$category][$name])) {
@@ -84,8 +87,9 @@ class jProfiles {
         elseif (!$noDefault) {
             if (isset(self::$_profiles[$category.':default'])) {
                 self::$_profiles[$category.':default']['_name'] = 'default';
-                if ($common)
+                if ($common) {
                     return array_merge($common, self::$_profiles[$category.':default']);
+                }
                 return self::$_profiles[$category.':default'];
             }
             elseif (isset(self::$_profiles[$category]['default'])) {
@@ -122,7 +126,7 @@ class jProfiles {
     }
 
     /**
-     * store an object in the objects pool, corresponding to a profile
+     * get an object from the objects pool, corresponding to a profile
      * @param string $category the profile category
      * @param string $name the name of the profile (value of _name in the retrieved profile)
      * @return object|null the stored object
@@ -160,6 +164,7 @@ class jProfiles {
      * @param string $name the name of the profile
      * @param array|string $params parameters of the profile. key=parameter name, value=parameter value.
      *                      we can also indicate a name of an other profile, to create an alias
+     * @throws jException
      */
     public static function createVirtualProfile ($category, $name, $params) {
         if ($name == '') {

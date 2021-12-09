@@ -11,7 +11,7 @@
 /**
 * utility class to read and modify two ini files at the same time :
 * one master file, and one file which overrides values of the master file,
-* like we have in jelix with defaultconfig.ini.php and config.ini.php of an entry point
+* like we have in jelix with mainconfig.ini.php and config.ini.php of an entry point
 * @package    jelix
 * @subpackage utils
 * @since 1.1
@@ -63,6 +63,15 @@ class jIniMultiFilesModifier {
         }
     }
 
+    public function setValues($values, $section=0, $onMaster = false) {
+        if ($onMaster) {
+            $this->master->setValues($values, $section);
+        }
+        else {
+            $this->overrider->setValues($values, $section);
+        }
+    }
+
     /**
      * return the value of an option from the ini files. If the option doesn't exist,
      * it returns null.
@@ -86,12 +95,20 @@ class jIniMultiFilesModifier {
         }
     }
 
+    public function removeValue($name, $section=0, $key=null, $removePreviousComment = true, $masterOnly = false) {
+        $this->master->removeValue($name, $section, $key, $removePreviousComment);
+        if ($masterOnly) {
+            return;
+        }
+        $this->overrider->removeValue($name, $section, $key, $removePreviousComment);
+    }
+
     /**
      * save the ini files
      */
-    public function save() {
-        $this->master->save();
-        $this->overrider->save();
+    public function save($chmod=null) {
+        $this->master->save($chmod);
+        $this->overrider->save($chmod);
     }
 
     /**
@@ -110,13 +127,21 @@ class jIniMultiFilesModifier {
     public function getMaster() {
         return $this->master;
     }
-    
+
     /**
      * @return jIniFileModifier the second ini file
      * @since 1.2
      */
     public function getOverrider() {
         return $this->overrider;
+    }
+
+    /**
+     * says if there is a section with the given name.
+     */
+    public function isSection($name)
+    {
+        return $this->overrider->isSection($name) || $this->master->isSection($name);
     }
 }
 

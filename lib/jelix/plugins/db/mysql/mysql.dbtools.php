@@ -4,7 +4,7 @@
 * @subpackage db_driver
 * @author     Gérald Croes, Laurent Jouanneau
 * @contributor Laurent Jouanneau
-* @copyright  2001-2005 CopixTeam, 2005-2011 Laurent Jouanneau
+* @copyright  2001-2005 CopixTeam, 2005-2017 Laurent Jouanneau
 * This class was get originally from the Copix project (CopixDbToolsMysql, Copix 2.3dev20050901, http://www.copix.org)
 * Some lines of code are copyrighted 2001-2005 CopixTeam (LGPL licence).
 * Initial authors of this Copix class are Gerald Croes and Laurent Jouanneau,
@@ -39,6 +39,7 @@ class mysqlDbTools extends jDbTools {
 
       'float'           =>array('float',            'float',    null,       null,       null,     null), //4bytes
       'money'           =>array('float',            'float',    null,       null,       null,     null), //4bytes
+      'smallmoney'      =>array('float',            'float',    null,       null,       null,     null),
       'double precision'=>array('double precision', 'decimal',  null,       null,       null,     null), //8bytes
       'double'          =>array('double precision', 'decimal',  null,       null,       null,     null), //8bytes
       'real'            =>array('real',             'decimal',  null,       null,       null,     null), //8bytes
@@ -53,6 +54,9 @@ class mysqlDbTools extends jDbTools {
       'date'            =>array('date',       'date',       null,       null,       10,    10),
       'time'            =>array('time',       'time',       null,       null,       8,     8),
       'datetime'        =>array('datetime',   'datetime',   null,       null,       19,    19),
+      'datetime2'       =>array('datetime',   'datetime',   null,       null,       19,    27), // sqlsrv / 9999-12-31 23:59:59.9999999
+      'datetimeoffset'  =>array('datetime',   'datetime',   null,       null,       19,    34), // sqlsrv / 9999-12-31 23:59:59.9999999 +14:00
+      'smalldatetime'   =>array('datetime',   'datetime',   null,       null,       19,    19), // sqlsrv / 2079-06-06 23:59
       'timestamp'       =>array('datetime',   'datetime',   null,       null,       19,    19), // oracle/pgsql timestamp
       'utimestamp'      =>array('timestamp',  'integer',    0,          2147483647, null,  null), // mysql timestamp
       'year'            =>array('year',       'year',       null,       null,       2,     4),
@@ -71,6 +75,7 @@ class mysqlDbTools extends jDbTools {
 
       'tinytext'        =>array('tinytext',   'text',       null,       null,       0,     255),
       'text'            =>array('text',       'text',       null,       null,       0,     65535),
+      'ntext'           =>array('text',       'text',       null,       null,       0,     0),
       'mediumtext'      =>array('mediumtext', 'text',       null,       null,       0,     16777215),
       'longtext'        =>array('longtext',   'text',       null,       null,       0,     0),
       'long'            =>array('longtext',   'text',       null,       null,       0,     0),
@@ -89,10 +94,12 @@ class mysqlDbTools extends jDbTools {
       'varbinary'       =>array('varbinary',  'varbinary',  null,       null,       0,     255),
       'raw'             =>array('varbinary',  'varbinary',  null,       null,       0,     2000),
       'long raw'        =>array('varbinary',  'varbinary',  null,       null,       0,     0),
+      'image'           =>array('varbinary',  'varbinary',  null,       null,       0,     0),
 
       'enum'            =>array('varchar',    'varchar',    null,       null,       0,     65535),
       'set'             =>array('varchar',    'varchar',    null,       null,       0,     65535),
       'xmltype'         =>array('varchar',    'varchar',    null,       null,       0,     65535),
+      'xml'             =>array('text',       'text',       null,       null,       0,     0),
 
       'point'           =>array('varchar',    'varchar',    null,       null,       0,     16),
       'line'            =>array('varchar',    'varchar',    null,       null,       0,     32),
@@ -109,43 +116,99 @@ class mysqlDbTools extends jDbTools {
       'complex types'   =>array('varchar',    'varchar',    null,       null,       0,     65535),
     );
 
+
+    protected $keywordNameCorrespondence = array(
+        // sqlsrv,mysql,oci,pgsql -> date+time
+        //'current_timestamp' => '',
+        // mysql,oci,pgsql -> date
+        //'current_date' => '',
+        // mysql -> time, pgsql -> time+timezone
+        //'current_time' => '',
+        // oci -> date+fractional secon + timezone
+        'systimestamp' => 'current_timestamp',
+        // oci -> date+time+tz
+        'sysdate' => 'current_timestamp',
+        // pgsql -> time
+        'localtime' => 'current_time',
+        // pgsql -> date+time
+        //'localtimestamp' => '',
+    );
+
+    protected $functionNameCorrespondence = array(
+
+        // sqlsrv, -> date+time
+        'sysdatetime' => 'current_timestamp',
+        // sqlsrv, -> date+time+offset
+        'sysdatetimeoffset' => 'current_timestamp',
+        // sqlsrv, -> date+time at utc
+        'sysutcdatetime' => 'UTC_TIMESTAMP()',
+        // sqlsrv -> date+time
+        'getdate' => 'current_timestamp',
+        // sqlsrv -> date+time at utc
+        'getutcdate' => 'UTC_TIMESTAMP()',
+        // sqlsrv,mysql (datetime)-> integer
+        //'day' => '',
+        // sqlsrv,mysql (datetime)-> integer
+        //'month' => '',
+        // sqlsrv, mysql (datetime)-> integer
+        //'year' => '',
+        // mysql -> date
+        //'curdate' => '',
+        // mysql -> date
+        //'current_date' => '',
+        // mysql -> time
+        //'curtime' => '',
+        // mysql -> time
+        //'current_time' => '',
+        // mysql,pgsql -> date+time
+        //'now' => '',
+        // mysql date+time
+        //'current_timestamp' => '',
+        // mysql (datetime)->date, sqlite (timestring, modifier)->date
+        //'date' => '!dateConverter',
+        // mysql = day()
+        //'dayofmonth' => '',
+        // mysql -> date+time
+        //'localtime' => '',
+        // mysql -> date+time
+        //'localtimestamp' => '',
+        // mysql utc current date
+        //'utc_date' => '',
+        // mysql utc current time
+        //'utc_time' => '',
+        // mysql utc current date+time
+        //'utc_timestamp' => '',
+        // mysql (datetime)->time, , sqlite (timestring, modifier)->time
+        //'time' => '!timeConverter',
+        // mysql (datetime/time)-> hour
+        //'hour'=> '',
+        // mysql (datetime/time)-> minute
+        //'minute'=> '',
+        // mysql (datetime/time)-> second
+        //'second'=> '',
+        // sqlite (timestring, modifier)->datetime
+        'datetime' => 'DATE_FORMAT(%1p, \'%Y-%m-%d %H:%i:%s\')',
+        // oci, mysql (year|month|day|hour|minute|second FROM <datetime>)->value ,
+        // pgsql (year|month|day|hour|minute|second <datetime>)->value
+        'extract' => '!extractDateConverter',
+        // pgsql ('year'|'month'|'day'|'hour'|'minute'|'second', <datetime>)->value
+        'date_part' => '!extractDateConverter',
+        // sqlsrv (year||month|day|hour|minute|second, <datetime>)->value
+        'datepart' => '!extractDateConverter',
+    );
+
     public function encloseName($name){
         return '`'.$name.'`';
-    }
-
-    /**
-    * returns the list of tables
-    * @return   array    list of table names
-    */
-    public function getTableList () {
-        $results = array ();
-        if (isset($this->_conn->profile['database'])) {
-            $db = $this->_conn->profile['database'];
-        }
-        else if (isset($this->_conn->profile['dsn'])
-                 && preg_match('/dbname=([a-z0-9_ ]*)/', $this->_conn->profile['dsn'], $m)){
-            $db = $m[1];
-        }
-        else {
-            throw new jException("jelix~error.no.database.name", $this->_conn->profile['name']);
-        }
-        $rs = $this->_conn->query ('SHOW TABLES FROM '.$this->encloseName($db));
-        $col_name = 'Tables_in_'.$db;
-
-        while ($line = $rs->fetch ()){
-            $results[] = $line->$col_name;
-        }
-
-        return $results;
     }
 
     /**
     * retrieve the list of fields of a table
     * @param string $tableName the name of the table
     * @param string $sequence  the sequence used to auto increment the primary key (not supported here)
-    * @return   array    keys are field names and values are jDbFieldProperties objects
+    * @param string $schemaName the name of the schema (only for PostgreSQL, not supported here)
+    * @return   jDbFieldProperties[]    keys are field names and values are jDbFieldProperties objects
     */
-    public function getFieldList ($tableName, $sequence='') {
+    public function getFieldList ($tableName, $sequence='', $schemaName='') {
 
         $tableName = $this->_conn->prefixTable($tableName);
         $results = array ();
@@ -209,11 +272,10 @@ class mysqlDbTools extends jDbTools {
      */
     protected function parseSQLScript($script) {
 
-        $delimiters = array();
         $distinctDelimiters = array(';');
         if(preg_match_all("/DELIMITER ([^\n]*)/i", $script, $d, PREG_SET_ORDER)) {
             $delimiters = $d[1];
-            $distinctDelimiters = array_unique(array_merge($distinctDelimiters,$delimiters));
+            $distinctDelimiters = array_unique(array_merge($distinctDelimiters, $delimiters));
         }
         $preg= '';
         foreach($distinctDelimiters as $dd) {

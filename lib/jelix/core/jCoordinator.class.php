@@ -119,19 +119,20 @@ class jCoordinator {
     }
 
     /**
-    * initialize the given request and some properties of the coordinator
-    *
-    * It extracts information for the request to set the module name and the
-    * action name. It doesn't verify if the corresponding controller does
-    * exist or not.
-    * It enables also the error handler of Jelix, if needed.
-    * Does not call this method directly in entry points. Prefer to call
-    * process() instead (that will call setRequest). 
-    * setRequest is mostly used for tests or specific contexts.
-    * @param  jRequest  $request the request object
-    * @throw jException if the module is unknown or the action name format is not valid
-    * @see jCoordinator::process()
-    */
+     * initialize the given request and some properties of the coordinator
+     *
+     * It extracts information for the request to set the module name and the
+     * action name. It doesn't verify if the corresponding controller does
+     * exist or not.
+     * It enables also the error handler of Jelix, if needed.
+     * Does not call this method directly in entry points. Prefer to call
+     * process() instead (that will call setRequest).
+     * setRequest is mostly used for tests or specific contexts.
+     * @param  jRequest $request the request object
+     * @throws jException
+     * @throw jException if the module is unknown or the action name format is not valid
+     * @see jCoordinator::process()
+     */
     protected function setRequest ($request) {
 
         $config = jApp::config();
@@ -161,12 +162,13 @@ class jCoordinator {
     }
 
     /**
-    * main method : launch the execution of the action.
-    *
-    * This method should be called in a entry point.
-    *
-    * @param  jRequest  $request the request object. It is required if a descendant of jCoordinator did not called setRequest before
-    */
+     * main method : launch the execution of the action.
+     *
+     * This method should be called in a entry point.
+     *
+     * @param  jRequest $request the request object. It is required if a descendant of jCoordinator did not called setRequest before
+     * @throws jException
+     */
     public function process ($request=null) {
 
         try {
@@ -242,24 +244,38 @@ class jCoordinator {
     /**
      * get the controller corresponding to the selector
      * @param jSelectorAct $selector
+     * @return jController the controller corresponding to the selector
+     * @throws jException
      */
     protected function getController($selector){
 
         $ctrlpath = $selector->getPath();
+        if (isset($_SERVER['HTTP_REFERER'])) {
+            $referer = ' REFERER:'.$_SERVER['HTTP_REFERER'];
+        }
+        else {
+            $referer = '';
+        }
         if(!file_exists($ctrlpath)){
-            throw new jException('jelix~errors.ad.controller.file.unknown',array($this->actionName,$ctrlpath));
+            throw new jException('jelix~errors.ad.controller.file.unknown',array($this->actionName,$ctrlpath.$referer));
         }
         require_once($ctrlpath);
         $class = $selector->getClass();
         if(!class_exists($class,false)){
-            throw new jException('jelix~errors.ad.controller.class.unknown',array($this->actionName,$class, $ctrlpath));
+            throw new jException('jelix~errors.ad.controller.class.unknown',array($this->actionName,$class, $ctrlpath.$referer));
         }
         $ctrl = new $class($this->request);
-        if($ctrl instanceof jIRestController){
-            $method = $selector->method = strtolower($_SERVER['REQUEST_METHOD']);
-        }elseif(!is_callable(array($ctrl, $selector->method))){
-            throw new jException('jelix~errors.ad.controller.method.unknown',array($this->actionName, $selector->method, $class, $ctrlpath));
+        if ($ctrl instanceof jIRestController) {
+            $selector->method = strtolower($_SERVER['REQUEST_METHOD']);
         }
+        elseif (!is_callable(array($ctrl, $selector->method))) {
+            throw new jException('jelix~errors.ad.controller.method.unknown',array($this->actionName, $selector->method, $class, $ctrlpath.$referer));
+        }
+        if (property_exists ($ctrl , 'sensitiveParameters')) {
+            $config = jApp::config();
+            $config->error_handling['sensitiveParameters'] = array_merge($config->error_handling['sensitiveParameters'], $ctrl->sensitiveParameters);
+        }
+
         return $ctrl;
     }
 
@@ -281,10 +297,9 @@ class jCoordinator {
      * @param   string      $errmsg     error message
      * @param   string      $filename   filename where the error appears
      * @param   integer     $linenum    line number where the error appears
-     * @param   array       $errcontext
      * @since 1.4
      */
-    function errorHandler($errno, $errmsg, $filename, $linenum, $errcontext) {
+    function errorHandler($errno, $errmsg, $filename, $linenum) {
 
         if (error_reporting() == 0)
             return;
@@ -372,11 +387,12 @@ class jCoordinator {
     }
 
     /**
-    * gets a given coordinator plugin if registered
-    * @param string   $pluginName   the name of the plugin
-    * @param boolean  $required  says if the plugin is required or not. If true, will generate an exception if the plugin is not registered.
-    * @return jICoordPlugin
-    */
+     * gets a given coordinator plugin if registered
+     * @param string $pluginName the name of the plugin
+     * @param boolean $required says if the plugin is required or not. If true, will generate an exception if the plugin is not registered.
+     * @return jICoordPlugin
+     * @throws jException
+     */
     public function getPlugin ($pluginName, $required = true){
         $pluginName = strtolower ($pluginName);
         if (isset ($this->plugins[$pluginName])){

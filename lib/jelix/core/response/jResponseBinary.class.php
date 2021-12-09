@@ -6,7 +6,7 @@
 * @contributor Nicolas Lassalle <nicolas@beroot.org> (ticket #188), Julien Issler
 * @copyright   2005-2010 Laurent Jouanneau
 * @copyright   2007 Nicolas Lassalle
-* @copyright   2009 Julien Issler
+* @copyright   2009-2016 Julien Issler
 * @link        http://www.jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
@@ -56,8 +56,14 @@ final class jResponseBinary  extends jResponse {
     public $mimeType = 'application/octet-stream';
 
     /**
+     * Delete file after the upload
+     */
+    public $deleteFileAfterSending = false;
+
+    /**
      * send the content or the file to the browser.
-     * @return boolean    true it it's ok
+     * @return bool true it it's ok
+     * @throws jException
      */
     public function output(){
 
@@ -66,25 +72,32 @@ final class jResponseBinary  extends jResponse {
             return true;
         }
 
-        if($this->doDownload){
-            if (!strlen($this->outputFileName)){
-                $f = explode ('/', str_replace ('\\', '/', $this->fileName));
-                $this->outputFileName = $f[count ($f)-1];
-            }
+        if ($this->outputFileName === '' && $this->fileName !== ''){
+            $f = explode ('/', str_replace ('\\', '/', $this->fileName));
+            $this->outputFileName = $f[count ($f)-1];
         }
 
-        $this->addHttpHeader("Content-Type",$this->mimeType, $this->doDownload);
+        $this->addHttpHeader('Content-Type' ,$this->mimeType, $this->doDownload);
 
-        if($this->doDownload)
-              $this->_downloadHeader();
+        if ($this->doDownload)
+            $this->_downloadHeader();
+        else
+            $this->addHttpHeader ('Content-Disposition', 'inline; filename="'.str_replace('"','\"',$this->outputFileName).'"', false);
 
         if ($this->content === null) {
             if (is_readable ($this->fileName) && is_file ($this->fileName)) {
                 $this->_httpHeaders['Content-Length']=filesize ($this->fileName);
                 $this->sendHttpHeaders();
+                if ($this->deleteFileAfterSending) {
+                    // ignore, to be able to delete file
+                    ignore_user_abort(true);
+                }
                 session_write_close();
                 readfile ($this->fileName);
                 flush();
+                if ($this->deleteFileAfterSending) {
+                    unlink($this->fileName);
+                }
             }
             else {
                 throw new jException('jelix~errors.repbin.unknown.file' , $this->fileName);

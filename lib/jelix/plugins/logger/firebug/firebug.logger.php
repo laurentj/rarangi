@@ -1,7 +1,7 @@
 <?php
 /**
 * @package     jelix
-* @subpackage  logger
+* @subpackage  logger_plugin
 * @author      Laurent Jouanneau
 * @contributor Julien Issler
 * @copyright   2010 Laurent Jouanneau
@@ -43,7 +43,6 @@ if(console){';
             case 'error':
                 $src.= 'console.error("';
                 break;
-            case 'warning':
             case 'notice':
                 $src.= 'console.debug("';
                 break;

@@ -1,7 +1,7 @@
 <?php
 /**
 * @package    jelix
-* @subpackage core
+* @subpackage core_log
 * @author     Laurent Jouanneau
 * @contributor Brice Tence
 * @copyright  2006-2012 Laurent Jouanneau, 2011 Brice Tence
@@ -102,11 +102,11 @@ class jLogErrorMessage implements jILogMessage {
 
         // url params including module and action
         if (jApp::coord() && ($req = jApp::coord()->request)) {
-            $params = str_replace("\n", ' ', var_export($req->params, true));
+            $params = $this->sanitizeParams($req->params);
             $remoteAddr = $req->getIP();
         }
         else {
-            $params = isset($_SERVER['QUERY_STRING'])?$_SERVER['QUERY_STRING']:'';
+            $params = $this->sanitizeParams(isset($_GET)?$_GET:array());
             // When we are in cmdline we need to fix the remoteAddr
             $remoteAddr = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '127.0.0.1';
         }
@@ -132,10 +132,20 @@ class jLogErrorMessage implements jILogMessage {
             '%file%' => $this->file,
             '%line%' => $this->line,
             '%trace%' => $traceLog,
+            '%http_method%' => isset($_SERVER['REQUEST_METHOD'])?$_SERVER['REQUEST_METHOD']:'Unknown method',
             '\t' =>"\t",
             '\n' => "\n"
         ));
 
         return $messageLog;
+    }
+
+    protected function sanitizeParams($params) {
+        foreach(jApp::config()->error_handling['sensitiveParameters'] as $param) {
+            if ($param != '' && isset($params[$param])) {
+                $params[$param] = '***';
+            }
+        }
+        return str_replace("\n", ' ', var_export($params, true));
     }
 }

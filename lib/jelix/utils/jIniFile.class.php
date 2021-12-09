@@ -3,8 +3,8 @@
 * @package    jelix
 * @subpackage utils
 * @author     Loic Mathaud
-* @contributor Laurent Jouanneau
-* @copyright  2006 Loic Mathaud, 2008-2012 Laurent Jouanneau
+* @contributor Laurent Jouanneau, Erika31, Julien Issler
+* @copyright  2006 Loic Mathaud, 2008-2012 Laurent Jouanneau, 2017 Erika31, 2017 Julien Issler
 * @link        http://www.jelix.org
 * @licence  http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -20,7 +20,7 @@ class jIniFile {
     /**
      * read an ini file
      * @param string $filename the path and the name of the file to read
-     * @return array the content of the file or false
+     * @return array|false the content of the file or false if the ini format is invalid
      */
     public static function read($filename) {
         if ( file_exists ($filename) ) {
@@ -36,9 +36,12 @@ class jIniFile {
      * the read method (or parse_ini_file)
      * @param array $array the content of an ini file
      * @param string $filename the path and the name of the file use to store the content
-     * @param string $header   some content to insert at the begining of the file
+     * @param string $header some content to insert at the begining of the file
+     * @param integer $chmod
+     * @throws Exception
+     * @throws jException
      */
-    public static function write($array, $filename, $header='') {
+    public static function write($array, $filename, $header='', $chmod=null) {
         $result='';
         foreach ($array as $k => $v) {
             if (is_array($v)) {
@@ -55,6 +58,9 @@ class jIniFile {
         if ($f = @fopen($filename, 'wb')) {
             fwrite($f, $header.$result);
             fclose($f);
+            if ($chmod) {
+                chmod($filename, $chmod);
+            }
         } else {
             // jIniFile is used by the configs compiler. There is no configuration
             // object in that case. we need to generate an error without using jLocale
@@ -77,9 +83,12 @@ class jIniFile {
             foreach($value as $v)
                 $res.=self::_iniValue($key.'[]', $v);
             return $res;
-        } else if ($value == ''
-                  || is_numeric($value)
-                  || (preg_match("/^[\w-.]*$/", $value) && strpos("\n",$value) === false)) {
+        } elseif ($value == ''
+            || is_numeric($value)
+            || (is_string($value) &&
+                preg_match("/^[\w\\-\\.]*$/", $value) &&
+                strpos("\n", $value) === false)
+        ) {
             return $key.'='.$value."\n";
         } else if($value === false) {
             return $key."=0\n";

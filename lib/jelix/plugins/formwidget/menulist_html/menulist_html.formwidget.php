@@ -1,11 +1,11 @@
 <?php
 /**
 * @package     jelix
-* @subpackage  formwidgets
+* @subpackage  forms_widget_plugin
 * @author      Claudio Bernardes
 * @contributor Laurent Jouanneau, Julien Issler, Dominique Papin
 * @copyright   2012 Claudio Bernardes
-* @copyright   2006-2012 Laurent Jouanneau, 2008-2011 Julien Issler, 2008 Dominique Papin
+* @copyright   2006-2015 Laurent Jouanneau, 2008-2015 Julien Issler, 2008 Dominique Papin
 * @link        http://www.jelix.org
 * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -13,7 +13,7 @@
 /**
  * HTML form builder
  * @package     jelix
- * @subpackage  jelix-plugins
+ * @subpackage  forms_widget_plugin
  * @link http://developer.jelix.org/wiki/rfc/jforms-controls-plugins
  */
 
@@ -24,8 +24,8 @@ class menulist_htmlFormWidget extends \jelix\forms\HtmlWidget\WidgetBase {
 
         $this->parentWidget->addJs("c = new ".$jFormsJsVarName."ControlString('".$ctrl->ref."', ".$this->escJsStr($ctrl->label).");\n");
         if ($ctrl instanceof jFormsControlDatasource
-            && $ctrl->datasource instanceof jFormsDaoDatasource) {
-            $dependentControls = $ctrl->datasource->getDependentControls();
+            && $ctrl->datasource instanceof jIFormsDynamicDatasource) {
+            $dependentControls = $ctrl->datasource->getCriteriaControls();
             if ($dependentControls) {
                 $this->parentWidget->addJs("c.dependencies = ['".implode("','",$dependentControls)."'];\n");
                 $this->parentWidget->addFinalJs("jFormsJQ.tForm.declareDynamicFill('".$ctrl->ref."');\n");
@@ -36,7 +36,7 @@ class menulist_htmlFormWidget extends \jelix\forms\HtmlWidget\WidgetBase {
 
     function outputControl() {
         $attr = $this->getControlAttributes();
-        $value = $this->getValue($this->ctrl);
+        $value = $this->getValue();
 
         if (isset($attr['readonly'])) {
             $attr['disabled'] = 'disabled';

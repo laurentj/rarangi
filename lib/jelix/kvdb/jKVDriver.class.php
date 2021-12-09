@@ -4,11 +4,12 @@
  * @subpackage  kvdb
  * @author      Yannick Le Guédart
  * @contributor Laurent Jouanneau
- * @copyright   2009 Yannick Le Guédart, 2010 Laurent Jouanneau
+ * @copyright   2009 Yannick Le Guédart, 2010-2014 Laurent Jouanneau
  *
  * @link     http://www.jelix.org
  * @licence  http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
  */
+
 /**
  * interface for KV driver which store values in a persistent manner (in a file...)
  */
@@ -40,6 +41,7 @@ interface jIKVttl {
      */
     public function garbage();
 }
+
 /**
  *
  */
@@ -80,7 +82,7 @@ abstract class jKVDriver {
     /**
      * Name of the driver.
      *
-     * @var object
+     * @var object|resource
      */
     protected $_connection = null;
 
@@ -196,5 +198,12 @@ abstract class jKVDriver {
 
     abstract protected function _connect();
     abstract protected function _disconnect();
+
+    protected function isResource($value) {
+        if (function_exists('\\Jelix\\Utilities\\is_resource')) {
+            return \Jelix\Utilities\is_resource($value);
+        }
+        return is_resource($value);
+    }
 }
 

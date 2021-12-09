@@ -1,7 +1,7 @@
 <?php
 /**
 * @package     jelix
-* @subpackage  formwidgets
+* @subpackage  forms_widget_plugin
 * @author      Claudio Bernardes
 * @contributor Laurent Jouanneau, Julien Issler, Dominique Papin
 * @copyright   2012 Claudio Bernardes
@@ -13,7 +13,7 @@
 /**
  * HTML form builder
  * @package     jelix
- * @subpackage  jelix-plugins
+ * @subpackage  forms_widget_plugin
  * @link http://developer.jelix.org/wiki/rfc/jforms-controls-plugins
  */
 
@@ -39,8 +39,8 @@ class captcha_htmlFormWidget extends  \jelix\forms\HtmlWidget\WidgetBase {
     function outputControl() {
         $attr = $this->getControlAttributes();
 
-        $this->ctrl->initExpectedValue();
-        echo '<span class="jforms-captcha-question">',htmlspecialchars($this->ctrl->question),'</span> ';
+        $data = $this->ctrl->initCaptcha();
+        echo '<span class="jforms-captcha-question">',htmlspecialchars($data['question']),'</span> ';
 
         unset($attr['readonly']);
         $attr['type'] = 'text';

@@ -3,7 +3,7 @@
  * @package    jelix
  * @subpackage core
  * @author     Laurent Jouanneau
- * @copyright  2005-2012 Laurent Jouanneau
+ * @copyright  2005-2014 Laurent Jouanneau
  *   Idea of this class was picked from the Copix project (CopixInclude, Copix 2.3dev20050901, http://www.copix.org)
  * @link       http://www.jelix.org
  * @licence    GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
@@ -20,7 +20,7 @@
 interface jISimpleCompiler {
     /**
      * parse the given file, and store the result in a cache file
-     * @param jSelector $aSelector the file selector
+     * @param jISelector $aSelector the file selector
      * @return boolean true : process ok
      */
     public function compile($aSelector);
@@ -51,6 +51,7 @@ interface jIMultiFileCompiler {
      */
     public function endCompile($cachefile);
 }
+
 /**
  * This object is responsible to load cache files.
  * Some jelix files needs to be compiled in PHP (templates, daos etc..) and their
@@ -79,8 +80,10 @@ class jIncluder {
     /**
      * includes cache of the correspondant file selector
      * check the cache, compile if needed, and include the cache
-     * @param    jISelector   $aSelectorId    the selector corresponding to the file
-    */
+     * @param jISelector $aSelector
+     * @throws jException
+     * @internal param jISelector $aSelectorId the selector corresponding to the file
+     */
     public static function inc($aSelector){
 
         $cachefile = $aSelector->getCompiledFilePath();
@@ -133,10 +136,9 @@ class jIncluder {
     *    'foo.php',  //cache filename
     *    );
     */
-    public static function incAll($aType){
-
+    public static function incAll($aType, $force = false){
         $cachefile = jApp::tempPath('compiled/'.$aType[3]);
-        if(isset(jIncluder::$_includedFiles[$cachefile])){
+        if(isset(jIncluder::$_includedFiles[$cachefile]) && !$force){
             return;
         }
 

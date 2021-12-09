@@ -26,7 +26,11 @@ class jAppManager {
      * @since 1.2
      */
     public static function close($message='') {
-        file_put_contents(jApp::configPath('CLOSED'), $message);
+        $file = jApp::configPath('CLOSED');
+        file_put_contents($file, $message);
+        if (jApp::config()) {
+            chmod($file, jApp::config()->chmodFile);
+        }
     }
 
     /**
@@ -64,6 +68,8 @@ class jAppManager {
         if (!is_writeable($path))
             throw new Exception('given temp path does not exists', 4);
 
-        jFile::removeDir($path, false);
+        // do not erase .empty or .dummy files that are into the temp directory
+        // for source code repositories
+        jFile::removeDir($path, false, array('.dummy', '.empty', '.svn'));
     }
 }

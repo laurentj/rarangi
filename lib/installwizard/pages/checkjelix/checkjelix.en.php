@@ -28,8 +28,8 @@ $locales = array(
         'extension.optional.installed'=>'the optional extension %s is available',
         'extension.required.installed'=>'the required extension %s is available',
         'extensions.required.ok'=>'All needed PHP extensions are available',
-        'extension.database.ok'=>'The application will use a SQL database',
-        'extension.database.ok2'=>'The application can use SQL databases',
+        'extension.database.ok'=>'The application will use a SQL database: %s',
+        'extension.database.ok2'=>'The application can use SQL databases: %s',
         'extension.database.missing'=>'The application needs a SQL database',
         'extension.database.missing2'=>'The application couldn\'t use a SQL database',
         'path.core'             =>'jelix init.php file or application.ini.php file is not loaded',
@@ -40,7 +40,7 @@ $locales = array(
         'path.www'              =>'The application www path is not correctly set: www directory  doesn\'t exist!',
         'path.config.writable' =>'The directory var/config have not write rights',
         'path.profiles.writable'=>'The file profiles.ini.php have not write rights',
-        'path.defaultconfig.writable'=>'The file defaultconfig.ini.php have not write rights',
+        'path.mainconfig.writable'=>'The file mainconfig.ini.php have not write rights',
         'path.installer.writable'=>'The file installer.ini.php have not write rights',
         'path.custom.not.exists'=>'The file %s is not found, rights cannot be validated',
         'path.custom.writable'=>'The file %s have not write rights',
@@ -67,6 +67,10 @@ $locales = array(
         'module.bad.dependency.version'=>'The module %s needs another version of the module %s (%s - %s)',
         'module.installer.class.not.found'=>'The installation class %s for the module %s doesn\'t exist',
         'module.upgrader.class.not.found'=>'The upgrade class %s for the module %s doesn\'t exist',
+        'module.upgrader.missing.version'=>'Target version is missing for the upgrade script %s of the module %s',
+        'module.missing.version'=>'Version is missing from the module.xml file of the module %s',
+
+        'installer.ini.missing.version'=>'The previous version of the module %s is missing from the installer.ini.php file',
 
         'install.entrypoint.start'  =>'Installation starts for the entry point %s',
         'install.entrypoint.end'    =>'All modules are installed or upgraded for the entry point %s',
@@ -82,7 +86,7 @@ $locales = array(
         'install.module.error'          =>'An error occured during the installation of the module %s: %s',
         'install.module.check.dependency'=>'Check dependencies of the module %s',
         'install.module.upgraded'       =>'Module %s upgraded to the version %s',
-
+        'more.details'                  =>'More details',
 
 
 );

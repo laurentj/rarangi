@@ -37,26 +37,27 @@ abstract class jResponseXMLFeed extends jResponse {
     public $infos = null;
 
     /**
-    * array of channel item
-    */
+     * array of channel item
+     * @var jXMLFeedItem[]
+     */
     public $itemList = array ();
 
     /**
     * Template engine used for output
     * @var jtpl
     */
-    private $_template = null;
+    protected $_template = null;
 
     /**
      * template name
      * @var string
      */
-    private $_mainTpl = '';
+    protected $_mainTpl = '';
 
     /**
     * Array containing the XSL stylesheets links
     */
-    private $_xsl = array ();
+    protected $_xsl = array ();
 
     /**
      * Class constructor

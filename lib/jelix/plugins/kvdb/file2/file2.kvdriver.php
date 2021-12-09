@@ -1,7 +1,7 @@
 <?php
 /**
  * @package     jelix
- * @subpackage  kvdb
+ * @subpackage  kvdb_plugin
  * @author      Yannick Le Guédart
  * @contributor Laurent Jouanneau
  * @copyright   2009 Yannick Le Guédart, 2010 Laurent Jouanneau
@@ -31,11 +31,11 @@ class file2KVDriver extends jKVDriver {
 
    	protected function _disconnect() {}
 
-    protected function _doGet($key) {
+    public function get($key) {
         return $this->_connection->get($key);
     }
 
-    protected function _doSet($key, $value, $ttl) {
+    public function set($key, $value, $ttl) {
         return $this->_connection->set(
             $key,
             $value,
@@ -43,11 +43,11 @@ class file2KVDriver extends jKVDriver {
         );
     }
 
-    protected function _doDelete($key) {
+    public function delete($key) {
         return $this->_connection->delete($key);
     }
 
-    protected function _doFlush() {
+    public function flush() {
         return $this->_connection->flush();
     }
 }
@@ -101,6 +101,8 @@ class fileServer {
 
 					// rename the temporary file
 					$r = @rename("$fn.tmp", $fn);
+
+                    chmod($fn, jApp::config()->chmodFile);
 				}
 
 				// end of mutex zone

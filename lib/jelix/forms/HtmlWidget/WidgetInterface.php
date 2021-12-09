@@ -40,7 +40,7 @@ interface WidgetInterface {
 
     /**
      * add the CSS and javascript link
-     * @param jResponse $resp The response used
+     * @param \jResponseHtml $resp The response used
      */
     public function outputMetaContent($resp);
 
@@ -52,12 +52,17 @@ interface WidgetInterface {
     /**
      * displays the form field label.
      */
-    public function outputLabel();
+    public function outputLabel($format='', $editMode=true);
 
     /**
      * displays the form field itself
      */
     public function outputControl();
+
+    /**
+     * displays the value of the form field only
+     */
+    public function outputControlValue();
 
     /**
      * set attributes to add on the HTML element

@@ -7,7 +7,8 @@
 * @contributor Yannick Le Guédart
 * @contributor Laurent Raufaste
 * @contributor Julien Issler
-* @copyright  2001-2005 CopixTeam, 2005-2012 Laurent Jouanneau, 2007-2008 Laurent Raufaste
+* @contributor Alexandre Zanelli
+* @copyright  2001-2005 CopixTeam, 2005-2020 Laurent Jouanneau, 2007-2008 Laurent Raufaste
 * @copyright  2009 Julien Issler
 * This class was get originally from the Copix project (CopixDBConnectionPostgreSQL, Copix 2.3dev20050901, http://www.copix.org)
 * Few lines of code are still copyrighted 2001-2005 CopixTeam (LGPL licence).
@@ -34,11 +35,14 @@ class pgsqlDbConnection extends jDbConnection {
         parent::__construct($profile);
         if(isset($this->profile['single_transaction']) && ($this->profile['single_transaction'])){
             $this->beginTransaction();
-			$this->setAutoCommit(false);
-		}
-		else
-		{
-			$this->setAutoCommit(true);
+            $this->setAutoCommit(false);
+        }
+        else
+        {
+            $this->setAutoCommit(true);
+        }
+        if (version_compare(pg_parameter_status($this->_connection, "server_version"),'9.0') > -1) {
+            $this->_doExec('SET bytea_output = "escape"');
         }
     }
 
@@ -72,7 +76,7 @@ class pgsqlDbConnection extends jDbConnection {
     }
 
     public function prepare ($query){
-        $id=(string)mktime();
+        $id = microtime();
         $res = pg_prepare($this->_connection, $id, $query);
         if($res){
             $rs= new pgsqlDbResultSet ($res, $id, $this->_connection );
@@ -95,41 +99,71 @@ class pgsqlDbConnection extends jDbConnection {
 
         $str = '';
 
-        // we do a distinction because if the host is given == TCP/IP connection else unix socket
-        if($this->profile['host'] != '')
-            $str = 'host=\''.$this->profile['host'].'\''.$str;
+        // Service is PostgreSQL way to store credentials in a file :
+        // http://www.postgresql.org/docs/9.1/static/libpq-pgservice.html
+        // If given, no need to add host, user, database, port and password
+        if(isset($this->profile['service']) && $this->profile['service'] != ''){
+            $str = 'service=\''.$this->profile['service'].'\''.$str;
 
-        if (isset($this->profile['port'])) {
-            $str .= ' port=\''.$this->profile['port'].'\'';
+            // Database name may be given, even if service is used
+            // dbname should not be mandatory in service file
+            if (isset($this->profile['database']) && $this->profile['database'] != '') {
+                $str .= ' dbname=\''.$this->profile['database'].'\'';
+            }
         }
+        else {
+            // we do a distinction because if the host is given == TCP/IP connection else unix socket
+            if($this->profile['host'] != '')
+                $str = 'host=\''.$this->profile['host'].'\''.$str;
 
-        if ($this->profile['database'] != '') {
-            $str .= ' dbname=\''.$this->profile['database'].'\'';
-        }
+            if (isset($this->profile['port'])) {
+                $str .= ' port=\''.$this->profile['port'].'\'';
+            }
 
-        // we do isset instead of equality test against an empty string, to allow to specify
-        // that we want to use configuration set in environment variables
-        if (isset($this->profile['user'])) {
-            $str .= ' user=\''.$this->profile['user'].'\'';
-        }
+            if ($this->profile['database'] != '') {
+                $str .= ' dbname=\''.$this->profile['database'].'\'';
+            }
 
-        if (isset($this->profile['password'])) {
-            $str .= ' password=\''.$this->profile['password'].'\'';
+            // we do isset instead of equality test against an empty string, to allow to specify
+            // that we want to use configuration set in environment variables
+            if (isset($this->profile['user'])) {
+                $str .= ' user=\''.$this->profile['user'].'\'';
+            }
+
+            if (isset($this->profile['password'])) {
+                $str .= ' password=\''.$this->profile['password'].'\'';
+            }
         }
 
         if (isset($this->profile['timeout']) && $this->profile['timeout'] != '') {
             $str .= ' connect_timeout=\''.$this->profile['timeout'].'\'';
         }
 
+        if (isset($this->profile['pg_options']) && $this->profile['pg_options'] != '') {
+            $str .= ' options=\''.$this->profile['pg_options'].'\'';
+        }
+
+        if (isset($this->profile['force_new']) && $this->profile['force_new']) {
+            $cnx = @$funcconnect ($str, PGSQL_CONNECT_FORCE_NEW);
+        }
+        else {
+            $cnx = @$funcconnect ($str);
+        }
+
         // let's do the connection
-        if ($cnx = @$funcconnect ($str)) {
+        if ($cnx) {
             if (isset($this->profile['force_encoding']) && $this->profile['force_encoding'] == true
                && isset($this->_charsets[jApp::config()->charset])) {
                 pg_set_client_encoding($cnx, $this->_charsets[jApp::config()->charset]);
             }
         }
-		else {
-            throw new jException('jelix~db.error.connection',$this->profile['host']);
+        else {
+            if (isset($this->profile['service'])) {
+                $uri = $this->profile['service'];
+            } else {
+                $uri = $this->profile['host'];
+            }
+            throw new jException('jelix~db.error.connection',$uri);
         }
 
         if (isset($this->profile['search_path']) && trim($this->profile['search_path']) != '') {
@@ -142,7 +176,7 @@ class pgsqlDbConnection extends jDbConnection {
     }
 
     protected function _disconnect () {
-        return pg_close ($this->_connection);
+        return @pg_close ($this->_connection);
     }
 
     protected function _doQuery ($queryString){
@@ -150,7 +184,6 @@ class pgsqlDbConnection extends jDbConnection {
             $rs= new pgsqlDbResultSet ($qI);
             $rs->_connector = $this;
         }else{
-            $rs = false;
             throw new jException('jelix~db.error.query.bad',  pg_last_error($this->_connection).'('.$queryString.')');
         }
         return $rs;
@@ -192,8 +225,9 @@ class pgsqlDbConnection extends jDbConnection {
     }
 
     protected function _autoCommitNotify ($state){
-
-        $this->_doExec('SET AUTOCOMMIT TO '.($state ? 'ON' : 'OFF'));
+        if (version_compare(pg_parameter_status($this->_connection, "server_version"),'7.4')<0) {
+            $this->_doExec('SET AUTOCOMMIT TO '.($state ? 'ON' : 'OFF'));
+        }
     }
 
     protected function _quote($text, $binary) {
@@ -201,20 +235,20 @@ class pgsqlDbConnection extends jDbConnection {
             return pg_escape_bytea($this->_connection, $text);
         else
             return pg_escape_string($this->_connection, $text);
-	}
+    }
 
 
     /**
      *
-     * @param integer $id the attribut id
+     * @param integer $id the attribute id
      * @return string the attribute value
      * @see PDO::getAttribute()
      */
     public function getAttribute($id) {
         switch($id) {
             case self::ATTR_CLIENT_VERSION:
-				$v = pg_version($this->_connection);
-                return (array_key_exists($v['client']) ? $v['client'] : '');
+                $v = pg_version($this->_connection);
+                return (array_key_exists('client', $v) ? $v['client'] : '');
             case self::ATTR_SERVER_VERSION:
                 return pg_parameter_status($this->_connection, "server_version");
                 break;
@@ -223,7 +257,7 @@ class pgsqlDbConnection extends jDbConnection {
     }
 
     /**
-     * 
+     *
      * @param integer $id the attribut id
      * @param string $value the attribute value
      * @see PDO::setAttribute()
@@ -231,5 +265,27 @@ class pgsqlDbConnection extends jDbConnection {
     public function setAttribute($id, $value) {
     }
 
+
+    protected $serverVersion = 0;
+
+    public function getServerMajorVersion() {
+        if ($this->serverVersion === 0) {
+            $version = $this->getAttribute($this::ATTR_SERVER_VERSION);
+            if ($version != '') {
+                $version = explode('.', $version);
+                $this->serverVersion = intval($version[0]);
+            }
+        }
+        return $this->serverVersion;
+    }
+
+
+    public function getSearchPath()
+    {
+        if (isset($this->profile['search_path']) && trim($this->profile['search_path']) != '') {
+            return preg_split('/\s*,\s*/', trim($this->profile['search_path']));
+        }
+        return array('public');
+    }
 }
 

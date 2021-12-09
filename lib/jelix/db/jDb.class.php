@@ -136,7 +136,7 @@ class jDb {
      * @param array  $profile  profile properties
      * @return boolean  true if properties are ok
      */
-    public function testProfile ($profile) {
+    public static function testProfile ($profile) {
         try {
             self::_createConnector ($profile);
             $ok = true;
@@ -148,10 +148,11 @@ class jDb {
     }
 
     /**
-    * create a connector. internal use (callback method for jProfiles)
-    * @param array  $profile  profile properties
-    * @return jDbConnection|jDbPDOConnection  database connector
-    */
+     * create a connector. internal use (callback method for jProfiles)
+     * @param array $profile profile properties
+     * @return jDbConnection|jDbPDOConnection database connector
+     * @throws jException
+     */
     public static function _createConnector ($profile) {
         if ($profile['driver'] == 'pdo' || (isset($profile['usepdo']) && $profile['usepdo'])) {
             /*
@@ -173,16 +174,21 @@ class jDb {
      * PHP uses the local decimal separator, and so, we don't want that.
      * @since 1.1.11
      */
-    public static function floatToStr($value) {
-        if (is_float($value)) // this is a float
-            return rtrim(sprintf('%.20F', $value), '0'); // %F to not format with the local decimal separator
-        else if (is_integer($value))
+    public static function floatToStr($value)
+    {
+        if (is_float($value)) {
+            // we don't use floatval nor sprintf because of rounding errors (12.56 becomes 12.56000000000000049738)
+            return var_export($value, true);
+        }
+        else if (is_integer($value)) {
             return sprintf('%d', $value);
+        }
         // this is probably a string, so we expect that it contains a numerical value
         // is_numeric is true if the separator is ok for SQL
         // (is_numeric doesn't accept thousand separators nor other character than '.' as decimal separator)
-        else if (is_numeric($value))
+        else if (is_numeric($value)) {
             return $value;
+        }
 
         // we probably have a malformed float number here
         // if so, floatval will ignore all character after an invalid character (a ',' for example)

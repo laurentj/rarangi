@@ -3,7 +3,7 @@
  * @package     jelix
  * @subpackage  urls_engine
  * @author      Laurent Jouanneau
- * @copyright   2005-2012 Laurent Jouanneau
+ * @copyright   2005-2014 Laurent Jouanneau
  * @link        http://www.jelix.org
  * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
  */
@@ -54,6 +54,7 @@ class jSelectorUrlHandler extends jSelectorClass {
     }
 
 }
+
 /**
  * interface for user url handler
  * @package  jelix
@@ -76,6 +77,7 @@ interface jIUrlSignificantHandler {
     */
     public function create($urlact, $url);
 }
+
 /**
  * an url engine to parse,analyse and create significant url
  * it needs an urls.xml file in the config directory (see documentation)
@@ -118,8 +120,7 @@ class significantUrlEngine implements jIUrlEngine {
                 require($file);
                 $this->dataCreateUrl = & $GLOBALS['SIGNIFICANT_CREATEURL']; // given by jIncluder line 99
                 $this->dataParseUrl = & $GLOBALS['SIGNIFICANT_PARSEURL'][$snp];
-                $isHttps = ($request->getProtocol() == 'https://');
-                return $this->_parse($request->urlScript, $request->urlPathInfo, $params, $isHttps);
+                return $this->_parse($request->urlScript, $request->urlPathInfo, $params, $request->isHttps());
             }
         }
 
@@ -179,9 +180,9 @@ class significantUrlEngine implements jIUrlEngine {
         $isDefault = false;
         $url = new jUrl($scriptNamePath, $params, $pathinfo);
 
-        foreach ($this->dataParseUrl as $k=>$infoparsing) {
+        foreach ($this->dataParseUrl as $ninf=>$infoparsing) {
             // the first element indicates if the entry point is a default entry point or not
-            if ($k==0) {
+            if ($ninf==0) {
                 $isDefault = $infoparsing;
                 continue;
             }
@@ -292,7 +293,7 @@ class significantUrlEngine implements jIUrlEngine {
                                         jApp::config()->locale = jLocale::langToLocale($v);
                                     else {
                                         jApp::config()->locale = $v;
-                                        $params[$name] = substr($v, 0, strpos('_'));
+                                        $params[$name] = substr($v, 0, strpos($v, '_'));
                                     }
                                 }
                                 else if ($escapes[$k] & 8) {
@@ -335,16 +336,18 @@ class significantUrlEngine implements jIUrlEngine {
     }
 
     /**
-    * Create a jurl object with the given action data
-    * @param jUrlAction $url  information about the action
-    * @return jUrl the url correspondant to the action
-    * @author      Laurent Jouanneau
-    * @copyright   2005 CopixTeam, 2005-2006 Laurent Jouanneau
-    *   very few lines of code are copyrighted by CopixTeam, written by Laurent Jouanneau
-    *   and released under GNU Lesser General Public Licence,
-    *   in an experimental version of Copix Framework v2.3dev20050901,
-    *   http://www.copix.org.
-    */
+     * Create a jurl object with the given action data
+     * @param $urlact
+     * @return jUrl the url correspondant to the action
+     * @throws Exception
+     * @internal param jUrlAction $url information about the action
+     * @author      Laurent Jouanneau
+     * @copyright   2005 CopixTeam, 2005-2006 Laurent Jouanneau
+     *   very few lines of code are copyrighted by CopixTeam, written by Laurent Jouanneau
+     *   and released under GNU Lesser General Public Licence,
+     *   in an experimental version of Copix Framework v2.3dev20050901,
+     *   http://www.copix.org.
+     */
     public function create($urlact) {
 
         if ($this->dataCreateUrl == null) {
@@ -456,9 +459,9 @@ class significantUrlEngine implements jIUrlEngine {
 
         // at this step, we have informations to build the url
 
-        $url->scriptName = jApp::config()->urlengine['basePath'].$urlinfo[1];
+        $url->scriptName = jApp::urlBasePath().$urlinfo[1];
         if ($urlinfo[2])
-            $url->scriptName = jApp::coord()->request->getServerURI(true).$url->scriptName;
+            $url->scriptName = jServer::getServerURI(true).$url->scriptName;
 
         if ($urlinfo[1] && !jApp::config()->urlengine['multiview']) {
             $url->scriptName .= '.php';

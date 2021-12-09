@@ -3,7 +3,7 @@
 * @package     jelix
 * @subpackage  installer
 * @author      Laurent Jouanneau
-* @copyright   2009-2010 Laurent Jouanneau
+* @copyright   2009-2020 Laurent Jouanneau
 * @link        http://jelix.org
 * @licence     GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 */
@@ -13,14 +13,48 @@
  */
 class jInstallerEntryPoint {
 
-    /** @var StdObj   configuration parameters. compiled content of config files */
+    /** @var StdObj   configuration parameters. compiled content of config files
+      *  result of the merge of entry point config, liveconfig.ini.php, localconfig.ini.php,
+      *  mainconfig.ini.php and defaultconfig.ini.php
+      *  @deprecated as public property
+      */
     public $config;
 
-    /** @var string the filename of the configuration file */
+    /** @var string the filename of the configuration file dedicated to the entry point
+     *       ex: <apppath>/var/config/index/config.ini.php
+     *  @deprecated as public property
+     */
     public $configFile;
 
-    /** @var jIniMultiFilesModifier */
+    /**
+     * combination between mainconfig.ini.php (master) and entrypoint config (overrider)
+     * @var jIniMultiFilesModifier
+     *  @deprecated as public property
+     */
     public $configIni;
+
+    /**
+     * combination between mainconfig.ini.php, localconfig.ini.php (master)
+     *  and entrypoint config (overrider)
+     *
+     * @var jIniMultiFilesModifier
+     * @deprecated as public property
+     */
+    public $localConfigIni;
+
+    /**
+     * liveconfig.ini.php
+     *
+     * @var jIniFileModifier
+     * @deprecated as public property
+     */
+    public $liveConfigIni;
+
+    /**
+     * entrypoint config
+     * @var jIniFileModifier
+     */
+    protected $epConfigIni;
 
     /**
      * @var boolean true if the script corresponding to the configuration
@@ -44,19 +78,20 @@ class jInstallerEntryPoint {
     public $type;
 
     /**
-     * @param jIniFileModifier    $defaultConfig   the defaultconfig.ini.php file
+     * @param jIniFileModifier    $mainConfig   the mainconfig.ini.php file
      * @param string $configFile the path of the configuration file, relative
      *                           to the var/config directory
      * @param string $file the filename of the entry point
      * @param string $type type of the entry point ('classic', 'cli', 'xmlrpc'....)
      */
-    function __construct($defaultConfig, $configFile, $file, $type) {
+    function __construct($mainConfig, $configFile, $file, $type) {
         $this->type = $type;
         $this->isCliScript = ($type == 'cmdline');
         $this->configFile = $configFile;
         $this->scriptName =  ($this->isCliScript?$file:'/'.$file);
         $this->file = $file;
-        $this->configIni = new jIniMultiFilesModifier($defaultConfig, jApp::configPath($configFile));
+        $this->epConfigIni = new jIniFileModifier(jApp::configPath($configFile));
+        $this->configIni = new jIniMultiFilesModifier($mainConfig, $this->epConfigIni);
         $this->config = jConfigCompiler::read($configFile, true,
                                               $this->isCliScript,
                                               $this->scriptName);
@@ -83,5 +118,49 @@ class jInstallerEntryPoint {
      */
     function getModule($moduleName) {
         return new jInstallerModuleInfos($moduleName, $this->config->modules);
+    }
+
+    /**
+     * the entry point config
+     * @return jIniFilesModifier
+     * @since 1.6.8
+     */
+    function getEpConfigIni() {
+        return $this->epConfigIni;
+    }
+
+    /**
+     * @return string the config file name of the entry point
+     */
+    function getConfigFile() {
+        return $this->configFile;
+    }
+
+    /**
+     * @return stdObj the config content of the entry point, as seen when
+     * calling jApp::config()
+     */
+    function getConfigObj() {
+        return $this->config;
+    }
+
+    function setConfigObj($config) {
+        $this->config = $config;
+    }
+
+    /**
+     * Give only the content of mainconfig.ini.php
+     * @return jIniFileModifier
+     */
+    function getSingleMainConfigIni() {
+        return $this->localConfigIni->getMaster()->getMaster();
+    }
+
+    /**
+     * Give only the content of localconfig.ini.php
+     * @return jIniFileModifier
+     */
+    function getSingleLocalConfigIni() {
+        return $this->localConfigIni->getMaster();
     }
 }

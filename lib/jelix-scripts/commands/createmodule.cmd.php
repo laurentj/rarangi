@@ -87,9 +87,10 @@ class createmoduleCommand extends JelixScriptCommand {
         $repository = $this->getParam('repository', 'app:modules/');
         if (substr($repository,-1) != '/')
             $repository .= '/';
-        $repositoryPath = str_replace(array('lib:','app:'), array(LIB_PATH, jApp::appPath()), $repository);
+        $repositoryPath = jFile::parseJelixPath( $repository );
 
-        $iniDefault = new jIniFileModifier(jApp::configPath('defaultconfig.ini.php'));
+        $iniDefault = new jIniFileModifier(jApp::mainConfigFile());
+
         $this->updateModulePath($iniDefault, $iniDefault->getValue('modulesPath'), $repository, $repositoryPath);
         if ($this->verbose())
             echo "modulePath updated in the main configuration\n";
@@ -142,7 +143,7 @@ class createmoduleCommand extends JelixScriptCommand {
             $this->createDir($path.'install/');
             if ($this->verbose())
                 echo "Sub directories have been created in the new module $module.\n";
-            $this->createFile($path.'install/install.php','module/install.tpl',$param);
+            $this->createFile($path.'install/install_1_6.php','module/install.tpl',$param);
             $this->createFile($path.'urls.xml', 'module/urls.xml.tpl', array());
         }
 
@@ -226,7 +227,7 @@ class createmoduleCommand extends JelixScriptCommand {
         $repositoryFound = false;
         foreach($listRepos as $path){
             if(trim($path) == '') continue;
-            $p = str_replace(array('lib:','app:'), array(LIB_PATH, jApp::appPath()), $path);
+            $p = jFile::parseJelixPath( $path );
             if (substr($p,-1) != '/')
                 $p .= '/';
             if ($p == $repositoryPath) {

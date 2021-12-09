@@ -1,10 +1,10 @@
 <?php
 /**
 * @package    jelix
-* @subpackage plugins_cache_file
+* @subpackage cache_plugin
 * @author      Zend Technologies
 * @contributor Tahina Ramaroson, Sylvain de Vathaire, Bricet, Laurent Jouanneau
-* @copyright  2005-2008 Zend Technologies USA Inc (http://www.zend.com), 2008 Neov, 2011 Laurent Jouanneau
+* @copyright  2005-2008 Zend Technologies USA Inc (http://www.zend.com), 2008 Neov, 2011-2017 Laurent Jouanneau
 * The implementation of this class is based on Zend Cache Backend File class
 * Few lines of code was adapted for Jelix
 * @licence  see LICENCE file
@@ -14,7 +14,7 @@
 /**
 * cache driver for data stored in a file
 * @package jelix
-* @subpackage plugins_cache_file
+* @subpackage cache_plugin
 */
 class fileCacheDriver implements jICacheDriver {
 
@@ -99,8 +99,9 @@ class fileCacheDriver implements jICacheDriver {
 
         $this->_cache_dir = jApp::tempPath('cache/').$this->profil_name.'/';
         if(isset($params['cache_dir']) && $params['cache_dir']!=''){
-            if (is_dir($params['cache_dir']) && is_writable($params['cache_dir'])) {
-                $this->_cache_dir = rtrim(realpath($params['cache_dir']), '\\/') . DIRECTORY_SEPARATOR;
+            $cache_dir = jFile::parseJelixPath( $params['cache_dir'] );
+            if (is_dir($cache_dir) && is_writable($cache_dir)) {
+                $this->_cache_dir = rtrim(realpath($cache_dir), '\\/') . DIRECTORY_SEPARATOR;
             } else {
                 throw new jException('jelix~cache.directory.not.writable',$this->profil_name);
             }
@@ -124,6 +125,9 @@ class fileCacheDriver implements jICacheDriver {
         if (isset($params['directory_umask']) && is_string($params['directory_umask']) && $params['directory_umask']!='') {
             $this->_directory_umask = octdec($params['directory_umask']);
         }
+        else {
+            $this->_directory_umask = jApp::config()->chmodDir;
+        }
 
         if (isset($params['file_name_prefix'])) {
             $this->_file_name_prefix = $params['file_name_prefix'];
@@ -132,7 +136,9 @@ class fileCacheDriver implements jICacheDriver {
         if (isset($params['cache_file_umask']) && is_string($params['cache_file_umask']) && $params['cache_file_umask']!='') {
             $this->_cache_file_umask = octdec($params['cache_file_umask']);
         }
-
+        else {
+            $this->_cache_file_umask = jApp::config()->chmodFile;
+        }
     }
 
     /**
@@ -170,7 +176,6 @@ class fileCacheDriver implements jICacheDriver {
 
         $filePath = $this->_getCacheFilePath($key);
         $this->_createDir(dirname($filePath));
-
         if ($this->_setFileContent ($filePath,$var)) {
 
             switch($ttl) {
@@ -214,10 +219,10 @@ class fileCacheDriver implements jICacheDriver {
     * @param mixed  $var    value used
     * @return boolean false if failure
     */
-    public function increment ($key,$var=1){
+    public function increment ($key, $var=1) {
 
         if(($oldData=$this->get($key))){
-            if(!is_numeric($oldData)){
+            if (!is_numeric($oldData) || !is_numeric($var)) {
                 return false;
             }
             $data= $oldData + $var;
@@ -239,7 +244,7 @@ class fileCacheDriver implements jICacheDriver {
 
         if ($oldData = $this->get($key)) {
 
-            if (!is_numeric($oldData)) {
+            if (!is_numeric($oldData) || !is_numeric($var)) {
                 return false;
             }
             $data = $oldData - (int)$var;
@@ -387,8 +392,11 @@ class fileCacheDriver implements jICacheDriver {
     protected function _getCacheFilePath($key){
 
         $path = $this->_getPath($key);
-        $fileName = $this->_file_name_prefix."___".$key.self::CACHEEXT;
-        return $path . $fileName;
+        if (DIRECTORY_SEPARATOR === '\\') {
+            // Windows doesn't like colon in file names
+            $key = str_replace(':', '_.._', $key);
+        }
+        return $path . $key.self::CACHEEXT;
 
     }
 
@@ -400,18 +408,17 @@ class fileCacheDriver implements jICacheDriver {
     */
     protected function _getPath($key){
 
-        $path = $this->_cache_dir;
-        $prefix = $this->_file_name_prefix;
-
+        $path = $this->_cache_dir.$this->_file_name_prefix. DIRECTORY_SEPARATOR;
         if ($this->_directory_level>0) {
             $hash = md5($key);
             for ($i=0;$i<$this->_directory_level;$i++) {
-                $path=$path.$prefix.'__'.substr($hash, 0, $i + 1). DIRECTORY_SEPARATOR;
+                $path .= substr($hash, 0, $i + 1). DIRECTORY_SEPARATOR;
             }
         }
-
+        if ($key[0] == '/' || $key[0] == DIRECTORY_SEPARATOR) {
+            $path .= $this->_file_name_prefix. DIRECTORY_SEPARATOR;
+        }
         return $path;
-
     }
 
     /**

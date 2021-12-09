@@ -1,7 +1,7 @@
 <?php
 /**
 * @package     jelix
-* @subpackage  core
+* @subpackage  core_request
 * @author      Laurent Jouanneau
 * @contributor Julien Issler, Brice Tence
 * @contributor Florian Lonqueu-Brochard
@@ -16,7 +16,7 @@
 * base class for response object
 * A response object is responsible to generate a content in a specific format.
 * @package  jelix
-* @subpackage core
+* @subpackage core_request
 */
 abstract class jResponse {
 
@@ -81,7 +81,7 @@ abstract class jResponse {
     public function outputErrors() {
         // if accept text/html
         if (isset($_SERVER['HTTP_ACCEPT']) && strstr($_SERVER['HTTP_ACCEPT'],'text/html')) {
-            require_once(JELIX_LIB_CORE_PATH.'responses/jResponseBasicHtml.class.php');
+            require_once(JELIX_LIB_CORE_PATH.'response/jResponseBasicHtml.class.php');
             $response = new jResponseBasicHtml();
             $response->outputErrors();
         }

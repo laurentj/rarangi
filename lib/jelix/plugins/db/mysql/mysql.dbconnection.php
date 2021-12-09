@@ -5,7 +5,7 @@
 * @author     Gérald Croes, Laurent Jouanneau
 * @contributor Laurent Jouanneau
 * @contributor Sylvain de Vathaire, Julien Issler
-* @copyright  2001-2005 CopixTeam, 2005-2012 Laurent Jouanneau
+* @copyright  2001-2005 CopixTeam, 2005-2020 Laurent Jouanneau
 * @copyright  2009 Julien Issler
 * This class was get originally from the Copix project (CopixDbConnectionMysql, Copix 2.3dev20050901, http://www.copix.org)
 * Few lines of code are still copyrighted 2001-2005 CopixTeam (LGPL licence).
@@ -137,7 +137,7 @@ class mysqlDbConnection extends jDbConnection {
     }
 
 
-    public function lastInsertId($fromSequence=''){// on n'a pas besoin de l'argument pour mysql
+    public function lastInsertId($fromSequence=''){
         return mysql_insert_id ($this->_connection);
     }
 

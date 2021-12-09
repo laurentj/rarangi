@@ -2,7 +2,7 @@
 /**
 * 
 * @package  jelix
-* @subpackage core
+* @subpackage installer
 * @author   Laurent Jouanneau
 * @contributor Bastien Jaillot
 * @copyright 2007-2009 Laurent Jouanneau, 2008 Bastien Jaillot
@@ -14,7 +14,7 @@
 /**
  * message provider for jInstallCheck and jInstaller
  * @package  jelix
- * @subpackage core
+ * @subpackage installer
  * @since 1.0b2
  */
 class jInstallerMessageProvider {
@@ -45,8 +45,8 @@ class jInstallerMessageProvider {
         'extension.optional.installed'=>'L\'extension %s optionnelle est disponible',
         'extension.required.installed'=>'L\'extension %s obligatoire est disponible',
         'extensions.required.ok'=>'Toutes les extensions PHP obligatoires sont disponibles',
-        'extension.database.ok'=>'L\'application utilisera une base de données SQL',
-        'extension.database.ok2'=>'L\'application pourra utiliser une base de données SQL',
+        'extension.database.ok'=>'L\'application utilisera une base de données SQL : %s',
+        'extension.database.ok2'=>'L\'application pourra utiliser une base de données SQL : %s',
         'extension.database.missing'=>'L\'application a besoin d\'une base de données SQL',
         'extension.database.missing2'=>'L\'application ne pourra pas utiliser de base de données SQL',
         'path.core'             =>'Le fichier init.php  de jelix ou le fichier application.ini.php de votre application n\'est pas chargé',
@@ -57,7 +57,7 @@ class jInstallerMessageProvider {
         'path.www'              =>'Le chemin du répertoire www n\'est pas configuré correctement : ce répertoire n\'existe pas',
         'path.config.writable' =>'Le répertoire var/config n\'a pas les droits en écriture',
         'path.profiles.writable'=>'Le fichier profiles.ini.php n\'a pas les droits en écriture',
-        'path.defaultconfig.writable'=>'Le fichier defaultconfig.ini.php n\'a pas les droits en écriture',
+        'path.mainconfig.writable'=>'Le fichier mainconfig.ini.php n\'a pas les droits en écriture',        
         'path.installer.writable'=>'Le fichier installer.ini.php n\'a pas les droits en écriture',
         'path.custom.not.exists'=>'Le fichier %s n\'existe pas, ses droits ne peuvent être vérifiés',
         'path.custom.writable'=>'Le fichier %s n\'a pas les droits en écriture',
@@ -84,6 +84,10 @@ class jInstallerMessageProvider {
         'module.bad.dependency.version'=>'Le module %s necessite une autre version du module %s (%s - %s)',
         'module.installer.class.not.found'=>'La classe d\'installation %s pour le module %s n\'existe pas',
         'module.upgrader.class.not.found'=>'La classe de mise à jour %s pour le module %s n\'existe pas',
+        'module.upgrader.missing.version'=>'La version cible est manquante pour le script de mise à jour %s du module %s',
+        'module.missing.version'=>'La version est manquante dans le fichier module.xml du module %s',
+
+        'installer.ini.missing.version'=>'La version précédente du module %s n\'est pas indiquée dans le fichier installer.ini.php',
 
         'install.entrypoint.start'  =>'Installation pour le point d\'entrée %s',
         'install.entrypoint.end'    =>'Tous les modules sont installés ou mis à jour pour le point d\'entrée %s',
@@ -99,6 +103,7 @@ class jInstallerMessageProvider {
         'install.module.error'              =>'Une erreur est survenue durant l\'installation du module %s: %s',
         'install.module.check.dependency'   =>'Vérifie les dépendances du module %s',
         'install.module.upgraded'           =>'Le module %s est mis à jour à la version %s',
+        'more.details'                      =>'Plus de details',
 
         ),
 
@@ -126,8 +131,8 @@ class jInstallerMessageProvider {
         'extension.optional.installed'=>'the optional extension %s is available',
         'extension.required.installed'=>'the required extension %s is available',
         'extensions.required.ok'=>'All needed PHP extensions are available',
-        'extension.database.ok'=>'The application will use a SQL database',
-        'extension.database.ok2'=>'The application can use SQL databases',
+        'extension.database.ok'=>'The application will use a SQL database: %s',
+        'extension.database.ok2'=>'The application can use SQL databases: %s',
         'extension.database.missing'=>'The application needs a SQL database',
         'extension.database.missing2'=>'The application couldn\'t use a SQL database',
         'path.core'             =>'jelix init.php file or application.ini.php file is not loaded',
@@ -138,7 +143,7 @@ class jInstallerMessageProvider {
         'path.www'              =>'The application www path is not correctly set: www directory  doesn\'t exist!',
         'path.config.writable' =>'The directory var/config have not write rights',
         'path.profiles.writable'=>'The file profiles.ini.php have not write rights',
-        'path.defaultconfig.writable'=>'The file defaultconfig.ini.php have not write rights',
+        'path.mainconfig.writable'=>'The file mainconfig.ini.php have not write rights',
         'path.installer.writable'=>'The file installer.ini.php have not write rights',
         'path.custom.not.exists'=>'The file %s is not found, rights cannot be validated',
         'path.custom.writable'=>'The file %s have not write rights',
@@ -165,6 +170,10 @@ class jInstallerMessageProvider {
         'module.bad.dependency.version'=>'The module %s needs another version of the module %s (%s - %s)',
         'module.installer.class.not.found'=>'The installation class %s for the module %s doesn\'t exist',
         'module.upgrader.class.not.found'=>'The upgrade class %s for the module %s doesn\'t exist',
+        'module.upgrader.missing.version'=>'Target version is missing for the upgrade script %s of the module %s',
+        'module.missing.version'=>'Version is missing from the module.xml file of the module %s',
+
+        'installer.ini.missing.version'=>'The previous version of the module %s is missing from the installer.ini.php file',
 
         'install.entrypoint.start'  =>'Installation starts for the entry point %s',
         'install.entrypoint.end'    =>'All modules are installed or upgraded for the entry point %s',
@@ -180,7 +189,7 @@ class jInstallerMessageProvider {
         'install.module.error'          =>'An error occured during the installation of the module %s: %s',
         'install.module.check.dependency'=>'Check dependencies of the module %s',
         'install.module.upgraded'       =>'Module %s upgraded to the version %s',
-
+        'more.details'                  =>'More details',
 
         ),
     );

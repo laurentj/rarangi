@@ -4,7 +4,7 @@
 * @subpackage core
 * @author     Julien Issler
 * @contributor Laurent Jouanneau
-* @copyright  2007-2009 Julien Issler, 2008-2012 Laurent Jouanneau
+* @copyright  2007-2009 Julien Issler, 2008-2020 Laurent Jouanneau
 * @link       http://www.jelix.org
 * @licence    GNU Lesser General Public Licence see LICENCE file or http://www.gnu.org/licenses/lgpl.html
 * @since 1.0
@@ -33,9 +33,27 @@ class jSession {
             return false;
         }
 
-        //make sure that the session cookie is only for the current application
-        if (!$params['shared_session'])
-            session_set_cookie_params ( 0 , jApp::config()->urlengine['basePath']);
+        $cookieOptions = array(
+            'path' => '/',
+            'secure' => $params['cookieSecure'], // true to send the cookie only on a secure channel
+            'httponly' => $params['cookieHttpOnly'],
+            'lifetime' => $params['cookieLifetime']
+        );
+
+        if (!$params['shared_session']) {
+            //make sure that the session cookie is only for the current application
+            $cookieOptions['path'] = jApp::urlBasePath();
+        }
+
+        if (PHP_VERSION_ID < 70300) {
+            session_set_cookie_params($cookieOptions['lifetime'], $cookieOptions['path'], '', $cookieOptions['secure'], $cookieOptions['httponly']);
+        }
+        else {
+            if ($params['cookieSameSite'] != '') {
+                $cookieOptions['samesite'] = $params['cookieSameSite'];
+            }
+            session_set_cookie_params($cookieOptions);
+        }
 
         if ($params['storage'] != '') {
 

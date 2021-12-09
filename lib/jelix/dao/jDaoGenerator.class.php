@@ -6,7 +6,8 @@
 * @contributor Laurent Jouanneau
 * @contributor Bastien Jaillot (bug fix)
 * @contributor Julien Issler, Guillaume Dugas
-* @copyright  2001-2005 CopixTeam, 2005-2012 Laurent Jouanneau
+* @contributor Philippe Villiers
+* @copyright  2001-2005 CopixTeam, 2005-2017 Laurent Jouanneau
 * @copyright  2007-2008 Julien Issler
 * This class was get originally from the Copix project (CopixDAOGeneratorV1, Copix 2.3dev20050901, http://www.copix.org)
 * Few lines of code are still copyrighted 2001-2005 CopixTeam (LGPL licence).
@@ -77,7 +78,9 @@ class jDaoGenerator {
 
     /**
     * constructor
-    * @param jDaoParser $daoDefinition
+     * @param jSelectorDao $selector
+     * @param jDbTools $tools
+    * @param jDaoParser $daoParser
     */
     function __construct($selector, $tools, $daoParser){
         $this->_daoId = $selector->toString();
@@ -391,7 +394,6 @@ class jDaoGenerator {
 
             $limit='';
 
-            $glueCondition =' WHERE ';
             switch($method->type){
                 case 'delete':
                     $this->buildDeleteUserQuery($method, $src, $primaryFields);
@@ -485,14 +487,19 @@ class jDaoGenerator {
         $sqlSet='';
 
         foreach($method->getValues() as $propname=>$value){
-            if($value[1]){
-                preg_match_all('/\$([a-zA-Z0-9_]+)/', $value[0], $varMatches, PREG_OFFSET_CAPTURE );
+            if ($value[1]) {
+                // value is an expression
+
+                $expression = $this->parseSQLFunction($value[0]);
+
+                // replace all variable name by a php expression
+                preg_match_all('/\$([a-zA-Z0-9_]+)/', $expression, $varMatches, PREG_OFFSET_CAPTURE );
                 $parameters = $method->getParameters();
                 if (count($varMatches[0])) {
                     $result = '';
                     $len = 0;
                     foreach($varMatches[1] as $k=>$var) {
-                        $result .= substr($value[0], $len, $len+$varMatches[0][$k][1]);
+                        $result .= substr($expression, $len, $len+$varMatches[0][$k][1]);
                         $len += $varMatches[0][$k][1] + strlen($varMatches[0][$k][0]);
                         if (in_array($var[0], $parameters)) {
                             $result .= '\'.'.$this->_preparePHPExpr($varMatches[0][$k][0], $updatefields[$propname],true).'.\'';
@@ -501,10 +508,15 @@ class jDaoGenerator {
                             $result .= $varMatches[0][$k][0];
                         }
                     }
-                    $value[0] = $result;
+                    if ($len < strlen($expression)) {
+                        $result .= substr($expression, $len);
+                    }
+                    $expression = $result;
                 }
-                $sqlSet.= ', '.$this->_encloseName($updatefields[$propname]->fieldName). '= '. $value[0];
-            }else{
+                $sqlSet.= ', '.$this->_encloseName($updatefields[$propname]->fieldName). '= '. $expression;
+            }
+            else {
+                // value is a simple value
                 $sqlSet.= ', '.$this->_encloseName($updatefields[$propname]->fieldName). '= '.
                     $this->tools->escapeValue($updatefields[$propname]->unifiedType, $value[0], false, true);
             }
@@ -658,7 +670,12 @@ class jDaoGenerator {
                 $field .= ' as '.$this->_encloseName($propname);    
             }
         }else{
-            $field = str_replace(array("'", "%s"), array("\\'",$table.$this->_encloseName($fieldname)),$pattern).' as '.$this->_encloseName($propname);
+            $expression = $this->parseSQLFunction($pattern);
+            $field = str_replace(
+                array("'", "%s"),
+                array("\\'", $table.$this->_encloseName($fieldname)),
+                $expression)
+                .' as '.$this->_encloseName($propname);
         }
         return $field;
     }
@@ -668,16 +685,17 @@ class jDaoGenerator {
     }
 
     /**
-    * format field names with start, end and between strings.
-    *   will write the field named info.
-    *   eg info == name
-    *   echo $field->name
+    * format field names with a start, an end and a between strings.
+    *
+    * ex: give 'name' as $info, it will output the result of $field->name
+     *
     * @param string   $info    property to get from objects in $using
     * @param string   $start   string to add before the info
     * @param string   $end     string to add after the info
     * @param string   $beetween string to add between each info
-    * @param array    $using     list of CopixPropertiesForDAO object. if null, get default fields list
+    * @param jDaoProperty[]    $using     list of jDaoProperty object. if null, get default fields list
     * @see  jDaoProperty
+     * @return string list of field names separated by the $between character
     */
     protected function _writeFieldsInfoWith ($info, $start = '', $end='', $beetween = '', $using = null){
         $result = array();
@@ -690,7 +708,7 @@ class jDaoGenerator {
             $result[] = $start . $field->$info . $end;
         }
 
-        return implode ($beetween,$result);
+        return implode ($beetween, $result);
     }
 
     /**
@@ -776,9 +794,6 @@ class jDaoGenerator {
             $using = $this->_dataParser->getProperties ();
         }
 
-        $tb = $this->_dataParser->getTables();
-        $tb = $tb[$this->_dataParser->getPrimaryTable()]['realname'];
-
         foreach ($using as $id=>$field) {
             if(!$field->isPK)
                 continue;
@@ -795,7 +810,7 @@ class jDaoGenerator {
      * the variable name is the name of the property, made with an optional prefix
      * given in $fieldPrefix parameter.
      * This method is called to generate WHERE clause for primary keys.
-     * @param array $fields  list of jDaoPropery objects
+     * @param jDaoProperty[] $fields
      * @param string $fieldPrefix  an optional prefix to prefix variable names
      * @param boolean $forSelect  if true, the table name or table alias will prefix
      *                            the field name in the query
@@ -839,11 +854,13 @@ class jDaoGenerator {
 
             $value = $this->_preparePHPExpr('$'.$prefixfield.$fieldName, $field, true);
 
-            if($pattern != ''){
-                if(strpos($field->$pattern, "'") !== false && strpos($field->$pattern, "\\'") === false) {
-                    $values[$field->name] = sprintf(str_replace("'", "\\'", $field->$pattern),'\'.'.$value.'.\'');
-                } else {
-                    $values[$field->name] = sprintf($field->$pattern,'\'.'.$value.'.\'');
+            if ($pattern != '') {
+                $expression = $this->parseSQLFunction($field->$pattern);
+                if(strpos($expression, "'") !== false && strpos($expression, "\\'") === false) {
+                    $values[$field->name] = sprintf(str_replace("'", "\\'", $expression),'\'.'.$value.'.\'');
+                }
+                else {
+                    $values[$field->name] = sprintf($expression,'\'.'.$value.'.\'');
                 }
             }else{
                 $values[$field->name] = '\'.'.$value.'.\'';
@@ -858,10 +875,10 @@ class jDaoGenerator {
     /**
      * build 'where' clause from conditions declared with condition tag in a user method
      * @param jDaoConditions $cond the condition object which contains conditions data
-     * @param array $fields  array of jDaoProperty
-     * @param array $params  list of parameters name of the method
+     * @param jDaoProperty[] $fields
+     * @param string[] $params  list of parameters name of the method
      * @param boolean $withPrefix true if the field name should be preceded by the table name/table alias
-     * @param array $groupby  list of properties to use in a groupby
+     * @param string[] $groupby  list of properties to use in a groupby
      * @return string a WHERE clause (without the WHERE keyword) with eventually an ORDER clause
      * @internal
      */
@@ -886,7 +903,6 @@ class jDaoGenerator {
 
         $order = array ();
         foreach ($cond->order as $name => $way){
-            $ord='';
             if (isset($fields[$name])){
                 if ($withPrefix)
                     $ord = $this->_encloseName($fields[$name]->table).'.'.$this->_encloseName($fields[$name]->fieldName);
@@ -916,8 +932,8 @@ class jDaoGenerator {
      * build a condition for the SQL WHERE clause.
      * this method call itself recursively.
      * @param jDaoCondition $cond a condition object which contains conditions data
-     * @param array $fields  array of jDaoProperty
-     * @param array $params  list of parameters name of the method
+     * @param jDaoProperty[] $fields
+     * @param string[] $params  list of parameters name of the method
      * @param boolean $withPrefix true if the field name should be preceded by the table name/table alias
      * @param boolean $principal  should be true for the first call, and false for recursive call
      * @return string a WHERE clause (without the WHERE keyword)
@@ -938,10 +954,22 @@ class jDaoGenerator {
 
             $prop = $fields[$cond['field_id']];
 
+            $pattern = (isset($cond['field_pattern']) && !empty($cond['field_pattern'])) ?
+                $this->parseSQLFunction($cond['field_pattern']) :
+                '%s';
+
             if($withPrefix){
-                $f = $this->_encloseName($prop->table).'.'.$this->_encloseName($prop->fieldName);
+                if($pattern == '%s') {
+                    $f = $this->_encloseName($prop->table).'.'.$this->_encloseName($prop->fieldName);
+                } else {
+                    $f = str_replace(array("'", "%s"), array("\\'", $this->_encloseName($prop->table).'.'.$this->_encloseName($prop->fieldName)), $pattern);
+                }
             }else{
-                $f = $this->_encloseName($prop->fieldName);
+                if($pattern == '%s') {
+                    $f = $this->_encloseName($prop->fieldName);
+                } else {
+                    $f = str_replace(array("'", "%s"), array("\\'", $this->_encloseName($prop->fieldName)), $pattern);
+                }
             }
 
             $r .= $f.' ';
@@ -959,15 +987,17 @@ class jDaoGenerator {
                 $r.=$cond['operator'].' ';
             }else{
                 if($cond['isExpr']){
-                    $value=str_replace("'","\\'",$cond['value']);
                     // we need to know if the expression is like "$foo" (1) or a thing like "concat($foo,'bla')" (2)
                     // because of the nullability of the parameter. If the value of the parameter is null and the operator
                     // is = or <>, then we need to generate a thing like :
                     // - in case 1: ($foo === null ? 'IS NULL' : '='.$this->_conn->quote($foo))
                     // - in case 2: '= concat('.($foo === null ? 'NULL' : $this->_conn->quote($foo)).' ,\'bla\')'
-                    if($value[0] == '$'){
+                    if ($cond['value'][0] == '$') {
+                        $value = str_replace("'", "\\'", $cond['value']);
                         $value = '\'.'.$this->_preparePHPExpr($value, $prop, !$prop->requiredInConditions,$cond['operator']).'.\'';
                     }else{
+                        $value = $this->parseSQLFunction($cond['value']);
+                        $value = str_replace("'", "\\'", $value);
                         foreach($params as $param){
                             $value = str_replace('$'.$param, '\'.'.$this->_preparePHPExpr('$'.$param, $prop, !$prop->requiredInConditions).'.\'',$value);
                         }
@@ -1086,4 +1116,9 @@ class jDaoGenerator {
     protected function buildUpdateAutoIncrementPK($pkai) {
         return '       $record->'.$pkai->name.'= $this->_conn->lastInsertId();';
     }
+
+    protected function parseSQLFunction($expression) {
+        return $this->tools->parseSQLFunctionAndConvert($expression);
+    }
+
 }

@@ -1,7 +1,7 @@
 <?php
 /**
 * @package     jelix
-* @subpackage  formwidgets
+* @subpackage  forms_widget_plugin
 * @author      Claudio Bernardes
 * @contributor Laurent Jouanneau, Julien Issler, Dominique Papin
 * @copyright   2012 Claudio Bernardes
@@ -13,17 +13,25 @@
 /**
  * HTML form builder
  * @package     jelix
- * @subpackage  jelix-plugins
+ * @subpackage  forms_widget_plugin
  * @link http://developer.jelix.org/wiki/rfc/jforms-controls-plugins
  */
 
 class submit_htmlFormWidget extends \jelix\forms\HtmlWidget\WidgetBase {
 
     function outputControl() {
+        if (isset($this->attributes['class'])) {
+            $class = $this->attributes['class'].' ';
+        }
+        else {
+            $class = '';
+        }
+
         $attr = $this->getControlAttributes();
         
         unset($attr['readonly']);
-        $attr['class'] = 'jforms-submit';
+        
+        $attr['class'] = $class.'jforms-submit';
         $attr['type'] = 'submit';
 
         if($this->ctrl->standalone){

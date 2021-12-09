@@ -1,18 +1,22 @@
 <?php
 /**
-* @package    jelix
-* @subpackage db
-* @author     Laurent Jouanneau
-* @contributor Gwendal Jouannic, Thomas, Julien Issler
-* @copyright  2005-2010 Laurent Jouanneau
-* @copyright  2008 Gwendal Jouannic, 2009 Thomas
-* @copyright  2009 Julien Issler
-* @link      http://www.jelix.org
-* @licence  http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
-*/
+ * @package    jelix
+ * @subpackage db
+ *
+ * @author     Laurent Jouanneau
+ * @contributor Gwendal Jouannic, Thomas, Julien Issler
+ *
+ * @copyright  2005-2021 Laurent Jouanneau
+ * @copyright  2008 Gwendal Jouannic, 2009 Thomas
+ * @copyright  2009 Julien Issler
+ *
+ * @see      http://www.jelix.org
+ * @licence  http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
+ */
 
 /**
- * a resultset based on PDOStatement
+ * a resultset based on PDOStatement for PHP >= 8.0
+ *
  * @package  jelix
  * @subpackage db
  */
@@ -30,9 +34,8 @@ class jDbPDOResultSet extends PDOStatement {
             $rec = parent::fetch();
         }
 
-        if ($rec && count($this->modifier)) {
-            foreach($this->modifier as $m)
-                call_user_func_array($m, array($rec, $this));
+        if ($rec) {
+            $this->applyModifiers($rec);
         }
         return $rec;
     }
@@ -42,32 +45,38 @@ class jDbPDOResultSet extends PDOStatement {
      * @param integer $fetch_style
      * @param integer $fetch_argument
      * @param array $ctor_arg
-     * @return array list of object which contain all rows
+     * @return object[] list of object which contain all rows
      */
-    public function fetchAll ($fetch_style = null, $fetch_argument=null, $ctor_arg=null) {
+    public function fetchAll($fetch_style = null, ...$args)
+    {
         // if the user requested to override the style set with setFetchMode, use it
         $final_style = ($fetch_style ?: $this->_fetchMode);
 
         // Check how many arguments, if available should be given
         if (!$final_style) {
             $records = parent::fetchAll(PDO::FETCH_OBJ);
-        }
-        else if ($ctor_arg) {
-            $records = parent::fetchAll($final_style, $fetch_argument, $ctor_arg);
-        }
-        else if ($fetch_argument) {
-            $records = parent::fetchAll($final_style, $fetch_argument);
-        }
-        else {
+        } elseif (isset($args[1])) {
+            $records = parent::fetchAll($final_style, $args[0], $args[1]);
+        } elseif (isset($args[0])) {
+            $records = parent::fetchAll($final_style, $args[0]);
+        } else {
             $records = parent::fetchAll($final_style);
         }
 
         if (count($this->modifier)) {
-            foreach ($records as $rec)
-                foreach($this->modifier as $m)
-                    call_user_func_array($m, array($rec, $this));
+            foreach ($records as $rec) {
+                $this->applyModifiers($rec);
+            }
         }
         return $records;
+    }
+
+    protected function applyModifiers($result) {
+        if (count($this->modifier)) {
+            foreach($this->modifier as $m) {
+                call_user_func_array($m, array($result, $this));
+            }
+        }
     }
 
     /**
@@ -75,20 +84,26 @@ class jDbPDOResultSet extends PDOStatement {
      * @param int $mode  the mode, a PDO::FETCH_* constant
      * @param mixed $arg1 a parameter for the given mode
      * @param mixed $arg2 a parameter for the given mode
+     * @return boolean true if the fetch mode is ok
      */
-    public function setFetchMode($mode, $arg1=null , $arg2=null){
+    public function setFetchMode($mode, ...$args)
+    {
         $this->_fetchMode = $mode;
         // depending the mode, original setFetchMode throw an error if wrong arguments
         // are given, even if there are null
-        if ($arg1 === null)
+        if (count($args) === 0) {
             return parent::setFetchMode($mode);
-        else if ($arg2 === null)
-            return parent::setFetchMode($mode, $arg1);
-        return parent::setFetchMode($mode, $arg1, $arg2);
+        }
+        if (count($args) === 1 || $args[1] === null || $args[1] == array()) {
+            return parent::setFetchMode($mode, $args[0]);
+        }
+
+        return parent::setFetchMode($mode, $args[0], $args[1]);
     }
 
     /**
      * @param string $text a binary string to unescape
+     * @return string the unescaped string
      * @since 1.1.6
      */
     public function unescapeBin($text) {
@@ -97,13 +112,13 @@ class jDbPDOResultSet extends PDOStatement {
 
     /**
      * a callback function which will modify on the fly record's value
-     * @var array of callback
+     * @var callable[]
      * @since 1.1.6
      */
     protected $modifier = array();
 
     /**
-     * @param callback $function a callback function
+     * @param callable $function a callback function
      *     the function should accept in parameter the record,
      *     and the resulset object
      * @since 1.1.6

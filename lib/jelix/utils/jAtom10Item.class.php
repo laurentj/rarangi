@@ -1,7 +1,7 @@
 <?php
 /**
 * @package     jelix
-* @subpackage  utils
+* @subpackage  feeds
 * @author      Yannick Le Guédart
 * @contributor Laurent Jouanneau
 * @contributor  Sebastien Romieu
@@ -131,8 +131,8 @@ class jAtom10Item extends jXMLFeedItem {
         }
     
         $this->summary = (string)$item->summary;
-        if($feed->summary['type'])
-            $this->summaryType = (string)$feed->summary['type'];
+        if($item->summary['type'])
+            $this->summaryType = (string)$item->summary['type'];
 
         if((string)$item->updated != ''){
             $dt->setFromString((string)$item->updated, jDateTime::ISO8601_FORMAT);

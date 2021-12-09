@@ -3,8 +3,8 @@
 * @package     jelix
 * @subpackage  forms
 * @author      Julien Issler
-* @contributor Thomas, Zeffyr
-* @copyright   2008 Julien Issler, 2009 Thomas, 2010 Zeffyr
+* @contributor Thomas, Zeffyr, Laurent Jouanneau
+* @copyright   2008 Julien Issler, 2009 Thomas, 2010 Zeffyr, 2013-2020 Laurent Jouanneau
 * @link        http://www.jelix.org
 * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -16,6 +16,7 @@
  */
 class jFormsControlDate extends jFormsControl {
     public $type = 'date';
+    public $datepickerConfig = '';
 
     public function __construct($ref){
         $this->ref = $ref;
@@ -36,6 +37,9 @@ class jFormsControlDate extends jFormsControl {
             $dt = new jDateTime();
             $dt->setFromString($value, jDateTime::DB_DFORMAT);
             $value = $dt->toString(jDateTime::LANG_DFORMAT);
+        }
+        else if ($this->emptyValueLabel !== null) {
+            return $this->emptyValueLabel;
         }
         return $value;
     }

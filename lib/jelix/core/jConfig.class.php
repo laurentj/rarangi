@@ -30,7 +30,7 @@ class jConfig {
     /**
      * load and read the configuration of the application
      * The combination of all configuration files (the given file
-     * and the defaultconfig.ini.php) is stored
+     * and the mainconfig.ini.php) is stored
      * in a single temporary file. So it calls the jConfigCompiler
      * class if needed
      * @param string $configFile the config file name
@@ -39,26 +39,28 @@ class jConfig {
      */
     static public function load($configFile){
         $config=array();
-        $file = jApp::tempPath().str_replace('/','~',$configFile);
-
-        if (BYTECODE_CACHE_EXISTS)
-            $file .= '.conf.php';
-        else
-            $file .= '.resultini.php';
+        $file = jConfigCompiler::getCacheFilename($configFile);
 
         self::$fromCache = true;
-        if(!file_exists($file)){
+        if (!file_exists($file)) {
             // no cache, let's compile
             self::$fromCache = false;
-        }else{
+        }
+        else {
             $t = filemtime($file);
-            $dc = jApp::configPath('defaultconfig.ini.php');
-            if( (file_exists($dc) && filemtime($dc)>$t)
-                || filemtime(jApp::configPath($configFile))>$t){
-                // one of the two config file have been modified: let's compile
-                self::$fromCache = false;
-            }else{
+            $dc = jApp::mainConfigFile();
+            $lc = jApp::configPath('localconfig.ini.php');
+            $lvc = jApp::configPath('liveconfig.ini.php');
 
+            if ((file_exists($dc) && filemtime($dc)>$t)
+                || filemtime(jApp::configPath($configFile))>$t
+                || (file_exists($lc) && filemtime($lc)>$t)
+                || (file_exists($lvc) && filemtime($lvc)>$t)
+            ){
+                // one of the config files have been modified: let's compile
+                self::$fromCache = false;
+            }
+            else {
                 // let's read the cache file
                 if(BYTECODE_CACHE_EXISTS){
                     include($file);
@@ -79,10 +81,11 @@ class jConfig {
             }
         }
         if(!self::$fromCache){
-            require_once(JELIX_LIB_CORE_PATH.'jConfigCompiler.class.php');
             return jConfigCompiler::readAndCache($configFile);
-        }else
+        }
+        else {
             return $config;
+        }
     }
 }
 

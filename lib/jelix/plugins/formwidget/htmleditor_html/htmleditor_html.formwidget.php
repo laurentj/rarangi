@@ -1,11 +1,11 @@
 <?php
 /**
 * @package     jelix
-* @subpackage  formwidgets
+* @subpackage  forms_widget_plugin
 * @author      Claudio Bernardes
 * @contributor Laurent Jouanneau, Julien Issler, Dominique Papin
 * @copyright   2012 Claudio Bernardes
-* @copyright   2006-2012 Laurent Jouanneau, 2008-2011 Julien Issler, 2008 Dominique Papin
+* @copyright   2006-2019 Laurent Jouanneau, 2008-2011 Julien Issler, 2008 Dominique Papin
 * @link        http://www.jelix.org
 * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -13,38 +13,47 @@
 /**
  * HTML form builder
  * @package     jelix
- * @subpackage  jelix-plugins
+ * @subpackage  forms_widget_plugin
  * @link http://developer.jelix.org/wiki/rfc/jforms-controls-plugins
  */
 
 class htmleditor_htmlFormWidget extends \jelix\forms\HtmlWidget\WidgetBase {
+
+    /**
+     * @param jResponseHtml $resp
+     */
     public function outputMetaContent($resp) {
-        $bp = jApp::config()->urlengine['basePath'];
         $confHtmlEditor = &jApp::config()->htmleditors;
 
         if(isset($confHtmlEditor[$this->ctrl->config.'.engine.file'])){
-            if(is_array($confHtmlEditor[$this->ctrl->config.'.engine.file'])){
-                foreach($confHtmlEditor[$this->ctrl->config.'.engine.file'] as $url) {
-                    $resp->addJSLink($bp.$url);
-                }
-            }else
-                $resp->addJSLink($bp.$confHtmlEditor[$this->ctrl->config.'.engine.file']);
+            $lang = jLocale::getCurrentLang();
+            $urls = $confHtmlEditor[$this->ctrl->config.'.engine.file'];
+            if (!is_array($urls)) {
+                $urls =array($urls);
+            }
+
+            foreach($urls as $url) {
+                $url = str_replace('$lang', $lang, $url);
+                $resp->addJSLink($url);
+            }
         }
-        
-        if(isset($confHtmlEditor[$this->ctrl->config.'.config']))
-            $resp->addJSLink($bp.$confHtmlEditor[$this->ctrl->config.'.config']);
+
+        if (isset($confHtmlEditor[$this->ctrl->config.'.config'])) {
+            $resp->addJSLink($confHtmlEditor[$this->ctrl->config . '.config']);
+        }
 
         $skin = $this->ctrl->config.'.skin.'.$this->ctrl->skin;
 
-        if(isset($confHtmlEditor[$skin]) && $confHtmlEditor[$skin] != '')
-            $resp->addCSSLink($bp.$confHtmlEditor[$skin]);
+        if (isset($confHtmlEditor[$skin]) && $confHtmlEditor[$skin] != '') {
+            $resp->addCSSLink($confHtmlEditor[$skin]);
+        }
     }
 
     protected function outputJs() {
         $ctrl = $this->ctrl;
         $formName = $this->builder->getName();
         $jFormsJsVarName = $this->builder->getjFormsJsVarName();
-        
+
         $js ="c = new ".$jFormsJsVarName."ControlHtml('".$ctrl->ref."', ".$this->escJsStr($ctrl->label).");\n";
 
         $maxl= $ctrl->datatype->getFacet('maxLength');
@@ -64,7 +73,7 @@ class htmleditor_htmlFormWidget extends \jelix\forms\HtmlWidget\WidgetBase {
 
     function outputControl() {
         $attr = $this->getControlAttributes();
-        $value = $this->getValue($this->ctrl);
+        $value = $this->getValue();
 
         if (!isset($attr['rows']))
             $attr['rows'] = $this->ctrl->rows;
@@ -75,5 +84,15 @@ class htmleditor_htmlFormWidget extends \jelix\forms\HtmlWidget\WidgetBase {
         $this->_outputAttr($attr);
         echo '>',htmlspecialchars($value),"</textarea>\n";
         $this->outputJs();
+    }
+
+    public function outputControlValue(){
+        $attr = $this->getValueAttributes();
+        echo '<div ';
+        $this->_outputAttr($attr);
+        echo '>';
+        $value = $this->getValue();
+        $value = $this->ctrl->getDisplayValue($value);
+        echo $value,'</div>';
     }
 }

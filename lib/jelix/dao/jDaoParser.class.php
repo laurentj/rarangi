@@ -13,10 +13,10 @@
 * @licence  http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
 
-require(JELIX_LIB_PATH.'dao/jDaoXmlException.class.php');
-require(JELIX_LIB_PATH.'dao/jDaoProperty.class.php');
-require(JELIX_LIB_PATH.'dao/jDaoMethod.class.php');
-require(JELIX_LIB_PATH.'dao/jDaoGenerator.class.php');
+require_once(JELIX_LIB_PATH.'dao/jDaoXmlException.class.php');
+require_once(JELIX_LIB_PATH.'dao/jDaoProperty.class.php');
+require_once(JELIX_LIB_PATH.'dao/jDaoMethod.class.php');
+require_once(JELIX_LIB_PATH.'dao/jDaoGenerator.class.php');
 
 /**
  * extract data from a dao xml content
@@ -26,42 +26,44 @@ require(JELIX_LIB_PATH.'dao/jDaoGenerator.class.php');
  */
 class jDaoParser {
     /**
-    * the properties list.
-    * keys = field code name
-    * values = jDaoProperty
-    */
+     * the properties list.
+     * keys = field code name
+     * @var jDaoProperty[]
+     */
     private $_properties = array ();
 
     /**
-    * all tables with their properties, and their own fields
-    * keys = table code name
-    * values = array()
-    *          'name'=> table code name, 'realname'=>'real table name',
-    *           'pk'=> primary keys list
-    *          'fk'=> foreign keys list
-    *          'fields'=>array(list of field code name)
-    */
+     * all tables with their properties, and their own fields
+     * keys = table code name
+     * values = array()
+     *          'name'=> table code name, 'realname'=>'real table name',
+     *           'pk'=> primary keys list
+     *          'fk'=> foreign keys list
+     *          'fields'=>array(list of field code name)
+     * @var array[]
+     */
     private $_tables = array();
 
     /**
-    * primary table code name
-    */
+     * primary table code name
+     * @var string
+     */
     private $_primaryTable = '';
 
     /**
     * code name of foreign table with a outer join
-    * @var array  list of array(table code name, 0)
+    * @var array[]  list of array(table code name, 0)
     */
     private $_ojoins = array ();
 
     /**
     * code name of foreign table with a inner join
-    * @var array  list of table code name
+    * @var string[]  list of table code name
     */
     private $_ijoins = array ();
 
     /**
-     * @var array list of jDaoMethod objects
+     * @var jDaoMethod[]
      */
     private $_methods = array();
 
@@ -85,9 +87,11 @@ class jDaoParser {
     private $_importedDao = null;
     
     public $selector;
+
     /**
-    * Constructor
-    */
+     *
+     * @param jSelectorDao $selector the selector of the DAO file
+     */
     function __construct($selector) {
         $this->selector = $selector;
     }
@@ -172,7 +176,12 @@ class jDaoParser {
             throw new jDaoXmlException ($this->selector, 'datasource.missing');
         }
     }
-    
+
+    /**
+     * @param simpleXmlElement $xml
+     * @param jDbTools $tools
+     * @throws jDaoXmlException
+     */
     protected function parseRecord($xml, $tools) {
 
         //add the record properties
@@ -240,6 +249,8 @@ class jDaoParser {
 
     /**
     * parse a join definition
+     * @param integer $typetable
+     * @param simpleXmlElement $tabletag
     */
     private function _parseTable ($typetable, $tabletag){
         $infos = $this->getAttr($tabletag, array('name','realname','primarykey','onforeignkey'));
@@ -286,8 +297,8 @@ class jDaoParser {
     /**
     * Try to read all given attributes
     * @param SimpleXmlElement $tag
-    * @param array $requiredattr attributes list
-    * @return array attributes and their values
+    * @param string[] $requiredattr attributes list
+    * @return string[] attributes and their values
     */
     public function getAttr($tag, $requiredattr){
         $res=array();
@@ -313,8 +324,7 @@ class jDaoParser {
     /**
     * the properties list.
     * keys = field code name
-    * values = jDaoProperty
-    * @return array
+    * @return jDaoProperty[]
     */
     public function getProperties () { return $this->_properties; }
 
@@ -342,13 +352,13 @@ class jDaoParser {
 
     /**
     * list of code name of foreign table with a outer join
-    * @var array  list of array(table code name, 0)
+    * @return array[]  list of array(table code name, 0)
     */
     public function getOuterJoins(){  return $this->_ojoins;}
 
     /**
     * list of code name of foreign tables with a inner join
-    * @return array  the list
+    * @return string[]  the list
     */
     public function getInnerJoins(){  return $this->_ijoins;}
 

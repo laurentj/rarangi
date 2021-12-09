@@ -6,7 +6,7 @@
 * @contributor Thibault Piront (nuKs)
 * @contributor Loic Mathaud
 * @contributor Hadrien Lanneau
-* @copyright   2005-2013 Laurent Jouanneau
+* @copyright   2005-2020 Laurent Jouanneau
 * @copyright   2007 Thibault Piront
 * @copyright   2006 Loic Mathaud, 2010 Hadrien Lanneau
 * Some parts of this file are took from an experimental branch of the Copix project (CopixUrl.class.php, Copix 2.3dev20050901, http://www.copix.org),
@@ -172,28 +172,28 @@ class jUrl extends jUrlBase {
     }
 
     /**
-    * Gets the absolute url corresponding to an action, in the given format with
-    * the domainName in defaultConfig or current
-    * @param string $actSel  action selector. You can use # instead of the module
-    *                or the action name, to specify the current url.
-    * @param array $params associative array with the parameters
-    * @param integer $what the format you want : only jUrl::STRING or jUrl::XMLSTRING
-    * @param string $domainName Customized domain name
-    * @return string the url string
-    */
+     * Gets the absolute url corresponding to an action, in the given format with
+     * the domainName in defaultConfig or current
+     * @param string $actSel action selector. You can use # instead of the module
+     *                or the action name, to specify the current url.
+     * @param array $params associative array with the parameters
+     * @param integer $what the format you want : only jUrl::STRING or jUrl::XMLSTRING
+     * @param string $domainName Customized domain name
+     * @return string the url string
+     * @throws jException
+     */
     static function getFull ($actSel, $params = array (), $what=0, $domainName = null) {
 
         $domain = '';
-        $req = jApp::coord()->request;
         $url = self::get($actSel, $params, ($what != self::XMLSTRING?self::STRING:$what));
         if (!preg_match('/^http/', $url)) {
             if ($domainName) {
                 $domain = $domainName;
                 if (!preg_match('/^http/', $domainName))
-                    $domain = $req->getProtocol() . $domain;
+                    $domain = jServer::getProtocol() . $domain;
             }
             else {
-                $domain = $req->getServerURI();
+                $domain = jServer::getServerURI();
             }
 
             if ($domain == '') {
@@ -201,7 +201,7 @@ class jUrl extends jUrlBase {
             }
         }
         else if ($domainName != '') {
-            $url = str_replace($req->getDomainName(), $domainName, $url);
+            $url = str_replace(jServer::getDomainName(), $domainName, $url);
         }
 
         return $domain.$url;
@@ -263,7 +263,9 @@ class jUrl extends jUrlBase {
 
     /**
      * return the current url engine
+     * @param bool $reset
      * @return jIUrlEngine
+     * @throws jException
      * @internal call with true parameter, to force to re-instancy the engine. useful for test suite
      */
     static function getEngine($reset=false){
@@ -293,11 +295,11 @@ class jUrl extends jUrlBase {
             if( substr($rootUrl, 0, 7) !== 'http://' && substr($rootUrl, 0, 8) !== 'https://' // url is not absolute.
                 && substr($rootUrl, 0, 1) !== '/' ) { //and is not relative to root
                    // so let's prepend basePath :
-                    $rootUrl = jApp::config()->urlengine['basePath'] . $rootUrl;
+                    $rootUrl = jApp::urlBasePath() . $rootUrl;
             }
         } else {
             // basePath by default :
-            $rootUrl = jApp::config()->urlengine['basePath'];
+            $rootUrl = jApp::urlBasePath();
         }
 
         return $rootUrl;
@@ -318,4 +320,34 @@ class jUrl extends jUrlBase {
         }
     }
 
+    /**
+     * tells if the given url is for the current application or if it matches
+     * given authorized domains
+     *
+     * @param string $url
+     * @param string[] $authorizedDomains
+     * @return boolean
+     */
+    public static function isUrlFromApp($url, $authorizedDomains=array())
+    {
+        $res = @parse_url($url);
+        if (!$res) {
+            return false;
+        }
+        if (isset($res['host']) && $res['host'] != '') {
+            if ($res['host'] != jServer::getDomainName()) {
+                if (!count($authorizedDomains)) {
+                    return false;
+                }
+                if (!in_array($res['host'], $authorizedDomains)) {
+                    return false;
+                }
+                return true;
+            }
+        }
+        $basePath = jApp::urlBasePath();
+        $path = (isset($res['path']) && $res['path'] != '' ? $res['path']: '/');
+        $path = rtrim($path, '/').'/';
+        return (strpos($path, $basePath) === 0);
+    }
 }

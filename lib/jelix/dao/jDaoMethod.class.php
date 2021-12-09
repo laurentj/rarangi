@@ -5,7 +5,8 @@
 * @author      Gérald Croes, Laurent Jouanneau
 * @contributor Laurent Jouanneau
 * @contributor Olivier Demah
-* @copyright   2001-2005 CopixTeam, 2005-2009 Laurent Jouanneau, 2010 Olivier Demah
+* @contributor Philippe Villiers
+* @copyright   2001-2005 CopixTeam, 2005-2009 Laurent Jouanneau, 2010 Olivier Demah, 2013 Philippe Villiers
 * This class was get originally from the Copix project (CopixDAODefinitionV1, Copix 2.3dev20050901, http://www.copix.org)
 * Few lines of code are still copyrighted 2001-2005 CopixTeam (LGPL licence).
 * Initial authors of this Copix class are Gerald Croes and Laurent Jouanneau,
@@ -37,9 +38,10 @@ class jDaoMethod {
     private $_groupBy=null;
 
     /**
-     * @param simpleXmlElement $method  the xml element describing the method to generate
-     * @param jDaoParser  $parser the parser on a dao file
-    */
+     * @param simpleXmlElement $method the xml element describing the method to generate
+     * @param jDaoParser $parser the parser on a dao file
+     * @throws jDaoXmlException
+     */
     function __construct ($method, $parser){
         $this->_parser = $parser;
 
@@ -136,6 +138,7 @@ class jDaoMethod {
         }
 
         if(strlen($params['groupby'])){
+            trigger_error("jdao: groupby attribute on method element is deprecated because its behavior is not predictable", E_USER_DEPRECATED);
             if($this->type == 'select' || $this->type == 'selectfirst'){
                 $this->_groupBy = preg_split("/[\s,]+/", $params['groupby']);
                 $props = $this->_parser->getProperties();
@@ -170,6 +173,10 @@ class jDaoMethod {
     public function getBody (){ return $this->_body;}
     public function getGroupBy() { return $this->_groupBy;}
 
+    /**
+     * @param simpleXmlElement $conditions
+     * @param bool $subcond
+     */
     private function _parseConditions($conditions, $subcond=true){
         if (isset ($conditions['logic'])){
             $kind = strtoupper((string)$conditions['logic']);
@@ -197,11 +204,11 @@ class jDaoMethod {
     }
 
     private $_op = array('eq'=>'=', 'neq'=>'<>', 'lt'=>'<', 'gt'=>'>', 'lteq'=>'<=', 'gteq'=>'>=',
-        'like'=>'LIKE', 'notlike'=>'NOT LIKE', 'isnull'=>'IS NULL', 'isnotnull'=>'IS NOT NULL','in'=>'IN', 'notin'=>'NOT IN',
+        'like'=>'LIKE', 'notlike'=>'NOT LIKE', 'ilike'=>'ILIKE', 'isnull'=>'IS NULL', 'isnotnull'=>'IS NOT NULL','in'=>'IN', 'notin'=>'NOT IN',
         'binary_op'=>'dummy');
       // 'between'=>'BETWEEN',  'notbetween'=>'NOT BETWEEN',
 
-    private $_attrcond = array('property', 'expr', 'operator', 'driver'); //, 'min', 'max', 'exprmin', 'exprmax'
+    private $_attrcond = array('property', 'pattern', 'expr', 'operator', 'driver'); //, 'min', 'max', 'exprmin', 'exprmax'
 
     private function _addCondition($op, $cond){
 
@@ -220,6 +227,8 @@ class jDaoMethod {
         if (!isset ($props[$field_id])){
             throw new jDaoXmlException ($this->_parser->selector, 'method.property.unknown', array($this->name, $field_id));
         }
+
+        $field_pattern = ($attr['pattern']!==null? $attr['pattern']:'');
 
         if($this->type=='update'){
             if($props[$field_id]->table != $this->_parser->getPrimaryTable()){
@@ -249,7 +258,7 @@ class jDaoMethod {
                 }
                 $operator = $attr['operator'];
             }
-            $this->_conditions->addCondition ($field_id, $operator, $value);
+            $this->_conditions->addCondition ($field_id, $operator, $value, $field_pattern);
         }else if($attr['expr']!==null){
             if($op == 'isnull' || $op =='isnotnull'){
                 throw new jDaoXmlException ($this->_parser->selector, 'method.condition.valueexpr.notallowed', array($this->name, $op, $field_id));
@@ -268,12 +277,12 @@ class jDaoMethod {
                 }
                 $operator = $attr['operator'];
             }
-            $this->_conditions->addCondition ($field_id, $operator, $attr['expr'], true);
+            $this->_conditions->addCondition ($field_id, $operator, $attr['expr'], $field_pattern, true);
         }else{
             if($op != 'isnull' && $op !='isnotnull'){
                 throw new jDaoXmlException ($this->_parser->selector, 'method.condition.valueexpr.missing', array($this->name, $op, $field_id));
             }
-            $this->_conditions->addCondition ($field_id, $operator, '', false);
+            $this->_conditions->addCondition ($field_id, $operator, '', $field_pattern, false);
         }
     }
 
@@ -346,6 +355,10 @@ class jDaoMethod {
     private function _addLimit($limit){
         $attr = $this->_parser->getAttr($limit, array('offset','count'));
 
+        /**
+         * @var $offset
+         * @var $count
+         */
         extract($attr);
 
         if( $offset === null){

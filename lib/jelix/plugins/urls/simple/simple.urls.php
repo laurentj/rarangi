@@ -47,7 +47,7 @@ class simpleUrlEngine implements jIUrlEngine {
 
     /**
     * Create a jurl object with the given action data
-    * @param jUrlAction $url  information about the action
+    * @param jUrlAction $urlact  information about the action
     * @return jUrl the url correspondant to the action
     */
     public function create($urlact){
@@ -79,6 +79,7 @@ class simpleUrlEngine implements jIUrlEngine {
      * @param string $requestType
      * @param string $module
      * @param string  $action
+     * @return string the url base path
      */
     protected function getBasePath($requestType, $module=null, $action=null) {
 
@@ -102,9 +103,9 @@ class simpleUrlEngine implements jIUrlEngine {
         }
 
         if ($usehttps)
-          return jApp::coord()->request->getServerURI(true).jApp::config()->urlengine['basePath'];
+          return jServer::getServerURI(true).jApp::urlBasePath();
         else
-          return jApp::config()->urlengine['basePath'];
+          return jApp::urlBasePath();
     }
 
 
@@ -113,6 +114,7 @@ class simpleUrlEngine implements jIUrlEngine {
      * @param string $requestType
      * @param string $module
      * @param string  $action
+     * @return string the script path
      */
     protected function getScript($requestType, $module=null, $action=null){
 

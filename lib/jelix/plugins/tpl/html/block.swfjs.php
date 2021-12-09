@@ -45,6 +45,7 @@
  * @param jTplCompiler $compiler the template compiler
  * @param boolean $begin true if it is the begin of block, else false
  * @param array $params parameters for the url
+ * @return string PHP generated code
  */
 function jtpl_block_html_swfjs($compiler, $begin, $params) {
 
@@ -81,9 +82,9 @@ function jtpl_block_html_swfjs($compiler, $begin, $params) {
             $script .= "            ".\'$(this).prepend($.fn.flash.transform(htmlOptions));\'."\n";
             $script .= "        ".\'});\'."\n";
             $script .= "    ".\'});\'."\n";
-            $p = jApp::config()->urlengine[\'jqueryPath\']
-            $resp->addJSLink($p.\'jquery.js\');
-            $resp->addJSLink($p.\'flash/jquery.flash.js\');
+            $p = jApp::config()->urlengine[\'jelixWWWPath\']
+            $resp->addJSLink(jApp::config()->jquery[\'jquery\']);
+            $resp->addJSLink($p.\'jquery/flash/jquery.flash.js\');
             $resp->addJSCode($script);
         }
         ';

@@ -30,6 +30,8 @@ class jDbPDOConnection extends PDO {
 
     /**
      * The database type name (mysql, pgsql ...)
+     * It is not the driver name. Several drivers could connect to the same database
+     * type. This type name is often used to know whish SQL language we should use.
      * @var string
      */
     public $dbms;
@@ -49,29 +51,43 @@ class jDbPDOConnection extends PDO {
         $prof = $profile;
         $user = '';
         $password = '';
-        $dsn = '';
+
         if (isset($profile['dsn'])) {
             $this->dbms = $this->driverName = substr($profile['dsn'],0,strpos($profile['dsn'],':'));
             $dsn = $profile['dsn'];
             unset($prof['dsn']);
-            if ($this->dbms == 'sqlite')
-                $dsn = str_replace(array('app:','lib:','var:'), array(jApp::appPath(), LIB_PATH, jApp::varPath()), $dsn);
-        }
-        else {
-            $this->dbms = $this->driverName = $profile['driver'];
-            $db = $profile['database'];
-            $dsn = $this->dbms.':host='.$profile['host'].';dbname='.$db;
-            if($this->dbms != 'sqlite')
-                $dsn = $this->dbms.':host='.$profile['host'].';dbname='.$db;
-            else {
-                if (preg_match('/^(app|lib|var)\:/', $db, $m))
-                    $dsn = 'sqlite:'.str_replace(array('app:','lib:','var:'), array(jApp::appPath(), LIB_PATH, jApp::varPath()), $db);
-                else
-                    $dsn = 'sqlite:'.jApp::varPath('db/sqlite/'.$db);
+            if ($this->dbms == 'sqlite') {
+                $dsn = 'sqlite:'.$this->_parseSqlitePath(substr($dsn, 7));
             }
         }
-        if(isset($prof['usepdo']))
+        else {
+            $this->dbms = $profile['driver'];
+            if ($this->dbms == 'mysqli') {
+                $this->dbms = 'mysql';
+            }
+            else if ($this->dbms == 'sqlite3') {
+                $this->dbms = 'sqlite';
+            }
+            $this->driverName = $this->dbms;
+            $db = $profile['database'];
+            if ($this->dbms != 'sqlite') {
+                $dsn = $this->dbms.':host='.$profile['host'].';dbname='.$db;
+            }
+            else {
+                $dsn = 'sqlite:'.$this->_parseSqlitePath($db);
+            }
+
+            if ($this->dbms == 'pgsql' &&
+                isset($profile['pg_options']) &&
+                $profile['pg_options'] != ''
+            ) {
+                $dsn .= ';options='.$profile['pg_options'];
+            }
+
+        }
+        if(isset($prof['usepdo'])) {
             unset($prof['usepdo']);
+        }
 
         // we check user and password because some db like sqlite doesn't have user/password
         if (isset($prof['user'])) {
@@ -88,19 +104,26 @@ class jDbPDOConnection extends PDO {
 
         parent::__construct($dsn, $user, $password, $prof);
 
-        $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('jDbPDOResultSet'));
+        if (version_compare(phpversion(), "8.0") < 0) {
+            $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('jDbPDOResultSet7'));
+        }
+        else {
+            $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('jDbPDOResultSet'));
+        }
         $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         // we cannot launch two queries at the same time with PDO ! except if
         // we use mysql with the attribute MYSQL_ATTR_USE_BUFFERED_QUERY
         // TODO check if PHP 5.3 or higher fixes this issue
-        if ($this->dbms == 'mysql')
+        if ($this->dbms == 'mysql') {
             $this->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
+        }
 
         // Oracle returns names of columns in upper case by default. so here
         // we force the case in lower.
-        if ($this->dbms == 'oci')
+        if ($this->dbms == 'oci') {
             $this->setAttribute(PDO::ATTR_CASE, PDO::CASE_LOWER);
+        }
 
         if (isset($prof['force_encoding']) && $prof['force_encoding']==true) {
             $charset = jApp::config()->charset;
@@ -113,28 +136,50 @@ class jDbPDOConnection extends PDO {
         }
     }
 
+    protected function _parseSqlitePath($path) {
+        if (preg_match('/^(app|lib|var|temp|www)\:/', $path, $m)) {
+            return jFile::parseJelixPath( $path );
+        }
+        else if (preg_match('!^[a-z]\\:(\\\\|/)[a-z]!i', $path) || // windows path
+                 $path[0] == '/' // *nix path
+                ) {
+            if (file_exists($path) || file_exists(dirname($path))) {
+                return $path;
+            }
+            else {
+                throw new Exception ('jDbPDOConnection, sqlite: unknown database path scheme');
+            }
+        }
+        else {
+            return jApp::varPath('db/sqlite/'.$path);
+        }
+    }
+
+    public function getProfileName() {
+        return $this->profile['_name'];
+    }
+
     /**
      * @internal the implementation of Iterator on PDOStatement doesn't call
      * fetch method of classes which inherit of PDOStatement.
      * so, we cannot indicate to fetch object directly in jDbPDOResultSet::fetch().
      * So we overload query() to do it.
-     * TODO check if this is still the case in PHP 5.3
+     * TODO check if this is still the case in PHP 8.1+
+     * @return jDbPDOResultSet|PDOStatement
      */
-    public function query() {
-        $args = func_get_args();
+    public function query($queryString, $fetchmode = PDO::FETCH_OBJ, ...$fetchModeArgs)
+    {
 
-        switch (count($args)) {
-        case 1:
-            $rs = parent::query($args[0]);
-            $rs->setFetchMode(PDO::FETCH_OBJ);
+        if (count($fetchModeArgs) === 0) {
+            $rs = parent::query($queryString);
+            $rs->setFetchMode($fetchmode);
             return $rs;
-        case 2:
-            return parent::query($args[0], $args[1]);
-        case 3:
-            return parent::query($args[0], $args[1], $args[2]);
-        default:
-            throw new Exception('jDbPDOConnection: bad argument number in query');
         }
+
+        if (count($fetchModeArgs) === 1 || $fetchModeArgs[1] === array()) {
+            return parent::query($queryString, $fetchmode, $fetchModeArgs[0]);
+        }
+        return parent::query($queryString, $fetchmode, $fetchModeArgs[0], $fetchModeArgs[1]);
     }
 
     /**
@@ -157,10 +202,76 @@ class jDbPDOConnection extends PDO {
                 $queryString = 'SELECT * FROM ( SELECT ocilimit.*, rownum rnum FROM ('.$queryString.') ocilimit WHERE
                     rownum<'.(intval($limitOffset)+intval($limitCount)).'  ) WHERE rnum >='.intval($limitOffset);
             }
+            elseif ($this->dbms == 'sqlsrv') {
+		$queryString = $this->limitQuerySqlsrv($queryString, $limitOffset, $limitCount);
+	    }
         }
         return $this->query ($queryString);
     }
 
+    /**
+    * Create a limitQuery for the SQL server dbms
+    * @param   string   $queryString   the SQL query
+    * @param   integer  $limitOffset   the offset of the first row to return
+    * @param   integer  $limitCount    the maximum of number of rows to return
+    * @return  string  SQL Select.
+    */
+    protected function limitQuerySqlsrv ($queryString, $limitOffset = null, $limitCount = null) {
+        // we suppress existing 'TOP XX'
+        $queryString = preg_replace('/^SELECT TOP[ ]\d*\s*/i', 'SELECT ', trim($queryString));
+
+        $distinct = false;
+
+        // we retrieve the select part and the from part
+        list($select, $from) = preg_split('/\sFROM\s/mi', $queryString, 2);
+
+        $fields = preg_split('/\s*,\s*/', $select);
+        $firstField = preg_replace('/^\s*SELECT\s+/', '', array_shift($fields));
+
+        // is there a distinct?
+        if (stripos($firstField, 'DISTINCT') !== false) {
+            $firstField = preg_replace('/DISTINCT/i', '', $firstField);
+            $distinct = true;
+        }
+
+        // is there an order by? if not, we order with the first field
+        $orderby = stristr($from, 'ORDER BY');
+        if ($orderby === false) {
+            if (stripos($firstField, ' as ') !== false) {
+            list($field, $key) = preg_split('/ as /', $firstField);
+            }
+            else {
+            $key = $firstField;
+            }
+
+            $orderby = ' ORDER BY '.strstr(strstr($key, '.'),'[').' ASC';
+            $from .= $orderby;
+        } else {
+	    if(strpos($orderby, '.', 8)){
+		$orderby = ' ORDER BY ' . substr($orderby, strpos($orderby, '.') + 1);
+	    }
+	}
+
+        // first we select all records from the begining to the last record of the selection
+        if(!$distinct)
+            $queryString = 'SELECT TOP ';
+        else
+            $queryString = 'SELECT DISTINCT TOP ';
+
+        $queryString .= ($limitCount+$limitOffset) . ' '.$firstField.','.implode(',', $fields).' FROM '.$from;
+
+        // then we select the last $number records, by retrieving the first $number record in the reverse order
+        $queryString = 'SELECT TOP ' . $limitCount . ' * FROM (' . $queryString . ') AS inner_tbl ';
+        $order_inner = preg_replace(array('/\bASC\b/i', '/\bDESC\b/i'), array('_DESC', '_ASC'), $orderby);
+        $order_inner = str_replace(array('_DESC', '_ASC'), array('DESC', 'ASC'), $order_inner);
+        $queryString .= $order_inner;
+
+        // finally, we retrieve the result in the expected order
+        $queryString = 'SELECT TOP ' . $limitCount . ' * FROM (' . $queryString . ') AS outer_tbl '.$orderby;
+
+        return $queryString;
+    }
+        
     /**
      * sets the autocommit state
      * @param boolean $state the status of autocommit
@@ -193,8 +304,9 @@ class jDbPDOConnection extends PDO {
      * @since 1.0
      */
     public function prefixTable($table_name) {
-        if (!isset($this->profile['table_prefix']))
+        if (!isset($this->profile['table_prefix'])) {
             return $table_name;
+        }
         return $this->profile['table_prefix'].$table_name;
     }
 
@@ -246,13 +358,15 @@ class jDbPDOConnection extends PDO {
 
     /**
      * @return jDbTools
+     * @throws jException
      */
     public function tools () {
         if (!$this->_tools) {
             $dbms = ($this->dbms === 'sqlite') ? 'sqlite3' : $this->dbms; 
             $this->_tools = jApp::loadPlugin($dbms, 'db', '.dbtools.php', $dbms.'DbTools', $this);
-            if (is_null($this->_tools))
+            if (is_null($this->_tools)) {
                 throw new jException('jelix~db.error.driver.notfound', $dbms);
+            }
         }
 
         return $this->_tools;
@@ -273,6 +387,4 @@ class jDbPDOConnection extends PDO {
 
         return parent::lastInsertId($fromSequence);
     }
-
 }
-

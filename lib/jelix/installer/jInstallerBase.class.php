@@ -51,7 +51,7 @@ abstract class jInstallerBase {
     public $version = '0';
 
     /**
-     * default configuration of the application
+     * combination between mainconfig.ini.php (master) and entrypoint config (overrider)
      * @var jIniMultiFilesModifier
      */
     public $config;
@@ -120,11 +120,6 @@ abstract class jInstallerBase {
     }
 
     /**
-     * @var jDbTools
-     */
-    private $_dbTool = null;
-
-    /**
      * @var jDbConnection
      */
     private $_dbConn = null;
@@ -164,7 +159,7 @@ abstract class jInstallerBase {
 
         // we check if it is an alias
         if (file_exists(jApp::configPath('profiles.ini.php'))) {
-            $dbprofiles = parse_ini_file(jApp::configPath('profiles.ini.php'));
+            $dbprofiles = parse_ini_file(jApp::configPath('profiles.ini.php'), true);
             if (isset($dbprofiles['jdb'][$dbProfile]))
                 $this->dbProfile = $dbprofiles['jdb'][$dbProfile];
         }
@@ -249,10 +244,11 @@ abstract class jInstallerBase {
      * in the directory of the component. (replace databasetype by mysql, pgsql etc.)
      * You can however provide a script compatible with all databases, but then
      * you should indicate the full name of the script, with a .sql extension.
-     * 
+     *
      * @param string $name the name of the script
      * @param string $module the module from which we should take the sql file. null for the current module
      * @param boolean $inTransaction indicate if queries should be executed inside a transaction
+     * @throws Exception
      */
     final protected function execSQLScript ($name, $module = null, $inTransaction = true) {
 
@@ -289,39 +285,59 @@ abstract class jInstallerBase {
     }
 
     /**
+     * Insert data into a database, from a json file, using a DAO mapping
+     * @param string $relativeSourcePath name of the json file into the install directory
+     * @param integer $option one of jDbTools::IBD_* const
+     * @return integer number of records inserted/updated
+     * @throws Exception
+     * @since 1.6.16
+     */
+    final protected function insertDaoData($relativeSourcePath, $option, $module = null) {
+
+        if ($module) {
+            $conf = $this->entryPoint->config->_modulesPathList;
+            if (!isset($conf[$module])) {
+                throw new Exception('insertDaoData : invalid module name');
+            }
+            $path = $conf[$module];
+        }
+        else {
+            $path = $this->path;
+        }
+
+        $file = $path.'install/'.$relativeSourcePath;
+        $dataToInsert = json_decode(file_get_contents($file), true);
+        if (!$dataToInsert) {
+            throw new Exception("Bad format for dao data file.");
+        }
+        if (is_object($dataToInsert)) {
+            $dataToInsert = array($dataToInsert);
+        }
+        $daoMapper = new jDaoDbMapper($this->dbProfile);
+        $count = 0;
+        foreach($dataToInsert as $daoData) {
+            if (!isset($daoData['dao']) ||
+                !isset($daoData['properties']) ||
+                !isset($daoData['data'])
+            ) {
+               throw new Exception("Bad format for dao data file.");
+            }
+            $count += $daoMapper->insertDaoData($daoData['dao'],
+                $daoData['properties'], $daoData['data'], $option);
+        }
+        return $count;
+    }
+
+
+    /**
      * copy the whole content of a directory existing in the install/ directory
      * of the component, to the given directory
      * @param string $relativeSourcePath relative path to the install/ directory of the component
      * @param string $targetPath the full path where to copy the content
      */
     final protected function copyDirectoryContent($relativeSourcePath, $targetPath, $overwrite = false) {
-        $targetPath = $this->expandPath($targetPath);
-        $this->_copyDirectoryContent ($this->path.'install/'.$relativeSourcePath, $targetPath, $overwrite);
+        jFile::copyDirectoryContent($this->path.'install/'.$relativeSourcePath, $this->expandPath($targetPath), $overwrite);
     }
-
-    /**
-     * private function which copy the content of a directory to an other
-     *
-     * @param string $sourcePath 
-     * @param string $targetPath
-     */
-    private function _copyDirectoryContent($sourcePath, $targetPath, $overwrite) {
-        jFile::createDir($targetPath);
-        $dir = new DirectoryIterator($sourcePath);
-        foreach ($dir as $dirContent) {
-            if ($dirContent->isFile()) {
-                $p = $targetPath.substr($dirContent->getPathName(), strlen($dirContent->getPath()));
-                if ($overwrite || !file_exists($p))
-                    copy($dirContent->getPathName(), $p);
-            } else {
-                if (!$dirContent->isDot() && $dirContent->isDir()) {
-                    $newTarget = $targetPath.substr($dirContent->getPathName(), strlen($dirContent->getPath()));
-                    $this->_copyDirectoryContent($dirContent->getPathName(),$newTarget, $overwrite);
-                }
-            }
-        }
-    }
-
 
     /**
      * copy a file from the install/ directory to an other
@@ -398,7 +414,9 @@ abstract class jInstallerBase {
             }
             if (is_array($sectionContent)) {
                 foreach($sectionContent as $k=>$v) {
-                    $profiles->setValue($k,$v, 'jdb:'.$name);
+                    if ($force || !$profiles->getValue($k, 'jdb:'.$name)) {
+                        $profiles->setValue($k,$v, 'jdb:'.$name);
+                    }
                 }
             }
             else {

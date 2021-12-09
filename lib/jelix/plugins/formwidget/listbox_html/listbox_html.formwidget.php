@@ -1,11 +1,11 @@
 <?php
 /**
 * @package     jelix
-* @subpackage  formwidgets
+* @subpackage  forms_widget_plugin
 * @author      Claudio Bernardes
 * @contributor Laurent Jouanneau, Julien Issler, Dominique Papin
 * @copyright   2012 Claudio Bernardes
-* @copyright   2006-2012 Laurent Jouanneau, 2008-2011 Julien Issler, 2008 Dominique Papin
+* @copyright   2006-2015 Laurent Jouanneau, 2008-2015 Julien Issler, 2008 Dominique Papin
 * @link        http://www.jelix.org
 * @licence     http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -13,7 +13,7 @@
 /**
  * HTML form builder
  * @package     jelix
- * @subpackage  jelix-plugins
+ * @subpackage  forms_widget_plugin
  * @link http://developer.jelix.org/wiki/rfc/jforms-controls-plugins
  */
 
@@ -22,7 +22,7 @@ class listbox_htmlFormWidget extends \jelix\forms\HtmlWidget\WidgetBase {
         $js = '';
         $ctrl = $this->ctrl;
         $jFormsJsVarName = $this->builder->getjFormsJsVarName();
-        
+
         if($ctrl->multiple){
             $js .= "c = new ".$jFormsJsVarName."ControlString('".$ctrl->ref."[]', ".$this->escJsStr($ctrl->label).");\n";
             $js .= "c.multiple = true;\n";
@@ -30,13 +30,21 @@ class listbox_htmlFormWidget extends \jelix\forms\HtmlWidget\WidgetBase {
             $js .= "c = new ".$jFormsJsVarName."ControlString('".$ctrl->ref."', ".$this->escJsStr($ctrl->label).");\n";
         }
         $this->parentWidget->addJs($js);
+        if ($ctrl instanceof jFormsControlDatasource
+            && $ctrl->datasource instanceof jIFormsDynamicDatasource) {
+            $dependentControls = $ctrl->datasource->getCriteriaControls();
+            if ($dependentControls) {
+                $this->parentWidget->addJs("c.dependencies = ['".implode("','",$dependentControls)."'];\n");
+                $this->parentWidget->addFinalJs("jFormsJQ.tForm.declareDynamicFill('".$ctrl->ref.($ctrl->multiple?'[]':'')."');\n");
+            }
+        }
         $this->commonJs();
     }
-    
+
     function outputControl() {
         $ctrl = $this->ctrl;
         $attr = $this->getControlAttributes();
-        $value = $this->getValue($ctrl);
+        $value = $this->getValue();
 
         if (isset($attr['readonly'])) {
             $attr['disabled'] = 'disabled';
@@ -51,15 +59,24 @@ class listbox_htmlFormWidget extends \jelix\forms\HtmlWidget\WidgetBase {
             echo '<select';
             $this->_outputAttr($attr);
             echo ">\n";
-            if($ctrl->emptyItemLabel !== null)
-                echo '<option value=""',(in_array('',$value,true)?' selected="selected"':''),'>',htmlspecialchars($ctrl->emptyItemLabel),"</option>\n";
-            if(is_array($value) && count($value) == 1)
+            if ($ctrl->emptyItemLabel !== null) {
+                if (is_array($value)) {
+                    $selected = in_array('',$value,true);
+                }
+                else {
+                    $selected = $value == '';
+                }
+                echo '<option value=""',($selected?' selected="selected"':''),'>',htmlspecialchars($ctrl->emptyItemLabel),"</option>\n";
+            }
+            if (is_array($value) && count($value) == 1) {
                 $value = $value[0];
+            }
 
-            if(is_array($value)){
+            if (is_array($value)) {
                 $value = array_map(function($v){ return (string) $v;},$value);
                 $this->fillSelect($ctrl, $value);
-            }else{
+            }
+            else {
                 $this->fillSelect($ctrl, (string)$value);
             }
             echo "</select>\n";

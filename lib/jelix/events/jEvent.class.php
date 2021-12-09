@@ -4,7 +4,7 @@
 * @subpackage  events
 * @author      Gérald Croes, Patrice Ferlet
 * @contributor Laurent Jouanneau, Dominique Papin, Steven Jehannet
-* @copyright 2001-2005 CopixTeam, 2005-2012 Laurent Jouanneau, 2009 Dominique Papin
+* @copyright 2001-2005 CopixTeam, 2005-2020 Laurent Jouanneau, 2009 Dominique Papin
 * This classes were get originally from the Copix project
 * (CopixEvent*, CopixListener* from Copix 2.3dev20050901, http://www.copix.org)
 * Some lines of code are copyrighted 2001-2005 CopixTeam (LGPL licence).
@@ -39,7 +39,7 @@ class jEvent {
     protected $_params = null;
 
     /**
-    * @var array of array
+    * @var mixed[][]
     */
     protected $_responses = array ();
 
@@ -54,6 +54,25 @@ class jEvent {
     }
 
     /**
+     * get a user param
+     * @param string $name the parameter name
+     * @return mixed
+     */
+    function __get($name) {
+        return $this->getParam($name);
+    }
+
+    /**
+     * set a user param
+     * @param string $name the parameter name
+     * @param mixed $value the value
+     * @return mixed
+     */
+    function __set($name, $value) {
+        return $this->_params[$name] = $value;
+    }
+
+    /**
     * gets the name of the event
     *    will be used internally for optimisations
     */
@@ -64,6 +83,8 @@ class jEvent {
     /**
     * gets the given param
     * @param string $name the param name
+    * @return string|null the value or null if the parameter does not exist
+    * @deprecated since Jelix 1.6
     */
     public function getParam ($name){
         if (isset ($this->_params[$name])){
@@ -75,27 +96,49 @@ class jEvent {
     }
 
     /**
-    * adds data in the responses list
-    * @param array $response a single response
+     * return all parameters
+     *
+     * @return array parameters
+     * @since 1.6.30
+     */
+    public function getParameters()
+    {
+        return $this->_params;
+    }
+
+    /**
+     * Adds data in the responses list
+     *
+     * if it is an array, specific items can be retrieved with getResponseByKey()
+     * getBoolResponseByKey(), or inResponse()
+    * @param mixed $response a single response
     */
     public function add ($response) {
         $this->_responses[] = & $response;
     }
 
     /**
-    * look in all the responses if we have a parameter having value as its answer
-    * eg, we want to know if we have failed = true, we do
-    * @param string $responseName the param we're looking for
-    * @param mixed $value the value we're looking for
-    * @param ref $response the response that have this value
-    * @return boolean wether or not we have founded the response value
-    */
-    public function inResponse ($responseName, $value, & $response){
+     * look in all the responses if we have a parameter having value as its answer
+     *
+     * eg, we want to know if we have failed = true in some responses, we call
+     * inResponse('failed', true, $results), and we have into $results all
+     * responses that have an item 'failed' equals to true.
+     *
+     * @param string $responseKey the response item we're looking for
+     * @param mixed $value the value we're looking for
+     * @param mixed[] $response returned array : all full responses arrays that have
+     *   the given value
+     * @return boolean whether or not we have founded the response value
+     */
+    public function inResponse ($responseKey, $value, & $response){
         $founded  = false;
         $response = array ();
 
         foreach ($this->_responses as $key=>$listenerResponse){
-            if (isset ($listenerResponse[$responseName]) && $listenerResponse[$responseName] == $value){
+            if (is_array($listenerResponse) &&
+                isset ($listenerResponse[$responseKey]) &&
+                $listenerResponse[$responseKey] == $value
+            ) {
                 $founded = true;
                 $response[] = & $this->_responses[$key];
             }
@@ -105,8 +148,94 @@ class jEvent {
     }
 
     /**
+     * get all responses value for the given key
+     *
+     * @param string $responseKey
+     * @return array|null list of values or null if no responses for the given item
+     * @since 1.6.22
+     */
+    public function getResponseByKey($responseKey){
+        $response = array ();
+
+        foreach ($this->_responses as $key=>$listenerResponse){
+            if (is_array($listenerResponse) &&
+                isset ($listenerResponse[$responseKey])
+            ) {
+                $response[] = & $listenerResponse[$responseKey];
+            }
+        }
+        if (count($response))
+            return $response;
+        return null;
+    }
+
+    const RESPONSE_AND_OPERATOR = 0;
+
+    const RESPONSE_OR_OPERATOR = 1;
+
+    /**
+     * get a response value as boolean
+     *
+     * if there are multiple response for the same key, a OR or a AND operation
+     * is made between all of response values.
+     *
+     * @param string $responseKey
+     * @param int $operator const RESPONSE_AND_OPERATOR or RESPONSE_OR_OPERATOR
+     * @return null|boolean
+     * @since 1.6.22
+     */
+    protected function getBoolResponseByKey($responseKey, $operator = 0){
+        $response = null;
+
+        foreach ($this->_responses as $key=>$listenerResponse){
+            if (is_array($listenerResponse) &&
+                isset ($listenerResponse[$responseKey])
+            ) {
+                $value = (bool) $listenerResponse[$responseKey];
+                if ($response === null) {
+                    $response = $value;
+                }
+                else if ($operator === self::RESPONSE_AND_OPERATOR) {
+                    $response = $response && $value;
+                }
+                else if ($operator === self::RESPONSE_OR_OPERATOR) {
+                    $response = $response || $value;
+                }
+            }
+        }
+
+        return $response;
+    }
+
+    /**
+     * says if all responses items for the given key, are equals to true
+     *
+     * @param string $responseKey
+     * @return null|boolean  null if there are no responses
+     * @since 1.6.22
+     */
+    public function allResponsesByKeyAreTrue($responseKey) {
+        return $this->getBoolResponseByKey($responseKey, self::RESPONSE_AND_OPERATOR);
+    }
+
+    /**
+     * says if all responses items for the given key, are equals to false
+     *
+     * @param string $responseKey
+     * @return null|boolean  null if there are no responses
+     * @since 1.6.22
+     */
+    public function allResponsesByKeyAreFalse($responseKey) {
+        $res = $this->getBoolResponseByKey($responseKey, self::RESPONSE_OR_OPERATOR);
+        if ($res === null) {
+            return $res;
+        }
+        return !$res;
+    }
+
+    /**
     * gets all the responses
-    * @return array of associative array
+    * @return mixed[][]  associative array
     */
     public function getResponse () {
         return $this->_responses;
@@ -147,26 +276,26 @@ class jEvent {
     * because a listener can listen several events, we should
     * create only one instancy of a listener for performance, and
     * $hashListened will contains only reference to this listener.
-    * @var array of jEventListener
+    * @var jEventListener[][]
     */
     protected static $listenersSingleton = array ();
 
     /**
     * hash table for event listened.
-    * $_hash['eventName'] = array of events (by reference)
-    * @var associative array of object
+    * $hashListened['eventName'] = array of events (by reference)
+    * @var jEventListener[][]
     */
     protected static $hashListened = array ();
 
     /**
-    * return the list of all listener corresponding to an event
+    * construct the list of all listeners corresponding to an event
     * @param string $eventName the event name we wants the listeners for.
-    * @return array of objects
     */
     protected static function loadListenersFor ($eventName) {
         if (!isset($GLOBALS['JELIX_EVENTS'])) {
-            self::$compilerData[3] = jApp::config()->urlengine['urlScriptId'].'.'.self::$compilerData[3];
-            jIncluder::incAll(self::$compilerData);
+            $compilerData = self::$compilerData;
+            $compilerData[3] = jApp::config()->urlengine['urlScriptId'].'.'.$compilerData[3];
+            jIncluder::incAll($compilerData, true);
         }
 
         $inf = & $GLOBALS['JELIX_EVENTS'];

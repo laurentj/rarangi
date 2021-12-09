@@ -4,7 +4,7 @@
 * @subpackage db_driver
 * @author     Gwendal Jouannic
 * @contributor Laurent Jouanneau
-* @copyright  2008 Gwendal Jouannic, 2009-2011 Laurent Jouanneau
+* @copyright  2008 Gwendal Jouannic, 2009-2017 Laurent Jouanneau
 * @link      http://www.jelix.org
 * @licence  http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public Licence, see LICENCE file
 */
@@ -30,6 +30,7 @@ class ociDbTools extends jDbTools {
 
       'float'           =>array('float',            'float',    null,       null,       null,     null), //4bytes
       'money'           =>array('float',            'float',    null,       null,       null,     null), //4bytes
+      'smallmoney'      =>array('float',            'float',    null,       null,       null,     null), //4bytes
       'double precision'=>array('double precision', 'decimal',  null,       null,       null,     null), //8bytes
       'double'          =>array('double precision', 'decimal',  null,       null,       null,     null), //8bytes
       'real'            =>array('real',             'decimal',  null,       null,       null,     null), //8bytes
@@ -44,6 +45,9 @@ class ociDbTools extends jDbTools {
       'date'            =>array('date',       'date',       null,       null,       10,    10),
       'time'            =>array('time',       'time',       null,       null,       8,     8),
       'datetime'        =>array('datetime',   'datetime',   null,       null,       19,    19),
+      'datetime2'       =>array('datetime',   'datetime',   null,       null,       19,    27), // sqlsrv / 9999-12-31 23:59:59.9999999
+      'datetimeoffset'  =>array('datetime',   'datetime',   null,       null,       19,    34), // sqlsrv / 9999-12-31 23:59:59.9999999 +14:00
+      'smalldatetime'   =>array('datetime',   'datetime',   null,       null,       19,    19), // sqlsrv / 2079-06-06 23:59
       'timestamp'       =>array('datetime',   'datetime',   null,       null,       19,    19), // oracle/pgsql timestamp
       'utimestamp'      =>array('timestamp',  'integer',    0,          2147483647, null,  null), // mysql timestamp
       'year'            =>array('year',       'year',       null,       null,       2,     4),
@@ -62,6 +66,7 @@ class ociDbTools extends jDbTools {
 
       'tinytext'        =>array('tinytext',   'text',       null,       null,       0,     255),
       'text'            =>array('text',       'text',       null,       null,       0,     65535),
+      'ntext'           =>array('text',       'text',       null,       null,       0,     0),
       'mediumtext'      =>array('mediumtext', 'text',       null,       null,       0,     16777215),
       'longtext'        =>array('longtext',   'text',       null,       null,       0,     0),
       'long'            =>array('longtext',   'text',       null,       null,       0,     0),
@@ -80,10 +85,12 @@ class ociDbTools extends jDbTools {
       'varbinary'       =>array('varbinary',  'varbinary',  null,       null,       0,     255),
       'raw'             =>array('varbinary',  'varbinary',  null,       null,       0,     2000),
       'long raw'        =>array('varbinary',  'varbinary',  null,       null,       0,     0),
+      'image'           =>array('varbinary',  'varbinary',   null,       null,       0,     0),
 
       'enum'            =>array('varchar',    'varchar',    null,       null,       0,     65535),
       'set'             =>array('varchar',    'varchar',    null,       null,       0,     65535),
       'xmltype'         =>array('varchar',    'varchar',    null,       null,       0,     65535),
+      'xml'             =>array('text',       'text',       null,       null,       0,     0),
 
       'point'           =>array('varchar',    'varchar',    null,       null,       0,     16),
       'line'            =>array('varchar',    'varchar',    null,       null,       0,     32),
@@ -100,29 +107,95 @@ class ociDbTools extends jDbTools {
       'complex types'   =>array('varchar',    'varchar',    null,       null,       0,     65535),
     );
 
-    /**
-    * returns the list of tables 
-    * @return   array    list of table names
-    */
-    public function getTableList () {
-        $results = array ();
 
-        $rs = $this->_conn->query ('SELECT TABLE_NAME FROM USER_TABLES');
+    protected $keywordNameCorrespondence = array(
+        // sqlsrv,mysql,oci,pgsql -> date+time
+        //'current_timestamp' => '',
+        // mysql,oci,pgsql -> date
+        //'current_date' => '',
+        // mysql -> time, pgsql -> time+timezone
+        'current_time' => 'CURRENT_TIMESTAMP',
+        // oci -> date+fractional secon + timezone
+        //'systimestamp' => '',
+        // oci -> date+time+tz
+        //'sysdate' => '',
+        // pgsql -> time
+        'localtime' => 'CURRENT_TIMESTAMP',
+        // pgsql -> date+time
+        'localtimestamp' => 'CURRENT_TIMESTAMP',
+    );
 
-        while ($line = $rs->fetch ()){
-            $results[] = $line->table_name;
-        }
+    protected $functionNameCorrespondence = array(
 
-        return $results;
-    }
+        // sqlsrv, -> date+time
+        'sysdatetime' => 'SYSTIMESTAMP',
+        // sqlsrv, -> date+time+offset
+        'sysdatetimeoffset' => 'SYSTIMESTAMP',
+        // sqlsrv, -> date+time at utc
+        'sysutcdatetime' => 'SYSTIMESTAMP',
+        // sqlsrv -> date+time
+        'getdate' => 'CURRENT_TIMESTAMP',
+        // sqlsrv -> date+time at utc
+        'getutcdate' => 'CURRENT_TIMESTAMP',
+        // sqlsrv,mysql (datetime)-> integer
+        'day' => 'EXTRACT(DAY FROM %!p)',
+        // sqlsrv,mysql (datetime)-> integer
+        'month' => 'EXTRACT(MONTH FROM %!p)',
+        // sqlsrv, mysql (datetime)-> integer
+        'year' => 'EXTRACT(YEAR FROM %!p)',
+        // mysql -> date
+        'curdate' => 'CURRENT_DATE',
+        // mysql -> date
+        'current_date' => 'CURRENT_DATE',
+        // mysql -> time
+        'curtime' => 'CURRENT_TIMESTAMP',
+        // mysql -> time
+        'current_time' => 'CURRENT_TIMESTAMP',
+        // mysql,pgsql -> date+time
+        'now' => 'CURRENT_TIMESTAMP',
+        // mysql date+time
+        'current_timestamp' => 'CURRENT_TIMESTAMP',
+        // mysql (datetime)->date, sqlite (timestring, modifier)->date
+        'date' => 'TO_DATE(%!p)',
+        // mysql = day()
+        'dayofmonth' => 'EXTRACT(DAY FROM %!p)',
+        // mysql -> date+time
+        'localtime' => 'CURRENT_TIMESTAMP',
+        // mysql -> date+time
+        'localtimestamp' => 'CURRENT_TIMESTAMP',
+        // mysql utc current date
+        'utc_date' => 'CURRENT_DATE',
+        // mysql utc current time
+        'utc_time' => 'CURRENT_TIMESTAMP',
+        // mysql utc current date+time
+        'utc_timestamp' => 'CURRENT_TIMESTAMP',
+        // mysql (datetime)->time, , sqlite (timestring, modifier)->time
+        'time' => 'TO_DATE(%!p)',
+        // mysql (datetime/time)-> hour
+        'hour'=> 'EXTRACT(HOUR FROM %!p)',
+        // mysql (datetime/time)-> minute
+        'minute'=> 'EXTRACT(MINUTE FROM %!p)',
+        // mysql (datetime/time)-> second
+        'second'=> 'EXTRACT(SECOND FROM %!p)',
+        // sqlite (timestring, modifier)->datetime
+        'datetime' => 'TO_DATE(%!p)',
+        // oci, mysql (year|month|day|hour|minute|second FROM <datetime>)->value ,
+        // pgsql (year|month|day|hour|minute|second <datetime>)->value
+        'extract' => '!extractDateConverter',
+        // pgsql ('year'|'month'|'day'|'hour'|'minute'|'second', <datetime>)->value
+        'date_part' => '!extractDateConverter',
+        // sqlsrv (year||month|day|hour|minute|second, <datetime>)->value
+        'datepart' => '!extractDateConverter',
+    );
 
     /**
     * retrieve the list of fields of a table
     * @param string $tableName the name of the table
     * @param string $sequence  the sequence used to auto increment the primary key
-    * @return   array    keys are field names and values are jDbFieldProperties objects
+    * @param string $schemaName the name of the schema (only for PostgreSQL, not supported here)
+    * @return   jDbFieldProperties[]    keys are field names and values are jDbFieldProperties objects
     */
-    public function getFieldList ($tableName, $sequence='') {
+    public function getFieldList ($tableName, $sequence='', $schemaName='') {
         $tableName = $this->_conn->prefixTable($tableName);
         $results = array ();
 
@@ -133,7 +206,11 @@ class ociDbTools extends jDbTools {
                             AND UC.TABLE_NAME = UTC.TABLE_NAME
                             AND UCC.COLUMN_NAME = UTC.COLUMN_NAME
                             AND UC.CONSTRAINT_NAME = UCC.CONSTRAINT_NAME
-                            AND UC.CONSTRAINT_TYPE = \'P\') AS CONSTRAINT_TYPE
+                            AND UC.CONSTRAINT_TYPE = \'P\') AS CONSTRAINT_TYPE,  
+                        (SELECT COMMENTS 
+                         FROM USER_COL_COMMENTS UCCM
+                         WHERE UCCM.TABLE_NAME = UTC.TABLE_NAME
+                         AND UCCM.COLUMN_NAME = UTC.COLUMN_NAME) AS COLUMN_COMMENT
                     FROM USER_TAB_COLUMNS UTC 
                     WHERE UTC.TABLE_NAME = \''.strtoupper($tableName).'\'';
 
@@ -161,6 +238,10 @@ class ociDbTools extends jDbTools {
             $field->notNull = ($line->nullable == 'N');
             $field->primary = ($line->constraint_type == 'P');
 
+            if(isset($line->column_comment) && !empty($line->column_comment)) {
+                $field->comment = $line->column_comment;
+            }
+
             // FIXME, retrieve autoincrement property for other field than primary key
             if ($field->primary) {
                 if ($sequence == '')
@@ -169,7 +250,7 @@ class ociDbTools extends jDbTools {
                     $sqlai = "SELECT 'Y' FROM USER_SEQUENCES US
                                 WHERE US.SEQUENCE_NAME = '".$sequence."'";
                     $rsai = $this->_conn->query ($sqlai);
-                    if ($this->_conn->query($sqlai)->fetch()){
+                    if ($rsai->fetch()){
                         $field->autoIncrement  = true;
                         $field->sequence = $sequence;
                     }

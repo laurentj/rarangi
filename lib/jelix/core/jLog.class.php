@@ -1,7 +1,7 @@
 <?php
 /**
 * @package    jelix
-* @subpackage core
+* @subpackage core_log
 * @author     Laurent Jouanneau
 * @contributor F. Fernandez, Hadrien Lanneau
 * @copyright  2006-2012 Laurent Jouanneau, 2007 F. Fernandez, 2011 Hadrien Lanneau
@@ -60,16 +60,19 @@ require(JELIX_LIB_CORE_PATH.'log/jFileLogger.class.php');
 /**
  * utility class to log some message into a file into yourapp/var/log
  * @package    jelix
- * @subpackage utils
+ * @subpackage core_log
  * @static
  */
 class jLog {
 
+    /**
+     * @var jILogger[]
+     */
     protected static $loggers = array();
 
     /**
      * all messages, when the memory logger is used
-     * @var array  array of jILogMessage
+     * @var jILogMessage[]
      */
     protected static $allMessages = array();
 
@@ -120,6 +123,9 @@ class jLog {
         self::_dispatchLog($message);
     }
 
+    /**
+     * @param jILogMessage $message
+     */
     protected static function _dispatchLog($message) {
         $confLoggers = &jApp::config()->logger;
         $category = $message->getCategory();
@@ -140,6 +146,10 @@ class jLog {
         self::_log($message, $loggers);
     }
 
+    /**
+     * @param jILogMessage $message
+     * @param array $loggers
+     */
     protected static function _log($message, $loggers) {
 
         // let's inject the message in all loggers
@@ -174,6 +184,14 @@ class jLog {
                     require(JELIX_LIB_CORE_PATH.'log/jMailLogger.class.php');
                     self::$loggers[$loggername] = new jMailLogger();
                 }
+                elseif ($loggername == 'stderr') {
+                    require(JELIX_LIB_CORE_PATH.'log/jStderrLogger.class.php');
+                    self::$loggers[$loggername] = new jStderrLogger();
+                }
+                elseif ($loggername == 'stdout') {
+                    require(JELIX_LIB_CORE_PATH.'log/jStdoutLogger.class.php');
+                    self::$loggers[$loggername] = new jStdoutLogger();
+                }
                 else {
                     $l = jApp::loadPlugin($loggername, 'logger', '.logger.php', $loggername.'Logger');
                     if (is_null($l))
@@ -189,7 +207,7 @@ class jLog {
      * returns messages stored in memory (if the memory logger is activated)
      * @param string|array $filter if given, category or list of categories
      *                             of messages you want to retrieve
-     * @return array  the list of jILogMessage object
+     * @return jILogMessage[]
      */
     public static function getMessages($filter = false) {
         if ($filter === false || self::$allMessages === null)
